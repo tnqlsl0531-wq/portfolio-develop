@@ -1,0 +1,32 @@
+디자인과 글꼴 출처
+
+디자인: 사용자 제공 Figma 파일 / node 122:581
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-581
+
+SVG: 해당 Figma 파일의 곡선, 국순당·자두야 로고, 아이콘 원본 레이어를 내보냈습니다.
+로고 마스크는 원본 마스크의 벡터 레이어입니다. SVG 파일 내용은 변경하지 않았습니다.
+종이클립 SVG에는 피그마의 회전이 포함되어 있습니다.
+
+Min Sans VF: https://github.com/poposnail61/min-sans
+Special Gothic Expanded One / Lisu Bosa / Noto Sans KR / Syncopate:
+https://github.com/google/fonts
+각 글꼴의 라이선스는 src/assets/fonts에 동봉했습니다.
+Noto Sans KR은 @fontsource-variable/noto-sans-kr 5.3.0의 웹용 WOFF2 파일을 사용합니다.
+
+Min Sans는 npm install 시 scripts/install-fonts.mjs가 동일한 원본을 받아 체크섬을 확인합니다.
+원본 고정 버전: poposnail61/min-sans@b8ad5007a55575d030f6b57c2a0d038f295e323b
+원본 경로: web/fonts/variable/MinSansVF.woff2
+SHA-256: 0218401d2d9b651c30d217501d4389f7f5003ef92f91b55b6c1555595cf1f00a
+
+히어로 테두리 애니메이션 참고 / 적용:
+https://reactbits.dev/text-animations/stroke-text
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/StrokeText
+React Bits Stroke Text의 SVG 글자별 stroke-dashoffset 방식과 기본 stagger, repeatDelay를 기반으로
+두 줄 히어로에 맞게 수정했습니다. sine.inOut은 (1 - cos(PI * progress)) / 2로 계산합니다.
+GSAP 대신 브라우저 requestAnimationFrame을 사용하며, 추가 런타임 의존성은 없습니다.
+기존 Special Gothic Expanded One 글꼴에 fontWeight 900 / font-synthesis: weight를 적용했습니다.
+React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
+
+갤러리 호버 정지 범위:
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-627
+기울어진 4개 사진 트랙에만 hover 정지를 적용했습니다.

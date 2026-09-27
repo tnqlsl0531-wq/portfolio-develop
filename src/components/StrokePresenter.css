@@ -1,0 +1,25 @@
+.stroke-presenter {
+  display: block;
+  line-height: 0;
+  -webkit-text-stroke: 0;
+}
+
+.stroke-presenter svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.stroke-presenter text {
+  font-family: 'Special Gothic Expanded One', sans-serif;
+  font-synthesis: weight;
+  user-select: none;
+  -webkit-text-stroke: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stroke-presenter [data-stroke-char] {
+    stroke-dashoffset: 0 !important;
+  }
+}

@@ -4,7 +4,7 @@
 
 ## 다른 컴퓨터에서 처음 실행하기
 
-1. Node.js 24, VS Code, GitHub Desktop을 설치합니다.
+1. Node.js 24.5 이상, VS Code, GitHub Desktop을 설치합니다.
 2. GitHub Desktop에서 이 저장소에 접근할 수 있는 GitHub 계정으로 로그인합니다.
 3. `File → Clone repository → URL`에서 `https://github.com/tnqlsl0531-wq/portfolio`를 입력하고 `Clone`을 누릅니다.
 4. 내려받은 `portfolio` 폴더를 VS Code에서 엽니다. `package.json`과 `src`가 함께 보이는 폴더가 맞습니다.
@@ -18,6 +18,8 @@ npm.cmd run dev
 터미널에서 `Local` 옆 주소를 Ctrl 키를 누른 채 클릭하면 미리보기가 열립니다. 미리보기를 보는 동안 터미널을 켜두세요. 종료하려면 `Ctrl + C`를 누릅니다.
 
 macOS와 Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다.
+
+`npm install`이 Noto Sans KR 패키지와 Min Sans 원본 글꼴을 함께 준비합니다. 최초 설치에는 인터넷 연결이 필요하며, 이후에는 글꼴도 프로젝트 안에서 불러옵니다. Min Sans 다운로드가 중단되면 `npm.cmd run setup:fonts`를 다시 실행하세요.
 
 ## 두 컴퓨터에서 이어서 작업하기
 
@@ -33,7 +35,10 @@ macOS와 Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다.
 ## 포함된 수정
 
 - Artist Gallery: 기울어진 사진 마퀴 위에서만 움직임을 멈춥니다. 제목, 설명, 버튼, 마퀴 바깥 빈 공간에서는 계속 움직이며, 마우스가 사진 트랙을 벗어나면 멈춘 위치부터 이어집니다.
-- Hero: CHOI-SUBIN / PRESENTS의 테두리가 반복해서 그려집니다. 색상은 `#F8574F`, 글자별 그리기 시간은 1.9초, 채우기는 없음입니다.
+- Hero: CHOI-SUBIN / PRESENTS의 테두리가 반복해서 그려집니다. 색상은 `#F8574F`, 외곽선 두께는 1.0, 글자별 그리기 시간은 1.9초, 채우기는 없음입니다. 글자 크기와 굵기는 유지했습니다.
+- Show Line-up: 국순당은 Team / Web, 자두야는 Team / App으로 구분합니다. 처음에는 플랫폼 All로 두 프로젝트를 모두 보여주며, 드롭다운으로 나눠 볼 수 있습니다.
+- Artist Gallery: 위·아래 흰색 그라데이션의 끝 불투명도를 92%에서 100%로 올렸습니다.
+- Director’s Note: 사진과 글이 나란히 배치되는 화면에서는 사진 중앙이 화면 중앙에 도달하면 고정되고, 마지막 소개 문단의 끝에서 함께 올라갑니다. 좁은 모바일 화면에서는 사진 다음에 글이 자연스럽게 이어집니다.
 - 동작 줄이기 설정과 화면 밖 애니메이션 정지를 지원합니다.
 
 ## 내용을 바꿀 파일
