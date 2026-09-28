@@ -10,6 +10,8 @@
   height: 100svh;
   min-height: 320px;
   overflow: hidden;
+  /* 사진 크기를 히어로 높이(cqh)로도 제한해서, 창이 낮아도 사진 아래가 잘리지 않게 합니다. */
+  container-type: size;
   background: var(--neutral-white);
   font-family: 'Special Gothic Expanded One', sans-serif;
 }
@@ -71,37 +73,128 @@
   );
 }
 
-/* 사진 주소를 추가하면 같은 위치에서 실제 사진으로 바뀝니다. */
+/* 피그마 히어로 사진(node 122-582)
+   가로 크기를 기준으로 비율을 유지하되, 히어로 높이를 넘지 않게 제한합니다(사진이 잘려 보이지 않도록).
+   가장자리는 마스크로 부드럽게 투명해집니다.
+   --fade: 아래쪽이 투명해지는 길이(사진 높이 대비)
+   --fade-left / --fade-right: 좌우가 투명해지는 폭(사진 너비 대비)
+   --sides-from / --sides-full: 좌우 페이드를 사진의 아래쪽에만 적용할 때, 시작 높이와 완전히 적용되는 높이
+   곡선은 천천히 시작해 천천히 끝나도록 여러 단계로 나눠 띠가 보이지 않게 했습니다. */
 .hero__photo {
+  --fade: 30%;
+  --fade-left: 5%;
+  --fade-right: 5%;
+  --sides-from: 0%;
+  --sides-full: 0%;
+  --mask-bottom: linear-gradient(
+    to bottom,
+    #000 calc(100% - var(--fade)),
+    rgb(0 0 0 / 88%) calc(100% - var(--fade) * 0.8),
+    rgb(0 0 0 / 62%) calc(100% - var(--fade) * 0.6),
+    rgb(0 0 0 / 34%) calc(100% - var(--fade) * 0.4),
+    rgb(0 0 0 / 11%) calc(100% - var(--fade) * 0.2),
+    transparent 100%
+  );
+  --mask-sides: linear-gradient(
+    to right,
+    transparent 0%,
+    rgb(0 0 0 / 11%) calc(var(--fade-left) * 0.2),
+    rgb(0 0 0 / 34%) calc(var(--fade-left) * 0.4),
+    rgb(0 0 0 / 62%) calc(var(--fade-left) * 0.6),
+    rgb(0 0 0 / 88%) calc(var(--fade-left) * 0.8),
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    rgb(0 0 0 / 88%) calc(100% - var(--fade-right) * 0.8),
+    rgb(0 0 0 / 62%) calc(100% - var(--fade-right) * 0.6),
+    rgb(0 0 0 / 34%) calc(100% - var(--fade-right) * 0.4),
+    rgb(0 0 0 / 11%) calc(100% - var(--fade-right) * 0.2),
+    transparent 100%
+  );
+  /* 좌우 페이드를 빼고 그대로 보여줄 윗부분 */
+  --mask-keep: linear-gradient(to bottom, #000 var(--sides-from), transparent var(--sides-full));
   position: absolute;
   display: block;
-  object-fit: cover;
+  height: auto;
+  /* 아래 페이드 ∩ (좌우 페이드 ∪ 윗부분) */
+  -webkit-mask-image: var(--mask-bottom), var(--mask-sides), var(--mask-keep);
+  mask-image: var(--mask-bottom), var(--mask-sides), var(--mask-keep);
+  -webkit-mask-composite: source-in, source-over;
+  mask-composite: intersect, add;
+}
+
+/* 사진 두 장(채도 뺀 사진 + 원래 색 사진)을 같은 자리에 겹칩니다. */
+.hero__photo-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 마우스를 올리기 전: 채도 90% 제거 */
+.hero__photo-img:first-child { filter: saturate(0.1); }
+
+/* 마우스를 올리면: 커서 주변 원 안에서만 원래 색
+   --reveal(0~1)은 원이 나타난 정도, --mx/--my는 사진 안에서의 커서 위치입니다(App.tsx).
+   원 크기는 히어로 높이의 21%이고, 가장자리는 반지름의 ±22.5% 구간에서 부드럽게 사라집니다. */
+.hero__photo-color {
+  --r: calc(21cqh * (0.6 + 0.4 * var(--reveal, 0)));
+  --reveal-mask: radial-gradient(
+    circle at var(--mx, -9999px) var(--my, -9999px),
+    #000 calc(var(--r) * 0.775),
+    rgb(0 0 0 / 84%) calc(var(--r) * 0.8875),
+    rgb(0 0 0 / 50%) var(--r),
+    rgb(0 0 0 / 16%) calc(var(--r) * 1.1125),
+    transparent calc(var(--r) * 1.225)
+  );
+  opacity: var(--reveal, 0);
+  -webkit-mask-image: var(--reveal-mask);
+  mask-image: var(--reveal-mask);
+  pointer-events: none;
+}
+
+/* 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보여줍니다. */
+@media (hover: none), (pointer: coarse) {
+  .hero__photo-img:first-child { filter: none; }
+  .hero__photo-color { display: none; }
+}
+
+/* 사진 파일이 없을 때 보이는 자리 표시 */
+.hero__photo--empty {
   background: #3d3d3d;
   border: 0.104166667vw dashed #7a7a7a;
 }
 
+/* 한복: 치마가 사진 왼쪽에서 잘리는 부분(아래쪽)만 왼쪽으로 부드럽게 사라집니다. */
 .hero__photo--main {
+  --fade: 30%;
+  --fade-left: 26%;
+  --sides-from: 58%;
+  --sides-full: 80%;
   z-index: 3;
-  top: 23.518518519%;
-  left: 37.34375%;
-  width: 22.916666667%;
-  height: 57.407407407%;
+  top: 24.62962963%;
+  left: 39.739583333%;
+  width: min(20.208333333%, 40cqh);
+  aspect-ratio: 388 / 627;
 }
 
 .hero__photo--upper {
+  --fade: 32%;
   z-index: 3;
-  top: 27.777777778%;
-  left: 66.145833333%;
-  width: 9.375%;
-  height: 25.925925926%;
+  top: 23.888888889%;
+  left: 65.208333333%;
+  width: min(15.260416667%, 40cqh);
+  aspect-ratio: 293 / 278;
 }
 
+/* 연미복: 피그마처럼 히어로 아래에서 23px(2.13%) 떨어진 곳에 발끝을 맞춥니다. */
 .hero__photo--right {
+  --fade: 32%;
   z-index: 1;
-  top: 58.425925926%;
+  bottom: 2.12962963%;
   left: 81.25%;
-  width: 13.125%;
-  height: 38.518518519%;
+  width: min(15.15625%, 38cqh);
+  aspect-ratio: 291 / 461;
 }
 
 .hero__presenter {
@@ -187,7 +280,7 @@
 .lineup__empty button { border: 0; background: none; color: #171717; text-decoration: underline; text-underline-offset: 6px; }
 
 /* ARTIST GALLERY: 화면 안에 있을 때만 움직이는 4개 트랙 */
-.gallery { position: relative; height: calc(1205 * var(--u)); isolation: isolate; }
+.gallery { position: relative; height: calc(1206 * var(--u)); isolation: isolate; }
 .gallery__viewport { position: absolute; inset: 0 0 auto; height: calc(1080 * var(--u)); overflow: hidden; }
 .gallery__tracks-position {
   position: absolute; left: calc(309 * var(--u)); top: calc(-466 * var(--u));
@@ -214,15 +307,21 @@
 .gallery__fade--bottom { width: 65.833%; height: 67.593%; top: 32.407%; left: 34.167%; background: linear-gradient(170.059deg, transparent 15.174%, transparent 35.835%, rgb(252 252 252 / 24%) 51.357%, rgb(250 250 250 / 35%) 56.016%, rgb(250 250 250 / 100%) 75.585%); }
 .gallery__fade--edge { width: 65.833%; height: 37.222%; left: 28.542%; bottom: 0; background: linear-gradient(197.012deg, transparent 34.844%, rgb(250 250 250 / 35%) 74.736%, #fafafa 81.555%); }
 .gallery__fade--top { width: 65.833%; height: 67.593%; top: 0; left: 34.167%; transform: scaleY(-1); background: linear-gradient(169.217deg, transparent 10.84%, transparent 35.863%, rgb(250 250 250 / 35%) 62.017%, rgb(250 250 250 / 100%) 82.567%); }
-.gallery__intro { position: relative; padding-top: calc(304 * var(--u)); margin-left: 6.25%; width: max-content; display: flex; flex-direction: column; align-items: flex-start; gap: calc(28 * var(--u)); }
+.gallery__intro { position: relative; padding-top: calc(385.5 * var(--u)); margin-left: 15.625%; width: max-content; display: flex; flex-direction: column; align-items: flex-start; gap: calc(64 * var(--u)); }
+.gallery__heading { display: flex; flex-direction: column; align-items: flex-start; gap: calc(28 * var(--u)); }
 .gallery__title { font-size: calc(136 * var(--u)); line-height: 1; }
-.gallery__intro > p { font-size: calc(24 * var(--u)); color: #525252; line-height: 1.45; }
-.gallery__link { display: flex; gap: calc(16 * var(--u)); align-items: center; border: 0; background: none; padding: calc(12 * var(--u)) 0; font: 500 calc(22 * var(--u))/1.45 'Noto Sans KR Variable', sans-serif; }
-.gallery__link span { font-size: calc(28 * var(--u)); transition: transform 180ms ease; }
-.gallery__link:hover span { transform: translateX(6px); }
+.gallery__heading p { font-size: calc(24 * var(--u)); color: #525252; line-height: 1.45; }
+/* 자세히 보러가기: 피그마 기준 글자 22px일 때 폭 195. 화살표 크기는 글자 크기(em)에 맞춰 함께 커지고 작아집니다. */
+.gallery__link { display: flex; flex-direction: column; align-items: flex-start; width: 8.8636em; padding: 0; border: 0; background: none; color: #171717; text-align: left; font: 500 calc(22 * var(--u))/1.45 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; }
+.gallery__link-label { white-space: nowrap; }
+.gallery__link-arrow { display: block; width: 10.2727em; height: 1.0455em; margin: -0.8136em 0 0 -0.0455em; overflow: visible; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gallery__link-line { stroke-dasharray: 195 400; transition: stroke-dasharray 360ms cubic-bezier(.22, .61, .36, 1); }
+.gallery__link-tail { transition: transform 360ms cubic-bezier(.22, .61, .36, 1); }
+.gallery__link:hover .gallery__link-line, .gallery__link:focus-visible .gallery__link-line { stroke-dasharray: 224 400; }
+.gallery__link:hover .gallery__link-tail, .gallery__link:focus-visible .gallery__link-tail { transform: translateX(29px); }
 
 /* DIRECTOR'S NOTE */
-.director { min-height: calc(2610 * var(--u)); padding-top: calc(343 * var(--u)); padding-bottom: calc(286 * var(--u)); }
+.director { min-height: calc(2610 * var(--u)); padding-top: calc(343 * var(--u)); padding-bottom: calc(248 * var(--u)); }
 .director__title { font-size: calc(104 * var(--u)); line-height: calc(125 * var(--u)); text-align: center; }
 /* 피그마 1920 기준: 사진 x 388 · 폭 404, 글 x 972 · 폭 648 → 전체 폭 1232 */
 .director__body { display: grid; grid-template-columns: 32.792% 52.597%; column-gap: 14.610%; width: 64.167%; margin-left: 20.208%; margin-top: calc(340 * var(--u)); align-items: start; }
@@ -239,11 +338,14 @@
 /* 항목 이름 중 가장 긴 것(교육 이력·사용 도구) 뒤 80만큼 띄워 값의 시작선을 맞춥니다. */
 .director__profile dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: calc(80 * var(--u)); row-gap: calc(20 * var(--u)); font-size: calc(23 * var(--u)); line-height: 1.45; }
 .director__profile dl > div { display: contents; }
-.director__profile dt { font-weight: 500; color: #383838; white-space: nowrap; }
+.director__profile dt { font-weight: 600; color: #383838; white-space: nowrap; }
 .director__profile dd { display: flex; flex-direction: column; gap: 2px; color: #525252; }
 .director__profile-detail { color: #a3a3a3; font-size: max(11px, calc(15 * var(--u))); }
-/* 피그마 문단은 맨 앞에 한 칸 띄어 쓰여 있어 같은 폭만큼 들여씁니다. 브라우저 글자 폭이 피그마보다 약 1% 넓어 자간을 살짝 줄여 줄바꿈을 맞춥니다. */
-.director__paragraphs { width: 99.537%; display: flex; flex-direction: column; gap: calc(50 * var(--u)); color: #525252; font: 400 calc(22 * var(--u))/calc(38 * var(--u)) 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; text-indent: 0.25em; letter-spacing: -0.01em; margin-bottom: calc((1em - 1lh) / 2); }
+/* 넓은 화면: 피그마에서 나눈 줄 그대로(한 줄씩 끊고, 그 안에서는 줄바꿈 없음) */
+.director__line { display: block; white-space: nowrap; text-indent: 0; }
+.director__line:first-child { text-indent: 0.25em; }
+/* 피그마 문단은 맨 앞에 한 칸 띄어 쓰여 있어 같은 폭만큼 들여씁니다. 브라우저 글자 폭이 피그마보다 약 1% 넓어 자간을 살짝 줄여 줄 길이를 맞춥니다. */
+.director__paragraphs { width: 100%; display: flex; flex-direction: column; gap: calc(50 * var(--u)); color: #525252; font: 400 calc(22 * var(--u))/calc(38 * var(--u)) 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; text-indent: 0.25em; letter-spacing: -0.01em; margin-bottom: calc((1em - 1lh) / 2); }
 
 /* CONTACT */
 .contact {
@@ -355,7 +457,7 @@
   .pagination span { font-size: 23px; }
   .pagination button { font-size: 21px; }
   .lineup__empty { min-height: 430px; }
-  .gallery__intro > p { font-size: 19px; }
+  .gallery__heading p { font-size: 19px; }
   .gallery__link { font-size: 18px; }
   .director { padding: 130px 7% 140px; min-height: auto; }
   .director__title { font-size: 72px; line-height: 1.2; }
@@ -369,6 +471,7 @@
   .director__profile dl { font-size: 16px; row-gap: 14px; column-gap: 24px; }
   .director__profile-detail { font-size: 12px; }
   .director__paragraphs { width: 100%; font-size: 17px; line-height: 1.8; gap: 24px; }
+  .director__line { display: inline; white-space: normal; }
 }
 
 @media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
@@ -408,10 +511,11 @@
   .hero { min-height: 520px; max-height: 840px; }
   .hero__word { font-size: 9.895833333vw; }
   .hero__presenter { font-size: 5.2vw; }
-  .hero__photo { border-width: 1px; }
-  .hero__photo--main { left: 28%; width: 37%; height: 43%; top: 26%; }
-  .hero__photo--upper { left: 73%; width: 16%; height: 22%; top: 30%; }
-  .hero__photo--right { left: 74%; width: 20%; height: 26%; top: 68%; }
+  .hero__photo--empty { border-width: 1px; }
+  /* 좁은 화면: 사진을 키워 세로 화면에 맞게 다시 배치합니다. */
+  .hero__photo--main { left: 36%; width: min(46%, 21cqh); top: 27%; }
+  .hero__photo--upper { left: 6%; width: min(32%, 15cqh); top: 12%; }
+  .hero__photo--right { left: 62%; width: min(32%, 15cqh); top: 60%; bottom: auto; }
   .lineup { padding: 64px 0 80px; min-height: auto; }
   .lineup__inner { width: 88%; gap: 28px; }
   .lineup__title { font-size: clamp(44px, 10vw, 64px); }
@@ -442,10 +546,10 @@
   .gallery__fade--bottom { left: 0; width: 100%; }
   .gallery__fade--edge { left: 0; width: 100%; }
   .gallery__intro { padding-top: 145px; margin-left: 6%; gap: 24px; text-shadow: 0 2px 22px #fafafa; }
+  .gallery__heading { gap: 24px; }
   .gallery__title { font-size: clamp(72px, 16vw, 104px); }
-  .gallery__intro > p { font-size: 18px; }
-  .gallery__link { font-size: 17px; gap: 16px; padding-block: 12px; }
-  .gallery__link span { font-size: 24px; }
+  .gallery__heading p { font-size: 18px; }
+  .gallery__link { font-size: 17px; }
   .director { min-height: auto; padding: 80px 8% 100px; }
   .director__title { font-size: clamp(42px, 10vw, 62px); line-height: 1.2; }
   .director__body { width: 100%; margin: 64px 0 0; grid-template-columns: minmax(0, 1fr); gap: 40px; }
@@ -460,6 +564,7 @@
   .director__profile dl { row-gap: 16px; column-gap: 20px; font-size: 15px; }
   .director__profile-detail { font-size: 12px; }
   .director__paragraphs { width: 100%; gap: 24px; font-size: 16px; line-height: 1.85; }
+  .director__line { display: inline; white-space: normal; }
   .contact { padding-inline: 6%; }
   .contact__pass-area { width: 300px; }
   .contact__title { font-size: 82px; }
@@ -482,5 +587,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .gallery__moving { animation: none !important; }
-  .project-card--ready, .gallery__link span { transition: none; }
+  .project-card--ready, .gallery__link-line, .gallery__link-tail { transition: none; }
 }

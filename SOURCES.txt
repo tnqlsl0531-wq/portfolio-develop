@@ -51,3 +51,18 @@ React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 Director’s Note:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=207-362
 src/assets/photos/director-portrait.webp는 사용자가 준 원본 사진(1509×2367 PNG)을 피그마 표시 크기 404×634의 2배(808×1268)로 줄여 WebP로 저장한 파일입니다.
+
+히어로 사진(GRAND EXHIBITION):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-582
+src/assets/photos/hero-main.webp, hero-upper.webp, hero-right.webp는 위 피그마의 사진 레이어 3개입니다.
+피그마에서 적용한 색 보정(노출·대비·채도 등)이 들어간 렌더와 배경이 지워진 원본의 투명도를 합쳐,
+피그마와 같은 색에 배경은 투명한 WebP(표시 크기의 2배)로 만들었습니다. hero-right는 피그마처럼 좌우 반전되어 있습니다.
+사진 아래쪽이 투명해지는 효과는 파일이 아니라 App.css의 mask-image(--fade)로 처리합니다.
+
+히어로 커서 색 드러내기 참고:
+https://reactbits.dev/c/animations/halftone-reveal?contrast=0.6&idleReveal=0.57&edge=0.5&angle=90&dotSize=1.6&revealRadius=0.21
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Animations/HalftoneReveal
+커서를 따라가는 원형 돋보기(반지름 0.21, 가장자리 0.5, 부드러운 추적·등장)의 느낌만 참고했고,
+망점(halftone)·렌즈 왜곡·WebGL은 쓰지 않았습니다. 채도를 뺀 사진 위에 원래 색 사진을 겹치고
+CSS 원형 마스크로 커서 주변만 보이게 합니다(App.tsx useHeroColorReveal, App.css .hero__photo-color).
+React Bits 라이선스: src/licenses/React-Bits-LICENSE.md

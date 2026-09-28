@@ -1,5 +1,5 @@
-import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
+import type { FormEvent, ReactNode, RefObject } from 'react'
 import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
 import type { PhotoPosition, Project } from './portfolio'
 import heroCurve from './assets/design/hero-curve.svg'
@@ -18,25 +18,114 @@ import './App.css'
 type Detail = { kind: 'project'; project: Project } | { kind: 'gallery' } | null
 
 const photoDescriptions: Record<PhotoPosition, string> = {
-  main: '최수빈의 메인 공연 사진',
-  upper: '최수빈의 보조 공연 사진',
-  right: '최수빈의 두 번째 보조 공연 사진',
+  main: '최수빈의 공연 사진 · 한복 의상',
+  upper: '최수빈의 공연 사진 · 고글 모자와 멜빵 의상',
+  right: '최수빈의 공연 사진 · 빨간 연미복 의상',
 }
 
+// 사진 파일의 실제 픽셀 크기(피그마 표시 크기의 2배)
+const photoSizes: Record<PhotoPosition, [number, number]> = {
+  main: [776, 1254],
+  upper: [586, 556],
+  right: [582, 922],
+}
+
+// 같은 사진을 두 장 겹칩니다. 아래 장은 채도를 90% 뺀 사진, 위 장은 원래 색 사진이며
+// 위 장은 커서 주변 원 안에서만 보입니다(가장자리 페이드는 바깥 틀이 두 장에 함께 적용).
 function PhotoSlot({ position }: { position: PhotoPosition }) {
   const src = heroPhotos[position]
   const className = 'hero__photo hero__photo--' + position
+  const [width, height] = photoSizes[position]
   return src ? (
-    <img className={className} src={src} alt={photoDescriptions[position]} />
+    <span className={className}>
+      <img className="hero__photo-img" src={src} alt={photoDescriptions[position]} width={width} height={height} decoding="async" />
+      <img className="hero__photo-img hero__photo-color" src={src} alt="" aria-hidden="true" width={width} height={height} decoding="async" />
+    </span>
   ) : (
-    <div className={className} role="img" aria-label={photoDescriptions[position] + ' 자리'} />
+    <div className={className + ' hero__photo--empty'} role="img" aria-label={photoDescriptions[position] + ' 자리'} />
   )
 }
 
+/* 히어로 색 드러내기 (React Bits Halftone Reveal의 돋보기 느낌만 참고)
+   - 마우스를 올리기 전: 사진 채도 90% 제거
+   - 마우스를 올리면: 커서 주변 원(히어로 높이의 21%, 가장자리 부드러움 0.5) 안에서만 원래 색
+   - 망점 효과와 화면이 휘는 렌즈 왜곡은 넣지 않았습니다.
+   - 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보입니다(CSS). */
+const REVEAL_FOLLOW = 0.07 // 원이 커서를 따라가는 시간(초). 작을수록 바로 붙습니다.
+const REVEAL_FADE = 0.2 // 원이 나타나고 사라지는 시간(초)
+
+function useHeroColorReveal(heroRef: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const photos = [...hero.querySelectorAll<HTMLElement>('.hero__photo')]
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const s = { x: 0, y: 0, sx: 0, sy: 0, active: 0, target: 0, raf: 0, prev: 0 }
+
+    const apply = () => {
+      hero.style.setProperty('--reveal', s.active.toFixed(3))
+      for (const photo of photos) {
+        photo.style.setProperty('--mx', (s.sx - photo.offsetLeft).toFixed(1) + 'px')
+        photo.style.setProperty('--my', (s.sy - photo.offsetTop).toFixed(1) + 'px')
+      }
+    }
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, Math.max(0.001, (now - s.prev) / 1000))
+      s.prev = now
+      const follow = reduced ? 1 : 1 - Math.exp(-dt / REVEAL_FOLLOW)
+      const fade = reduced ? 1 : 1 - Math.exp(-dt / REVEAL_FADE)
+      s.sx += (s.x - s.sx) * follow
+      s.sy += (s.y - s.sy) * follow
+      s.active += (s.target - s.active) * fade
+      const settled = Math.abs(s.x - s.sx) < 0.2 && Math.abs(s.y - s.sy) < 0.2 && Math.abs(s.target - s.active) < 0.002
+      if (settled) {
+        s.sx = s.x
+        s.sy = s.y
+        s.active = s.target
+      }
+      apply()
+      s.raf = settled ? 0 : requestAnimationFrame(tick)
+    }
+    const start = () => {
+      if (s.raf) return
+      s.prev = performance.now()
+      s.raf = requestAnimationFrame(tick)
+    }
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return
+      const rect = hero.getBoundingClientRect()
+      s.x = event.clientX - rect.left
+      s.y = event.clientY - rect.top
+      // 원이 사라진 상태에서 다시 들어오면 커서 위치에서 바로 나타나게 합니다(미끄러져 오지 않게).
+      if (s.active < 0.02) {
+        s.sx = s.x
+        s.sy = s.y
+      }
+      s.target = 1
+      start()
+    }
+    const onLeave = () => {
+      s.target = 0
+      start()
+    }
+    hero.addEventListener('pointermove', onMove, { passive: true })
+    hero.addEventListener('pointerenter', onMove, { passive: true })
+    hero.addEventListener('pointerleave', onLeave, { passive: true })
+    return () => {
+      if (s.raf) cancelAnimationFrame(s.raf)
+      hero.removeEventListener('pointermove', onMove)
+      hero.removeEventListener('pointerenter', onMove)
+      hero.removeEventListener('pointerleave', onLeave)
+    }
+  }, [heroRef])
+}
+
 function Hero() {
+  const heroRef = useRef<HTMLElement>(null)
+  useHeroColorReveal(heroRef)
   return (
     <>
-      <section className="hero" aria-labelledby="exhibition-title">
+      <section ref={heroRef} className="hero" aria-labelledby="exhibition-title">
         <div className="hero__shade" aria-hidden="true" />
         <PhotoSlot position="right" />
         <h1 id="exhibition-title" className="hero__title">
@@ -177,9 +266,18 @@ function ArtistGallery({ onOpen }: { onOpen: () => void }) {
         <div className="gallery__fade gallery__fade--top" />
       </div>
       <div className="gallery__intro">
-        <h2 id="gallery-title" className="section-heading gallery__title">Artist<br />Gallery</h2>
-        <p>아티스트 포토 아카이브전</p>
-        <button className="gallery__link" onClick={onOpen}>자세히 보러가기 <span aria-hidden="true">→</span></button>
+        <div className="gallery__heading">
+          <h2 id="gallery-title" className="section-heading gallery__title">Artist<br />Gallery</h2>
+          <p>아티스트 포토 아카이브전</p>
+        </div>
+        <button className="gallery__link" onClick={onOpen}>
+          <span className="gallery__link-label">자세히 보러가기</span>
+          {/* 피그마 Vector 1810(node 217-1559) 좌표 그대로. 마우스를 올리면 가로선이 195 → 224로 길어지고 꺾인 끝이 따라갑니다(node 217-1567). */}
+          <svg className="gallery__link-arrow" viewBox="0 0 226 23" fill="none" aria-hidden="true" focusable="false">
+            <line className="gallery__link-line" x1="1" y1="22" x2="225" y2="22" />
+            <path className="gallery__link-tail" d="M196 22L176.5 1" />
+          </svg>
+        </button>
       </div>
     </section>
   )
@@ -229,7 +327,11 @@ function DirectorsNote() {
               ))}</dl>
             </div>
           </div>
-          <div className="director__paragraphs">{profile.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
+          <div className="director__paragraphs">{profile.paragraphs.map((lines, index) => (
+            <p key={index}>{lines.map((line, lineIndex) => (
+              <Fragment key={lineIndex}>{lineIndex > 0 && ' '}<span className="director__line">{line}</span></Fragment>
+            ))}</p>
+          ))}</div>
         </div>
       </div>
     </section>
