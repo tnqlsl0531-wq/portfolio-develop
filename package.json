@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.5.0" },
+  "engines": {
+    "node": ">=24.5.0"
+  },
   "scripts": {
     "postinstall": "npm run setup:fonts",
     "setup:fonts": "node --use-env-proxy scripts/install-fonts.mjs",
@@ -16,12 +18,18 @@
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-kr": "5.3.0",
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.1",
+    "@react-three/rapier": "2.2.0",
+    "meshline": "3.3.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
     "@vitejs/plugin-react": "6.1.1",
     "oxlint": "1.85.0",
     "typescript": "7.0.2",

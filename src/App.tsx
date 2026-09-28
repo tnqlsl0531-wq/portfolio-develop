@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
 import type { PhotoPosition, Project } from './portfolio'
@@ -10,6 +10,9 @@ import jaduLogo from './assets/design/jadu-logo.svg'
 import questionMark from './assets/design/question-mark.svg'
 import paperclip from './assets/design/paperclip.svg'
 import StrokePresenter from './components/StrokePresenter'
+
+// 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
+const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
 
 type Detail = { kind: 'project'; project: Project } | { kind: 'gallery' } | null
@@ -247,6 +250,91 @@ function StaffPass() {
   )
 }
 
+// 1줄 배치(폰·터치 태블릿)와 같은 조건. 이때는 3D 대신 그림으로 된 스태프 패스를 보여줍니다.
+const singleColumnQuery = '(max-width: 700px), (max-width: 1200px) and (pointer: coarse)'
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
+
+function supportsWebGL() {
+  try {
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+  } catch {
+    return false
+  }
+}
+
+function useLanyardEnabled() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    const layout = window.matchMedia(singleColumnQuery)
+    const motion = window.matchMedia(reducedMotionQuery)
+    const webgl = supportsWebGL()
+    const update = () => setEnabled(webgl && !layout.matches && !motion.matches)
+    update()
+    layout.addEventListener('change', update)
+    motion.addEventListener('change', update)
+    return () => {
+      layout.removeEventListener('change', update)
+      motion.removeEventListener('change', update)
+    }
+  }, [])
+  return enabled
+}
+
+class LanyardBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch() { this.props.onError() }
+  render() { return this.state.failed ? null : this.props.children }
+}
+
+function ContactPass() {
+  const area = useRef<HTMLDivElement>(null)
+  const enabled = useLanyardEnabled()
+  const [near, setNear] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const show3D = enabled && !failed
+
+  useEffect(() => {
+    const element = area.current
+    if (!element) return
+    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '800px 0px' })
+    const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.2 })
+    nearObserver.observe(element)
+    visibleObserver.observe(element)
+    return () => {
+      nearObserver.disconnect()
+      visibleObserver.disconnect()
+    }
+  }, [])
+
+  return (
+    <div ref={area} className="contact__pass-area" data-lanyard={show3D ? '3d' : 'static'}>
+      {show3D ? (
+        near && (
+          <div className="contact__lanyard" aria-hidden="true">
+            <LanyardBoundary onError={() => setFailed(true)}>
+              <Suspense fallback={null}>
+                <Lanyard active={visible} />
+              </Suspense>
+            </LanyardBoundary>
+          </div>
+        )
+      ) : (
+        <div className="contact__strap" aria-hidden="true" />
+      )}
+      <h2 id="contact-title" className="section-heading contact__title">Contact</h2>
+      {!show3D && <div className="contact__connector" aria-hidden="true" />}
+      {show3D ? (
+        <p className="sr-only">스태프 패스: {profile.name}, UI·UX Designer. 이메일 {profile.email}. 인스타그램 {profile.instagramLabel}.</p>
+      ) : (
+        <StaffPass />
+      )}
+    </div>
+  )
+}
+
 function Contact() {
   const [draft, setDraft] = useState<{ href: string; text: string } | null>(null)
   const [copyStatus, setCopyStatus] = useState('')
@@ -274,12 +362,7 @@ function Contact() {
 
   return (
     <section id="contact" className="contact" aria-labelledby="contact-title">
-      <div className="contact__pass-area">
-        <div className="contact__strap" aria-hidden="true" />
-        <h2 id="contact-title" className="section-heading contact__title">Contact</h2>
-        <div className="contact__connector" aria-hidden="true" />
-        <StaffPass />
-      </div>
+      <ContactPass />
       <div className="contact__form-area">
         <img className="contact__paperclip" src={paperclip} alt="" aria-hidden="true" />
         <form className="contact-form" onSubmit={submitInquiry} onChange={() => { if (draft) setDraft(null) }}>
@@ -297,8 +380,8 @@ function Contact() {
             event.currentTarget.setCustomValidity(event.currentTarget.value.trim() ? '' : '메시지를 입력해주세요.')
           }} /></label>
           <div className="contact-form__submit">
-            <button type="submit">문의 보내기 <span aria-hidden="true">↗</span></button>
-            <p>메일 앱에서 내용을 확인한 뒤 최종 전송합니다.</p>
+            <button type="submit" aria-describedby="contact-submit-note">문의 보내기 <span aria-hidden="true">↗</span></button>
+            <p id="contact-submit-note" className="sr-only">메일 앱에서 내용을 확인한 뒤 최종 전송합니다.</p>
           </div>
         </form>
         {draft && (
@@ -311,6 +394,7 @@ function Contact() {
           </div>
         )}
       </div>
+      <small className="contact__copyright">© 2026 CHOI SUBIN</small>
     </section>
   )
 }
