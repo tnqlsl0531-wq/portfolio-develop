@@ -429,7 +429,10 @@ function ContactPass() {
           </div>
         )
       ) : (
-        <div className="contact__strap" aria-hidden="true" />
+        <div className="contact__strap" aria-hidden="true">
+          <span>CHOI - SUBIN</span>
+          <span>CHOI - SUBIN</span>
+        </div>
       )}
       <h2 id="contact-title" className="section-heading contact__title">Contact</h2>
       {!show3D && <div className="contact__connector" aria-hidden="true" />}

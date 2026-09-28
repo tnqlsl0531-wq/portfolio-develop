@@ -154,8 +154,10 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
     cutout.flipY = false
     cutout.colorSpace = THREE.NoColorSpace
     cutout.needsUpdate = true
+    // 목줄 무늬(CHOI - SUBIN 글자)는 줄을 따라 반복됩니다. 비스듬히 봐도 글자가 뭉개지지 않게 이방성 필터를 켭니다.
     strap.colorSpace = THREE.SRGBColorSpace
     strap.wrapS = strap.wrapT = THREE.RepeatWrapping
+    strap.anisotropy = 16
     strap.needsUpdate = true
   }, [cardMap, cutout, strap])
 
