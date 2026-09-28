@@ -1,5 +1,7 @@
 // 사진과 소개 내용이 준비되면 이 파일의 값만 바꾸면 됩니다.
 // 사진은 src/assets/photos 폴더에 넣고 import해서 연결할 수 있습니다.
+import directorPortrait from './assets/photos/director-portrait.webp'
+
 export type PhotoPosition = 'main' | 'upper' | 'right'
 export const heroPhotos: Partial<Record<PhotoPosition, string>> = {}
 
@@ -8,19 +10,20 @@ export const profile = {
   englishName: 'Choi-Subin',
   role: 'UX/UI Designer',
   email: 'soobin0531@naver.com',
-  portrait: '',
+  // 피그마 Director’s Note 사진(원본 1509×2367)을 표시 크기 404×634의 2배로 줄인 파일
+  portrait: directorPortrait,
   instagramLabel: '@비즈니스 계정 생성 예정',
-  // 피그마에 들어 있던 임시 이력입니다. 실제 이력으로 교체해주세요.
+  // 피그마 Director’s Note(node 207-362) 내용입니다. detail은 값 아래에 작은 회색 글씨로 붙습니다.
   history: [
-    { label: '경력', value: '20XX – 20XX   Lorem ipsum dolor sit amet' },
-    { label: '학력', value: '20XX – 20XX   Lorem ipsum dolor sit amet' },
-    { label: '교육 이력', value: '20XX – 20XX   Lorem ipsum dolor sit amet' },
-    { label: '수상', value: '20XX – 20XX   Lorem ipsum dolor sit amet' },
-  ],
+    { label: '학력', value: '백석예술대학교 공연예술학과 뮤지컬전공' },
+    { label: '교육 이력', value: '이젠아카데미 / UXUI디자인&웹기획 프론트엔드', detail: '2026.04.15 - 2026.10.02' },
+    { label: '사용 도구', value: 'Figma, Photoshop, Illustrator' },
+    { label: '수상', value: '2026 · 디자인 부문 최우수상 · 국순당 팀 프로젝트' },
+  ] as { label: string; value: string; detail?: string }[],
   paragraphs: [
-    'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Curabitur pretium tincidunt lacus, nec gravida felis facilisis at. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida.',
-    'Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. Phasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi. Pellentesque fermentum dolor aliquam quam.',
-    'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Curabitur pretium tincidunt lacus, nec gravida felis facilisis at. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida.',
+    '어릴 때부터 사진을 보정하고, 무언가를 꾸미며 원하는 모습을 만들어가는 일을 좋아했습니다. 직접 손을 대어 결과물이 달라지는 과정을 즐겼고, 언젠가는 디자인을 제 일로 삼고 싶다는 마음이 있었습니다. 새로운 진로를 고민하던 시기에, 오래 마음에 두었던 이 분야에 도전하기로 했습니다. 잘해낼 수 있다는 자신감은 익숙한 무대에서 새로운 분야로 나아가는 힘이 되었습니다. 지금은 그 관심과 열정을 바탕으로, 사용자의 시선에서 화면을 구성하고 경험을 설계하는 법을 배워가고 있습니다.',
+    '공연을 하며 늘 고민한 것은 ‘관객이 어떻게 느낄까’였습니다. 무대 위의 표현과 이야기가 사람들에게 어떤 감정으로 남을지 생각했고, 누군가 제 공연을 통해 좋은 에너지를 얻을 때 가장 큰 보람을 느꼈습니다. 제가 하는 일이 타인에게 긍정적인 영향을 줄 수 있다는 것이, 계속 표현하고 도전하게 만드는 이유였습니다. 디자인을 대하는 마음도 같습니다. 사용자가 어떤 느낌으로 화면을 마주하고 무엇을 이해하게 될지 고민하며, 흥미롭게 다가가면서도 전하려는 내용이 명확하게 전달되는 디자인을 만들고 싶습니다',
+    '보여주고 싶은 것이 많을수록, 가장 중요한 것을 고르는 연습이 필요하다고 느낍니다. 공연에서 메시지와 감정을 전달하던 경험을 바탕으로, 디자인에서도 핵심을 분명하게 보여주는 힘을 키워가고 있습니다. 깊이 몰입하는 열정과 끝까지 시도하는 끈기로 낯선 과제에 도전하며, 목표를 조금씩 넓혀갑니다. 다양한 표현을 탐색하고 익숙한 작업 방식에도 변화를 주면서, 스스로 정해둔 틀을 계속 깨고 싶습니다. 첫 만남의 좋은 인상이 ‘이 사람의 다른 작업도 보고 싶다’는 기대로 이어지는, 다채로운 디자이너가 되고자 합니다.',
   ],
 }
 

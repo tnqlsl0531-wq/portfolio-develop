@@ -13,7 +13,7 @@
 
 .stroke-presenter text {
   font-family: 'Special Gothic Expanded One', sans-serif;
-  font-synthesis: weight;
+  font-synthesis: none;
   user-select: none;
   -webkit-text-stroke: 0;
 }

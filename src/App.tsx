@@ -209,8 +209,8 @@ function DirectorsNote() {
       <div className="director__body">
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
-            <img className="director__portrait" src={profile.portrait} alt={`${profile.name} 프로필`} loading="lazy" />
-          ) : <div className="director__portrait" role="img" aria-label="최수빈 프로필 사진 자리" />}
+            <img className="director__portrait" src={profile.portrait} alt={`${profile.name} 프로필 사진`} loading="lazy" decoding="async" />
+          ) : <div className="director__portrait director__portrait--empty" role="img" aria-label="최수빈 프로필 사진 자리" />}
         </div>
         <div className="director__content">
           <div className="director__overview">
@@ -221,10 +221,15 @@ function DirectorsNote() {
             </div>
             <div className="director__profile">
               <h3 className="section-heading">Profile</h3>
-              <dl>{profile.history.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
+              <dl>{profile.history.map(item => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}{item.detail && <span className="director__profile-detail">{item.detail}</span>}</dd>
+                </div>
+              ))}</dl>
             </div>
           </div>
-          <div className="director__paragraphs">{profile.paragraphs.map((paragraph, index) => <p key={index} lang="en">{paragraph}</p>)}</div>
+          <div className="director__paragraphs">{profile.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
         </div>
       </div>
     </section>

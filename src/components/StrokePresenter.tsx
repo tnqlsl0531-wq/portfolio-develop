@@ -4,6 +4,7 @@ import './StrokePresenter.css'
 // React Bits Stroke Text의 SVG 글자별 드로잉 방식을 이 포트폴리오에 맞게 적용했습니다.
 // 원본/라이선스: ../licenses/React-Bits-LICENSE.md 및 SOURCES.txt
 // GSAP 설치 없이 같은 sine.inOut 곡선을 requestAnimationFrame으로 계산합니다.
+// 글꼴·두께·자간은 피그마(node 122-767) 값을 따릅니다: Regular(400), 외곽선 1px, 자간 0.
 const settings = {
   text: 'CHOI-SUBIN PRESENTS',
   strokeColor: '#F8574F',
@@ -12,11 +13,10 @@ const settings = {
   fillDelay: 0.5,
   fillMode: 'none',
   ease: 'sine.inOut',
-  fontWeight: 900,
-  letterSpacing: -3.5,
-  trigger: 'loop',
+  fontWeight: 400,
+  letterSpacing: 0,
+  trigger: 'once',
   stagger: 0.05,
-  repeatDelay: 0.9,
   fontSize: 80,
 } as const
 
@@ -25,7 +25,8 @@ const lineHeight = settings.fontSize * 1.2
 const dash = Math.max(settings.fontSize * 7, 200)
 const characterCount = settings.text.length
 // fillMode='none'일 때는 원본처럼 fillDelay가 재생 시간에 영향을 주지 않습니다.
-const cycleDuration = settings.drawDuration + (characterCount - 1) * settings.stagger + settings.repeatDelay
+// 한 번만 재생: 마지막 글자까지 다 그려지면 그 상태로 멈춥니다.
+const totalDuration = settings.drawDuration + (characterCount - 1) * settings.stagger
 
 interface TextMetrics {
   width: number
@@ -92,10 +93,10 @@ export default function StrokePresenter() {
     let inView = root.getBoundingClientRect().bottom > 0 && root.getBoundingClientRect().top < window.innerHeight
 
     function paint(seconds: number) {
-      const cycleTime = seconds % cycleDuration
+      const time = Math.min(seconds, totalDuration)
       for (const character of characters) {
         const index = Number(character.dataset.strokeChar)
-        const progress = Math.min(1, Math.max(0, (cycleTime - index * settings.stagger) / settings.drawDuration))
+        const progress = Math.min(1, Math.max(0, (time - index * settings.stagger) / settings.drawDuration))
         const eased = (1 - Math.cos(Math.PI * progress)) / 2
         character.style.strokeDashoffset = String(dash * (1 - eased))
       }
@@ -111,6 +112,10 @@ export default function StrokePresenter() {
       if (previousTime !== null) elapsed += (now - previousTime) / 1000
       previousTime = now
       paint(elapsed)
+      if (elapsed >= totalDuration) {
+        stop()
+        return
+      }
       frame = window.requestAnimationFrame(tick)
     }
 
@@ -121,7 +126,8 @@ export default function StrokePresenter() {
         return
       }
       paint(elapsed)
-      // 히어로 밖으로 스크롤하거나 다른 탭을 볼 때는 작업을 쉬게 합니다.
+      if (elapsed >= totalDuration) return
+      // 히어로 밖으로 스크롤하거나 다른 탭을 볼 때는 잠시 멈췄다가, 다시 보이면 이어서 그립니다.
       if (inView && !document.hidden) frame = window.requestAnimationFrame(tick)
     }
 
@@ -163,8 +169,8 @@ export default function StrokePresenter() {
             fill="none"
             stroke={settings.strokeColor}
             strokeWidth={settings.strokeWidth}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeLinecap="butt"
+            strokeLinejoin="miter"
             style={{ fontSize: settings.fontSize, fontWeight: settings.fontWeight, letterSpacing: settings.letterSpacing }}
           >
             {Array.from(line).map((character, index) => (
@@ -172,7 +178,7 @@ export default function StrokePresenter() {
                 key={index}
                 data-stroke-char={index + (lineIndex === 0 ? 0 : lines[0].length + 1)}
                 strokeDasharray={dash}
-                strokeDashoffset={0}
+                strokeDashoffset={dash}
               >{character}</tspan>
             ))}
           </text>
