@@ -319,7 +319,8 @@
 .gallery-detail__empty p { font-size: 20px; margin-bottom: 8px; }
 .gallery-detail__empty span { font-size: 14px; color: #737373; }
 
-@media (min-width: 701px) and (max-width: 1200px) {
+/* 태블릿(터치) 전용 배치. 마우스를 쓰는 PC는 화면 배율(125~200%)과 창 크기에 상관없이 데스크톱 디자인을 비율대로 줄여서 보여줍니다. */
+@media (min-width: 701px) and (max-width: 1200px) and (pointer: coarse) {
   .lineup { min-height: auto; padding: 64px 0 110px; }
   .lineup__inner { width: min(820px, 86%); gap: 36px; }
   .lineup__title { font-size: 68px; }
@@ -359,7 +360,7 @@
   .director__paragraphs { width: 100%; font-size: 17px; line-height: 1.8; gap: 24px; }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
   .project-card--ready .project-artwork { width: 100%; }
   .contact { grid-template-columns: minmax(0, 1fr); gap: 64px; margin: 0; padding: 80px 7% 70px; }
   .contact__pass-area { width: 360px; max-width: 100%; margin-inline: auto; padding-top: 80px; }
