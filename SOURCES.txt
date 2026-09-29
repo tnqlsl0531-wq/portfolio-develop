@@ -87,7 +87,8 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=257-2227
 사용 패키지: three, @react-three/fiber, @react-three/drei, @react-three/rapier, meshline
 
 BACKSTAGE 마지막 무대 커튼(src/components/Curtain3D.tsx, StageCurtain.tsx):
-외부 모델·이미지 없이 three.js 평면을 코드로 접어 만든 3D 커튼입니다(주름·흔들림은 매 프레임 계산).
+외부 모델·이미지 없이 three.js 평면·원기둥·구를 코드로 만든 3D 커튼입니다(커튼 봉, 가림막·자보, 커튼 두 폭. 주름·흔들림은 매 프레임 계산).
+커튼 가운데 안내 문구 '마우스를 올려보세요 !': 피그마 node 333-808(Min Sans Regular 20, #f0f0f0).
 색은 페이지 아래 와인색 그라데이션(#502421)에 맞췄고, 벨벳 광택은 three.js MeshPhysicalMaterial의 sheen을 씁니다.
 사용 패키지: three, @react-three/fiber(Lanyard와 같은 패키지, 추가 설치 없음)
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md

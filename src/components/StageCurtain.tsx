@@ -16,7 +16,7 @@ function supportsWebGL() {
 /* 마지막 단체 사진을 덮고 있는 무대 커튼(늘 닫혀 있음)
    - data-reveal: 커서 주변 원 안에서만 커튼이 투명해져 뒤의 사진이 보입니다(useColorReveal + Backstage.css).
    - 3D 커튼(Curtain3D)이 준비되기 전, WebGL이 안 되는 기기, '동작 줄이기' 설정에서는
-     같은 색의 CSS 커튼(두 폭 + 위쪽 가림막)이 대신 보입니다.
+     같은 색의 CSS 커튼(봉 + 두 폭 + 위쪽 가림막)이 대신 보입니다.
    - hover가 true면 커튼이 아주 살짝 찰랑거립니다. */
 export default function StageCurtain({ hover, scroller }: { hover: boolean; scroller: RefObject<HTMLElement | null> }) {
   const layer = useRef<HTMLDivElement>(null)
@@ -41,6 +41,7 @@ export default function StageCurtain({ hover, scroller }: { hover: boolean; scro
 
   return (
     <div ref={layer} className="backstage__curtain" data-hover={hover} data-ready={ready} data-reveal="" aria-hidden="true">
+      <div className="backstage__rod" />
       <div className="backstage__drape backstage__drape--left" />
       <div className="backstage__drape backstage__drape--right" />
       <div className="backstage__valance" />

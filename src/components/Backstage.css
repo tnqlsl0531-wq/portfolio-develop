@@ -119,11 +119,13 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
 .backstage__process-text p { margin: 0; }
 .backstage__section--lessons { left: calc(300 * var(--bu)); top: calc(4304 * var(--bu)); }
 
-/* 마지막: 무대 커튼(550×550 네모) 너머의 동그란 단체 사진 + 버튼
+/* 마지막: 무대 커튼 너머의 동그란 단체 사진 + 버튼
    사진은 피그마처럼 원(550)보다 크게(689×715) 깔고, 원 둘레 ±72px에서 점점 투명해지게 마스크를 씌웠습니다.
-   사진 틀(stage) 밖으로 나가는 부분은 잘라서, 사진은 커튼에 난 원 안으로만 보입니다. */
+   사진은 커서 주변 원 안에서만 보이고(히어로와 같은 커서 효과), 그 원 안에서는 커튼이 투명해집니다. */
 .backstage__finale { position: absolute; left: calc(533 * var(--bu)); top: calc(5036 * var(--bu)); width: calc(854 * var(--bu)); display: flex; flex-direction: column; align-items: center; gap: calc(75 * var(--bu)); --su: var(--bu); }
-.backstage__stage { position: relative; width: calc(550 * var(--su)); height: calc(550 * var(--su)); flex-shrink: 0; overflow: hidden; }
+.backstage__stage { position: relative; width: calc(550 * var(--su)); height: calc(550 * var(--su)); flex-shrink: 0; }
+/* 마우스를 올리는 영역을 커튼 한 벌 크기(봉 끝 ~ 아랫단)에 맞춥니다. */
+.backstage__stage::after { content: ''; position: absolute; left: calc(-38 * var(--su)); right: calc(-38 * var(--su)); top: calc(-36 * var(--su)); bottom: calc(-24 * var(--su)); }
 .backstage__stage-art {
   position: absolute; left: calc(-64.96 * var(--su)); top: calc(-92.39 * var(--su)); width: calc(689.23 * var(--su)); height: calc(714.57 * var(--su));
   pointer-events: none;
@@ -131,14 +133,25 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
     #000 calc(203 * var(--su)), rgb(0 0 0 / 84%) calc(239 * var(--su)), rgb(0 0 0 / 50%) calc(275 * var(--su)),
     rgb(0 0 0 / 16%) calc(311 * var(--su)), transparent calc(347 * var(--su)));
   -webkit-mask-image: var(--stage-mask); mask-image: var(--stage-mask);
+  /* 커튼 한 벌 바깥으로 사진이 비치지 않게 커튼 크기(-35 ~ 585, -25 ~ 575)로 자릅니다. */
+  clip-path: inset(calc(67 * var(--su)) calc(39 * var(--su)) calc(48 * var(--su)) calc(30 * var(--su)));
 }
 .backstage__stage-art img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
-/* 무대 커튼(StageCurtain / Curtain3D): 사진 틀과 같은 네모로 사진을 덮고, 가장자리 흐림·페이드 없이 또렷하게 끝납니다.
-   히어로와 같은 커서 효과(src/hooks/useColorReveal.ts)를 거꾸로 써서, 커서 주변 원 안에서만 커튼이 투명해집니다.
-   원 모양(가장자리 부드러운 정도)은 히어로와 같습니다. 마우스를 올리면 아주 살짝 찰랑거립니다.
+/* 단체 사진: 커서 주변 원 안에서만 보입니다(원 모양은 히어로와 같음, src/hooks/useColorReveal.ts). */
+.backstage__stage-photo {
+  --r: calc(var(--reveal-r, 176px) * (0.6 + 0.4 * var(--reveal, 0)));
+  --reveal-mask: radial-gradient(circle at var(--mx, -9999px) var(--my, -9999px),
+    #000 calc(var(--r) * 0.775), rgb(0 0 0 / 84%) calc(var(--r) * 0.8875), rgb(0 0 0 / 50%) var(--r),
+    rgb(0 0 0 / 16%) calc(var(--r) * 1.1125), transparent calc(var(--r) * 1.225));
+  -webkit-mask-image: var(--reveal-mask); mask-image: var(--reveal-mask);
+  opacity: var(--reveal, 0);
+}
+/* 무대 커튼(StageCurtain / Curtain3D): 틀에 잘리지 않은 커튼 한 벌(봉·가림막·두 폭)이 사진을 덮습니다.
+   캔버스는 사진 틀보다 사방 70씩 크고(690×690), 커튼 바깥은 투명합니다.
+   같은 커서 효과를 거꾸로 써서, 커서 주변 원 안에서만 커튼이 투명해집니다. 마우스를 올리면 아주 살짝 찰랑거립니다.
    3D 커튼이 준비되면(data-ready) 아래 CSS 커튼은 사라지고, 3D가 안 되는 환경에서는 CSS 커튼이 그대로 쓰입니다. */
 .backstage__curtain {
-  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  position: absolute; inset: calc(-70 * var(--su)); pointer-events: none;
   --r: calc(var(--reveal-r, 176px) * (0.6 + 0.4 * var(--reveal, 0)));
   --peek: radial-gradient(circle at var(--mx, -9999px) var(--my, -9999px),
     rgb(0 0 0 / calc(1 - var(--reveal, 0))) calc(var(--r) * 0.775),
@@ -148,25 +161,46 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
     #000 calc(var(--r) * 1.225));
   -webkit-mask-image: var(--peek); mask-image: var(--peek);
 }
+/* 커튼 가운데 안내 문구(피그마 333-808: Min Sans Regular 20, #f0f0f0). 처음 마우스를 올리면 흐려지며 천천히 사라집니다.
+   터치 기기에서는 '눌러보세요 !'로 바꿔 보여줍니다. */
+.backstage__curtain-hint {
+  position: absolute; z-index: 1; left: 50%; top: 50%; margin: 0;
+  color: #f0f0f0; font-size: max(15px, calc(20 * var(--su))); font-weight: 400; line-height: normal; white-space: nowrap;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 35%);
+  transform: translate(-50%, -50%); pointer-events: none;
+  transition: opacity 900ms ease, filter 900ms ease, transform 900ms ease;
+}
+.backstage__curtain-hint[data-gone='true'] { opacity: 0; filter: blur(6px); transform: translate(-50%, calc(-50% - 8px)); }
+.backstage__curtain-hint-touch { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .backstage__curtain-hint-mouse { display: none; }
+  .backstage__curtain-hint-touch { display: inline; }
+}
 .backstage__curtain-canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; transition: opacity 500ms ease; }
 .backstage__curtain[data-ready='true'] .backstage__curtain-canvas { opacity: 1; }
 .backstage__curtain[data-ready='true'] .backstage__drape,
-.backstage__curtain[data-ready='true'] .backstage__valance { opacity: 0; transition: opacity 500ms ease 150ms; }
+.backstage__curtain[data-ready='true'] .backstage__valance,
+.backstage__curtain[data-ready='true'] .backstage__rod { opacity: 0; transition: opacity 500ms ease 150ms; }
 /* CSS 커튼: 3D 커튼과 비슷한 짙은 와인 벨벳. 굵은 세로 주름(밝은 결·어두운 골) + 왼쪽 위에서 비추는 은은한 빛.
    두 폭이 가운데서 살짝 겹칩니다. */
 .backstage__drape {
-  position: absolute; top: 0; bottom: 0; width: 51%;
+  position: absolute; top: 7.7%; bottom: 8%; width: 43.9%;
   background:
     radial-gradient(ellipse 80% 50% at 35% 15%, rgb(255 200 170 / 12%), transparent 70%),
     linear-gradient(to bottom, rgb(0 0 0 / 35%), transparent 30%, transparent 65%, rgb(0 0 0 / 50%)),
     repeating-linear-gradient(90deg, #1e0709 0, #3f1115 1.6%, #6a2425 3.2%, #4a1519 4.6%, #2a0a0d 6.4%, #1e0709 7.8%);
   transform-origin: 50% 0;
 }
-.backstage__drape--left { left: 0; }
-.backstage__drape--right { right: 0; }
+.backstage__drape--left { left: 7%; }
+.backstage__drape--right { right: 7%; }
+/* 커튼 봉 + 양 끝 둥근 장식(짙은 앤티크 골드) */
+.backstage__rod { position: absolute; left: 4%; right: 4%; top: 5.8%; height: 1%; border-radius: 99px; background: linear-gradient(#a08058, #6b4f2e 60%, #4a3620); }
+.backstage__rod::before, .backstage__rod::after { content: ''; position: absolute; top: 50%; width: 2%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #b8966a, #6b4f2e 60%, #3e2d1a); transform: translateY(-50%); }
+.backstage__rod::before { left: -1.2%; }
+.backstage__rod::after { right: -1.2%; }
 /* 위쪽 가림막: 둥글게 늘어진 세 개의 스웨그(가운데가 조금 더 깊게) */
 .backstage__valance {
-  position: absolute; left: 0; right: 0; top: 0; height: 16%;
+  position: absolute; left: 5.4%; right: 5.4%; top: 7.1%; height: 13.5%;
   background:
     repeating-linear-gradient(90deg, transparent 0, rgb(0 0 0 / 22%) 1.4%, transparent 2.8%),
     linear-gradient(to bottom, #1a0507, #3c1014 72%, #2e0b0e);
@@ -238,8 +272,8 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
   .backstage__clip-frame, .backstage__clip--current .backstage__clip-frame { width: 100%; height: auto; aspect-ratio: 490.5 / 271.638; }
   .backstage__play { right: 8px; bottom: 8px; }
   .backstage__clip figcaption { font-size: 15px; }
-  /* 커튼(네모): 화면 폭에 맞춰 최대 340px */
-  .backstage__finale { position: relative; left: auto; top: auto; width: 100%; gap: 40px; margin-top: 24px; --su: calc(min(100cqw - 48px, 340px) / 550); }
+  /* 커튼 한 벌(캔버스 690)이 화면 폭 안에 들어오도록 최대 400px */
+  .backstage__finale { position: relative; left: auto; top: auto; width: 100%; gap: 40px; margin-top: 24px; --su: calc(min(100cqw - 48px, 400px) / 690); }
   .backstage__finale-body { gap: 14px; }
   .backstage__onstage { width: min(100%, 302px); height: 52px; border-radius: 8px; }
 }
@@ -248,5 +282,7 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
   .backstage[open] { animation: none; }
   .backstage__onstage, .backstage__plan, .backstage__toast, .backstage__play { transition: none; }
   .backstage__curtain-canvas { transition: none; }
+  .backstage__curtain-hint { transition: opacity 600ms ease; }
+  .backstage__curtain-hint[data-gone='true'] { filter: none; transform: translate(-50%, -50%); }
   .backstage__curtain[data-hover='true'] .backstage__drape { animation: none; }
 }
