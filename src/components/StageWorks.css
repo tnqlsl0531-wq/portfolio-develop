@@ -45,27 +45,60 @@
 .stage-works__order li[data-active] strong { font-weight: 700; }
 .stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 8px; border-radius: 2px; }
 
-.stage-carousel { position: absolute; z-index: 5; left: 727px; top: 514px; width: 1079px; height: 255.6px; outline: none; }
+.stage-carousel {
+  position: absolute; z-index: 5; left: 727px; top: 474px;
+  width: 1079px; height: var(--face-height); outline: none;
+  perspective: 1800px; perspective-origin: 50% 50%;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  cursor: grab;
+}
 .stage-carousel:focus-visible { outline: 3px solid #f8574f; outline-offset: 12px; border-radius: 12px; }
-.stage-carousel__drag { position: absolute; inset: 0; cursor: grab; touch-action: pan-y; }
-.stage-carousel__drag:active { cursor: grabbing; }
+.stage-carousel[data-dragging], .stage-carousel[data-dragging] .stage-card { cursor: grabbing; }
+/* Do not add opacity, filter, overflow clipping or paint containment to these
+   two wrappers: they flatten CSS 3D and break the joined-face geometry. */
+.stage-carousel__camera {
+  position: absolute; left: calc(50% - var(--face-width) / 2); top: 0;
+  width: var(--face-width); height: var(--face-height);
+  transform-style: preserve-3d;
+  transform: translateZ(calc(-1 * var(--prism-radius))) rotateX(-10deg);
+}
+.stage-prism { position: absolute; inset: 0; transform-style: preserve-3d; }
+.stage-prism__cap {
+  position: absolute; left: 0; top: 50%; width: var(--face-width);
+  height: calc(3 * var(--prism-radius)); margin-top: calc(-1.5 * var(--prism-radius));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: linear-gradient(160deg, #ffe3e1, #fafafa 65%, #f4d7d4);
+  pointer-events: none;
+}
+.stage-prism__cap--top {
+  transform: translateY(calc(-.5 * var(--face-height))) translateZ(calc(-.5 * var(--prism-radius))) rotateX(90deg);
+}
+.stage-prism__cap--bottom {
+  background: #dcc5c2;
+  transform: translateY(calc(.5 * var(--face-height))) translateZ(calc(-.5 * var(--prism-radius))) rotateX(90deg);
+}
 .stage-card {
   position: absolute;
-  left: calc(50% - 353.4px);
+  left: 0;
   top: 0;
-  width: 706.8px;
-  height: 255.6px;
+  width: var(--face-width);
+  height: var(--face-height);
+  box-sizing: border-box;
   padding: 21.6px;
   overflow: hidden;
   border: 2.4px solid #ffe3e1;
-  border-radius: 12px;
+  border-radius: 0;
   background: linear-gradient(174.981deg, #fafafa 24.346%, #fff8f8 101.59%);
-  box-shadow: 3.6px 3.6px 12px rgb(174 48 43 / 5%);
+  box-shadow: inset 0 0 0 .5px #ffe3e1;
   color: #171717;
   text-align: left;
   transform-origin: center center;
-  cursor: pointer;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  cursor: grab;
 }
+.stage-card__shade { position: absolute; inset: 0; background: #502421; pointer-events: none; }
+.stage-card img { -webkit-user-drag: none; }
 .stage-card:focus-visible { outline: 5px solid #f8574f; outline-offset: 6px; }
 .stage-card__inner { display: flex; align-items: flex-start; gap: 22.8px; width: 658.8px; height: 212.4px; }
 .stage-card__art { position: relative; flex: 0 0 318px; width: 318px; height: 207.6px; overflow: hidden; border: 2.4px solid #efefef; border-radius: 7.2px; background: #fff; }
@@ -88,10 +121,6 @@
 .stage-card__inner--future { align-items: center; }
 .stage-card__inner--future > p { flex: 1; margin: 0; color: #a3a3a3; font: 400 31.808px/1.5 'Special Gothic Expanded One', sans-serif; text-align: center; letter-spacing: .954px; }
 .stage-works__drag-hint { position: absolute; z-index: 7; left: 1224px; top: 842px; margin: 0; color: #a3a3a3; font: 500 17px/1 'IBM Plex Mono', monospace; letter-spacing: 1.2px; opacity: .8; }
-
-@media (prefers-reduced-motion: reduce) {
-  .stage-card { transition: none; }
-}
 
 @media (max-width: 700px) {
   .stage-works__intro { left: 930px; top: 28px; gap: 18px; }
