@@ -11,12 +11,14 @@ import jaduLogo from './assets/design/jadu-logo.svg'
 import questionMark from './assets/design/question-mark.svg'
 import paperclip from './assets/design/paperclip.svg'
 import StrokePresenter from './components/StrokePresenter'
+import GalleryArchive from './components/GalleryArchive'
+import type { ArchiveOrigin } from './components/GalleryArchive'
 
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
 
-type Detail = { kind: 'project'; project: Project } | { kind: 'gallery' } | null
+type Detail = { kind: 'project'; project: Project } | null
 
 const photoDescriptions: Record<PhotoPosition, string> = {
   main: '최수빈의 공연 사진 · 한복 의상',
@@ -247,7 +249,7 @@ function ShowLineup({ onSelect }: { onSelect: (project: Project) => void }) {
   )
 }
 
-function ArtistGallery({ onOpen }: { onOpen: () => void }) {
+function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
   useEffect(() => {
@@ -289,7 +291,14 @@ function ArtistGallery({ onOpen }: { onOpen: () => void }) {
           <h2 id="gallery-title" className="section-heading gallery__title">Artist<br />Gallery</h2>
           <p>아티스트 포토 아카이브전</p>
         </div>
-        <button className="gallery__link" onClick={onOpen}>
+        {/* 누르면 아카이브 화면(피그마 109-8)이 이 버튼 자리에서 원으로 퍼지며 열립니다. */}
+        <button
+          className="gallery__link"
+          onClick={event => {
+            const box = event.currentTarget.getBoundingClientRect()
+            onOpen({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
+          }}
+        >
           <span className="gallery__link-label">자세히 보러가기</span>
           {/* 피그마 Vector 1810(node 217-1559) 좌표 그대로. 마우스를 올리면 가로선이 195 → 224로 길어지고 꺾인 끝이 따라갑니다(node 217-1567). */}
           <svg className="gallery__link-arrow" viewBox="0 0 226 23" fill="none" aria-hidden="true" focusable="false">
@@ -555,13 +564,6 @@ function DetailDialog({ detail, onClose }: { detail: Detail; onClose: () => void
       </dl>
       {project.url ? <a className="detail-dialog__action" href={project.url} target="_blank" rel="noreferrer">프로젝트 보러가기 ↗</a> : <p className="detail-dialog__notice">프로젝트 상세 내용과 링크는 준비 중입니다.</p>}
     </>
-  } else if (detail?.kind === 'gallery') {
-    const photos = galleryPhotos.filter(photo => photo.src)
-    content = <>
-      <h2 id="detail-title" className="section-heading">Artist Gallery</h2>
-      <p>아티스트 포토 아카이브전</p>
-      {photos.length ? <div className="gallery-detail">{photos.map((photo, index) => <img key={index} src={photo.src} alt={photo.alt} loading="lazy" />)}</div> : <div className="gallery-detail__empty"><p>사진을 준비하고 있어요.</p><span>사진이 등록되면 이곳에서 모아볼 수 있습니다.</span></div>}
-    </>
   }
 
   return (
@@ -576,6 +578,7 @@ function DetailDialog({ detail, onClose }: { detail: Detail; onClose: () => void
 
 export default function App() {
   const [detail, setDetail] = useState<Detail>(null)
+  const [archiveOrigin, setArchiveOrigin] = useState<ArchiveOrigin | null>(null)
   useEffect(() => {
     document.title = 'Grand exhibition | 최수빈'
     document.documentElement.lang = 'ko'
@@ -586,11 +589,12 @@ export default function App() {
       <main className="portfolio">
         <Hero />
         <ShowLineup onSelect={project => setDetail({ kind: 'project', project })} />
-        <ArtistGallery onOpen={() => setDetail({ kind: 'gallery' })} />
+        <ArtistGallery onOpen={setArchiveOrigin} />
         <DirectorsNote />
         <Contact />
       </main>
       <DetailDialog detail={detail} onClose={() => setDetail(null)} />
+      <GalleryArchive origin={archiveOrigin} onClose={() => setArchiveOrigin(null)} />
     </>
   )
 }

@@ -31,6 +31,12 @@ React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-627
 기울어진 4개 사진 트랙에만 hover 정지를 적용했습니다.
 
+Artist Gallery 아카이브 화면 / 사진 크게 보기:
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192
+조명 그림(src/assets/design/gallery-spotlight.svg)은 node 109:11(Spotlight · Grayscale)을 SVG로 내보낸 원본 그대로입니다.
+여는 효과(버튼 자리에서 원이 커지며 화면을 채움)는 같은 파일의 메모(node 94:1160)를 따랐습니다.
+
 Contact 섹션(스태프 패스·문의 폼·카피라이트):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
 종이클립은 같은 파일에서 내보낸 기존 src/assets/design/paperclip.svg를 그대로 사용합니다.

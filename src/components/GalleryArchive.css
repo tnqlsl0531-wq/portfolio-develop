@@ -1,0 +1,139 @@
+/* Artist Gallery 아카이브 화면 (피그마 109-8)
+   화면 높이 1080을 기준으로 한 --gu 단위를 씁니다. 창 높이에 맞춰 사진·글자가 함께 커지고 작아지고,
+   세로로 긴 휴대폰에서도 사진이 너무 작아지지 않습니다. */
+.archive {
+  --gu: calc(100vh / 1080);
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #f0f0f0;
+  color: #171717;
+}
+@supports (height: 100dvh) { .archive { --gu: calc(100dvh / 1080); } }
+.archive::backdrop { background: transparent; }
+
+/* 여는 효과: '자세히 보러가기' 버튼 자리에서 원이 커지며 화면을 채움 / 닫을 때는 반대로 */
+.archive[open] { animation: archive-show 900ms cubic-bezier(.65, 0, .35, 1) backwards; }
+.archive[data-closing='true'] { animation: archive-hide 600ms cubic-bezier(.65, 0, .35, 1) forwards; }
+@keyframes archive-show {
+  from { clip-path: circle(0 at var(--origin-x, 50%) var(--origin-y, 50%)); }
+  to { clip-path: circle(150% at var(--origin-x, 50%) var(--origin-y, 50%)); }
+}
+@keyframes archive-hide {
+  from { clip-path: circle(150% at var(--origin-x, 50%) var(--origin-y, 50%)); }
+  to { clip-path: circle(0 at var(--origin-x, 50%) var(--origin-y, 50%)); }
+}
+
+.archive__back {
+  position: absolute;
+  z-index: 2;
+  top: max(12px, calc(40 * var(--gu)));
+  left: max(12px, calc(48 * var(--gu)));
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  padding: .5em .25em;
+  border: 0;
+  background: none;
+  color: #525252;
+  font: 500 max(15px, calc(22 * var(--gu)))/1.45 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+.archive__back:hover { color: #171717; }
+
+/* 사진 줄: 윗줄 top 138, 아랫줄 top 634, 줄 높이 310(사진은 줄 가운데 정렬) */
+.archive__row { position: absolute; left: 0; right: 0; height: calc(310 * var(--gu)); display: flex; align-items: center; }
+.archive__row--left { top: calc(138 * var(--gu)); }
+.archive__row--right { top: calc(634 * var(--gu)); }
+/* 같은 줄 두 벌을 이어 붙이고 한 벌 길이(-50%)만큼 움직인 뒤 처음으로 돌아가 끊김 없이 반복합니다.
+   --duration은 GalleryArchive.tsx에서 사진 수에 맞춰 계산합니다. 두 줄이 같은 모양으로 시작하지 않도록 시작 위치를 다르게 했습니다. */
+.archive__track { display: flex; width: max-content; animation: archive-marquee var(--duration, 120s) linear infinite; }
+.archive__row--left .archive__track { animation-delay: calc(var(--duration, 120s) * -.3); }
+.archive__row--right .archive__track { animation-direction: reverse; animation-delay: calc(var(--duration, 120s) * -.6); }
+@keyframes archive-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.archive__sequence { display: flex; align-items: center; gap: calc(34 * var(--gu)); margin: 0; padding: 0 calc(34 * var(--gu)) 0 0; list-style: none; }
+.archive__sequence li { display: flex; }
+
+.archive__photo {
+  display: block;
+  width: calc(var(--w) * var(--gu));
+  height: calc(var(--h) * var(--gu));
+  padding: 0;
+  border: 1px solid #a3a3a3;
+  border-radius: calc(8 * var(--gu));
+  background: var(--frame, #d4d4d4);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 400ms cubic-bezier(.22, .61, .36, 1);
+}
+.archive__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* 사진에 마우스를 올리면: 그 줄만 멈추고 사진이 아주 살짝(4%) 커짐. 키보드로 사진을 골랐을 때도 같게 동작합니다. */
+@media (hover: hover) {
+  .archive__row:has(.archive__photo:hover) .archive__track { animation-play-state: paused; }
+  .archive__photo:hover { transform: scale(1.04); }
+}
+.archive__row:has(.archive__photo:focus-visible) .archive__track { animation-play-state: paused; }
+.archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 3px; }
+/* 사진을 크게 보는 중이거나 닫히는 중에는 두 줄 모두 멈춤 */
+.archive[data-viewing='true'] .archive__track,
+.archive[data-closing='true'] .archive__track { animation-play-state: paused; }
+
+/* 위에서 내려오는 조명(피그마 Spotlight · Grayscale)과 가운데 제목 */
+.archive__spotlight { position: absolute; z-index: 1; top: 0; left: 50%; width: calc(320 * var(--gu)); height: calc(378 * var(--gu)); transform: translateX(-50%); pointer-events: none; }
+.archive__title {
+  position: absolute;
+  z-index: 1;
+  top: calc(50% - 32 * var(--gu));
+  left: 50%;
+  width: min(calc(640 * var(--gu)), calc(100% - 32px));
+  transform: translateX(-50%);
+  color: #d4d4d4;
+  font-size: min(calc(64 * var(--gu)), 12vw);
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* 사진 크게 보기 (피그마 96-192): 뒤 화면 흐림 6px + #171717 58%, 가운데 흰 카드 592×648 · 모서리 15
+   사진이 아직 없으면 흰 카드만, 사진이 있으면 카드 크기 안에서 사진 전체가 잘리지 않게 보여줍니다. */
+.archive-viewer {
+  width: min(calc(592 * var(--gu)), calc(100vw - 32px));
+  height: min(calc(648 * var(--gu)), calc((100vw - 32px) * 648 / 592));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: calc(15 * var(--gu));
+  background: #fff;
+  overflow: hidden;
+}
+.archive-viewer[data-empty='false'] { width: fit-content; height: fit-content; }
+.archive-viewer__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(calc(592 * var(--gu)), calc(100vw - 32px));
+  max-height: min(calc(648 * var(--gu)), calc(100dvh - 32px));
+}
+.archive-viewer::backdrop { background: rgb(23 23 23 / 58%); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.archive-viewer[open] { animation: archive-viewer-show 320ms cubic-bezier(.22, .61, .36, 1); }
+.archive-viewer[open]::backdrop { animation: archive-viewer-fade 320ms ease; }
+@keyframes archive-viewer-show { from { opacity: 0; transform: scale(.96); } }
+@keyframes archive-viewer-fade { from { opacity: 0; } }
+
+/* 움직임 줄이기 설정: 여닫는 효과와 흐름을 끄고, 사진 줄은 손으로 옆으로 밀어서 봅니다. */
+@media (prefers-reduced-motion: reduce) {
+  .archive[open], .archive[data-closing='true'], .archive-viewer[open], .archive-viewer[open]::backdrop { animation: none; }
+  .archive__track { animation: none; }
+  .archive__row { overflow-x: auto; }
+  .archive__photo, .archive__back { transition: none; }
+}
