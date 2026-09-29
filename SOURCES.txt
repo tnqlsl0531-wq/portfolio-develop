@@ -122,3 +122,7 @@ Entry ticket (2026-09-29)
 - Reference effects: holes 20, notch 10, parallax 0, perspective 1800, tiltMax 10, border false, recenter false; dimensions adapted to the 725 × 267 Figma ticket.
 - IBM Plex Mono Medium: google/fonts, ofl/ibmplexmono; SIL Open Font License, src/assets/fonts/IBMPlexMono-OFL.txt.
 - Admission persists for the current tab session; a fresh session shows the ticket again. Keyboard: Enter or Space.
+
+Backstage button spotlight (2026-09-29)
+- Artwork: exact masked photo layer exported from supplied Figma node 296:205 inside button 296:189; exported bounds 432 x 192. src/assets/backstage/backstage-choice-art.png.
+- Interaction adapted from React Bits ChromaGrid (David Haz): src/ts-default/Components/ChromaGrid. Radius 100px, damping 0.55s (power3.out), fade-out 0.2s. Dark-to-grayscale reveal; animation uses the existing Motion dependency. See src/licenses/React-Bits-LICENSE.md.

@@ -1,0 +1,47 @@
+.stage-choice--back {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  --backstage-x: 50%;
+  --backstage-y: 50%;
+}
+
+.backstage-choice__reveal {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+  /* The inverse of ChromaGrid's dark overlay: a feathered 100px aperture. */
+  --backstage-mask: radial-gradient(circle 100px at var(--backstage-x) var(--backstage-y),
+    #fff 0%, #fff 15%, rgba(255,255,255,.9) 30%, rgba(255,255,255,.78) 45%,
+    rgba(255,255,255,.65) 60%, rgba(255,255,255,.5) 75%, rgba(255,255,255,.32) 88%, transparent 100%);
+  -webkit-mask-image: var(--backstage-mask);
+  mask-image: var(--backstage-mask);
+}
+
+.backstage-choice__reveal img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: grayscale(1);
+  user-select: none;
+}
+
+.stage-choice--back[data-spotlight='true'] .backstage-choice__reveal {
+  opacity: 1;
+  transition-duration: 250ms;
+}
+
+.stage-choice--back .stage-choice__title,
+.stage-choice--back .stage-choice__desc {
+  position: relative;
+  text-shadow: 2px 4px 5.8px rgba(0,0,0,.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backstage-choice__reveal,
+  .stage-choice--back[data-spotlight='true'] .backstage-choice__reveal { transition: none; }
+}
