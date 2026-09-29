@@ -79,22 +79,32 @@
   width: calc(var(--w) * var(--gu));
   height: calc(var(--h) * var(--gu));
   padding: 0;
-  border: 1px solid #a3a3a3;
+  border: 0;
   border-radius: calc(8 * var(--gu));
-  background: var(--frame, #d4d4d4);
+  background: #e5e5e5; /* 사진이 불러와지기 전 */
   overflow: hidden;
   cursor: pointer;
   transition: transform 400ms cubic-bezier(.22, .61, .36, 1);
 }
-.archive__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* 평소에는 채도를 살짝 낮춰(75%) 덜 쨍하게 — 회색빛이 돌지 않을 만큼만. 마우스를 올린 사진만 원래 색으로 돌아옵니다.
+   정도는 --archive-saturate 숫자로 조절하세요(1 = 원본, 0 = 흑백). */
+.archive { --archive-saturate: .75; }
+.archive__photo img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  filter: saturate(var(--archive-saturate));
+  transition: filter 400ms ease;
+  user-select: none;
+}
 
-/* 사진에 마우스를 올리면: 그 줄만 멈추고 사진이 아주 살짝(4%) 커짐. 키보드로 사진을 골랐을 때도 같게 동작합니다. */
+/* 사진에 마우스를 올리면: 그 줄만 멈추고 사진이 아주 살짝(4%) 커지며 원래 색으로. 키보드로 사진을 골랐을 때도 같게 동작합니다. */
 @media (hover: hover) {
   .archive__row:has(.archive__photo:hover) .archive__track { animation-play-state: paused; }
   .archive__photo:hover { transform: scale(1.04); }
+  .archive__photo:hover img { filter: none; }
 }
 .archive__row:has(.archive__photo:focus-visible) .archive__track { animation-play-state: paused; }
 .archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 3px; }
+.archive__photo:focus-visible img { filter: none; }
 /* 사진을 크게 보는 중이거나 닫히는 중에는 두 줄 모두 멈춤 */
 .archive[data-viewing='true'] .archive__track,
 .archive[data-closing='true'] .archive__track { animation-play-state: paused; }
@@ -115,8 +125,8 @@
   pointer-events: none;
 }
 
-/* 사진 크게 보기 (피그마 96-192): 뒤 화면 흐림 6px + #171717 58%, 가운데 흰 카드 592×648 · 모서리 15
-   사진이 아직 없으면 흰 카드만, 사진이 있으면 카드 크기 안에서 사진 전체가 잘리지 않게 보여줍니다. */
+/* 사진 크게 보기 (피그마 96-192): 뒤 화면 흐림 6px + #171717 58%, 가운데 흰 카드 · 모서리 15
+   자르지 않은 원본 사진을 원래 색으로, 화면 안에 들어오는 가장 큰 크기(최대 1600×900, 화면 가장자리 48px 여백)로 보여줍니다. */
 .archive-viewer {
   width: min(calc(592 * var(--gu)), calc(100vw - 32px));
   height: min(calc(648 * var(--gu)), calc((100vw - 32px) * 648 / 592));
@@ -133,8 +143,11 @@
   display: block;
   width: auto;
   height: auto;
-  max-width: min(calc(592 * var(--gu)), calc(100vw - 32px));
-  max-height: min(calc(648 * var(--gu)), calc(100dvh - 32px));
+  max-width: min(calc(1600 * var(--gu)), calc(100vw - 96px));
+  max-height: min(calc(900 * var(--gu)), calc(100dvh - 96px));
+}
+@media (max-width: 700px) {
+  .archive-viewer__image { max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); }
 }
 .archive-viewer::backdrop { background: rgb(23 23 23 / 58%); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .archive-viewer[open] { animation: archive-viewer-show 320ms cubic-bezier(.22, .61, .36, 1); }
@@ -147,5 +160,5 @@
   .archive[open], .archive[data-closing='true'], .archive-viewer[open], .archive-viewer[open]::backdrop { animation: none; }
   .archive__track { animation: none; }
   .archive__row { overflow-x: auto; }
-  .archive__photo, .archive__back, .archive__back-line, .archive__back-tail { transition: none; }
+  .archive__photo, .archive__photo img, .archive__back, .archive__back-line, .archive__back-tail { transition: none; }
 }

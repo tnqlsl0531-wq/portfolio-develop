@@ -66,6 +66,14 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192
 조명 그림(src/assets/design/gallery-spotlight.svg)은 node 109:11(Spotlight · Grayscale)을 SVG로 내보낸 원본 그대로입니다.
 여는 효과(버튼 자리에서 원이 커지며 화면을 채움)는 같은 파일의 메모(node 94:1160)를 따랐습니다.
+아카이브 사진(src/assets/archive): 피그마 node 334-2(06 · Artist gallery archive)에 채운 38장.
+사용자 PC의 Downloads/portfolio_photos(구글 드라이브에서 받은 원본)에서 같은 사진을 찾아(피그마 화면과 픽셀 비교) 만들었습니다.
+- top-01.webp 등: 피그마 사진 틀과 같은 자르기, 표시 크기의 2배, WebP 품질 80.
+- top-01-full.webp 등: 자르지 않은 원본 전체(사진 방향 보정), 긴 변 최대 1800px, WebP 품질 82.
+- IMG_1686.JPG는 파일이 옆으로 누워 저장돼 있어 피그마처럼 90° 돌려 썼습니다.
+- 채도: 줄에서는 CSS filter saturate(.75), 마우스를 올린 사진과 크게 보기는 원래 색.
+  윗줄: 01=IMG_1866.PNG, 02=018A0973.jpg, 03=7D79B50D-19EB-44FC-9E2C-E7DFB70F709C.jpg, 04=018A1489.jpg, 05=IMG_5906.jpg, 06=IMG_1681.JPG, 07=IMG_7588.PNG, 08=IMG_7569.JPG, 09=3S0A5246 복사.jpg, 10=018A3958.jpg, 11=IMG_7543.JPG, 12=3S0A0571.JPG, 13=IMG_7370.PNG, 14=018A0081.jpg, 15=IMG_9247.PNG, 16=IMG_1686.JPG, 17=IMG_6002.PNG, 18=3S0A6721.JPG, 19=IMG_4939.JPG
+  아랫줄: 01=IMG_7545.JPG, 02=IMG_6352.JPG, 03=018A0082.jpg, 04=IMG_7369.PNG, 05=IMG_0924.JPG, 06=1_IMG_1913.jpg, 07=3S0A0610.JPG, 08=IMG_5930.PNG, 09=IMG_3955.JPG, 10=018A0059.jpg, 11=1CF9D784-E4FE-4492-90B0-91265E482984.jpg, 12=018A4788.jpg, 13=IMG_7024.PNG, 14=018A9809.jpg, 15=IMG_7695.JPG, 16=MYXJ_20240422122647053_save.jpg, 17=018A9984.jpg, 18=IMG_6068.JPG, 19=IMG_5332.JPG
 
 Contact 섹션(스태프 패스·문의 폼·카피라이트):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
