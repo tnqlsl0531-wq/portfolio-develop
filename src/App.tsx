@@ -1,18 +1,14 @@
 import OnStageChoice from './components/OnStageChoice'
 import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
+import StageWorks from './components/StageWorks'
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
-import { heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
+import { heroPhotos, profile, projects } from './portfolio'
 import { galleryTracks } from './galleryPhotos'
 import type { PhotoPosition, Project } from './portfolio'
 import heroCurve from './assets/design/hero-curve.svg'
 import heroCurveColor from './assets/design/hero-curve-color.svg'
-import chevron from './assets/design/chevron.svg'
-import kooksoondangLogo from './assets/design/kooksoondang-logo.svg'
-import kooksoondangDot from './assets/design/kooksoondang-dot.svg'
-import jaduLogo from './assets/design/jadu-logo.svg'
-import questionMark from './assets/design/question-mark.svg'
 import paperclip from './assets/design/paperclip.svg'
 import StrokePresenter from './components/StrokePresenter'
 import { useColorReveal } from './hooks/useColorReveal'
@@ -38,6 +34,10 @@ const photoSizes: Record<PhotoPosition, [number, number]> = {
   upper: [586, 556],
   right: [582, 922],
 }
+
+const GALLERY_GAP = 24
+const GALLERY_COLUMN = 2656
+const GALLERY_SPEED = 41
 
 // 같은 사진을 두 장 겹칩니다. 아래 장은 채도를 90% 뺀 사진, 위 장은 원래 색 사진이며
 // 위 장은 커서 주변 원 안에서만 보입니다(가장자리 페이드는 바깥 틀이 두 장에 함께 적용).
@@ -102,98 +102,6 @@ function Hero() {
     </div>
   )
 }
-
-function ProjectArtwork({ project }: { project: Project }) {
-  return (
-    <div className={`project-artwork project-artwork--${project.id}`}>
-      {project.id === 'kooksoondang' ? (
-        <>
-          <div className="project-artwork__kooksoondang"><img src={kooksoondangLogo} alt="국순당" /></div>
-          <img className="project-artwork__dot" src={kooksoondangDot} alt="" />
-        </>
-      ) : <img className="project-artwork__jadu" src={jaduLogo} alt="자두야" />}
-      <span className="project-artwork__badge">쇼 종료</span>
-    </div>
-  )
-}
-
-function ComingSoon() {
-  return (
-    <article className="project-card project-card--soon" aria-label="준비 중인 프로젝트">
-      <div className="project-artwork project-artwork--soon"><img src={questionMark} alt="" /></div>
-      <p className="project-card__coming">COMING<br />SOON</p>
-    </article>
-  )
-}
-
-function ShowLineup({ onSelect }: { onSelect: (project: Project) => void }) {
-  const [team, setTeam] = useState('Team')
-  const [platform, setPlatform] = useState('All')
-  const [page, setPage] = useState(1)
-  const filtered = projects.filter(project =>
-    (team === 'All' || project.team === team) && (platform === 'All' || project.platform === platform),
-  )
-  const pageCount = filtered.length ? Math.max(plannedProjectPages, Math.ceil(filtered.length / 4)) : 1
-
-  return (
-    <section id="lineup" className="lineup" aria-labelledby="lineup-title">
-      <div className="lineup__inner">
-        <h2 id="lineup-title" className="section-heading lineup__title">Show Line-up</h2>
-        <div className="lineup__filters">
-          <label className="filter">
-            <span className="sr-only">프로젝트 참여 유형</span>
-            <select value={team} onChange={event => { setTeam(event.target.value); setPage(1) }}>
-              <option value="All">All</option><option value="Team">Team</option><option value="Personal">Personal</option>
-            </select>
-            <img src={chevron} alt="" />
-          </label>
-          <label className="filter">
-            <span className="sr-only">프로젝트 플랫폼</span>
-            <select value={platform} onChange={event => { setPlatform(event.target.value); setPage(1) }}>
-              <option value="All">All</option><option value="Web">Web</option><option value="App">App</option>
-            </select>
-            <img src={chevron} alt="" />
-          </label>
-        </div>
-        {filtered.length ? (
-          <div className="lineup__cards">
-            {Array.from({ length: 4 }, (_, index) => {
-              const project = filtered[(page - 1) * 4 + index]
-              return project ? (
-                <button key={project.id} className="project-card project-card--ready" onClick={() => onSelect(project)} aria-label={`${project.title} 자세히 보기`}>
-                  <div className="project-card__content">
-                    <ProjectArtwork project={project} />
-                    <h3 className="project-card__title" title={project.title}>{project.title}</h3>
-                    <dl className="project-card__meta">
-                      <div><dt>기관:</dt><dd>{project.organization}</dd></div>
-                      <div><dt>유형:</dt><dd>{project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'}</dd></div>
-                    </dl>
-                  </div>
-                  <p className="project-card__period">{project.period}</p>
-                </button>
-              ) : <ComingSoon key={`soon-${page}-${index}`} />
-            })}
-          </div>
-        ) : (
-          <div className="lineup__empty">
-            <p>이 조건에 해당하는 프로젝트는 준비 중이에요.</p>
-            <button onClick={() => { setTeam('All'); setPlatform('All'); setPage(1) }}>전체 프로젝트 보기 →</button>
-          </div>
-        )}
-        <nav className="pagination" aria-label="프로젝트 페이지">
-          {page > 1 && <button onClick={() => setPage(current => current - 1)} aria-label="이전 프로젝트 페이지">← 이전</button>}
-          <span aria-live="polite" aria-atomic="true">{page} / {pageCount}</span>
-          <button onClick={() => setPage(current => Math.min(current + 1, pageCount))} disabled={page === pageCount} aria-label="다음 프로젝트 페이지">다음&nbsp; →</button>
-        </nav>
-      </div>
-    </section>
-  )
-}
-
-// 메인 Artist Gallery 흐름(피그마 122-625): 사진 사이 간격 24, 줄 높이 2656, 1920 화면 기준 1초에 약 41px(예전과 같은 속도)
-const GALLERY_GAP = 24
-const GALLERY_COLUMN = 2656
-const GALLERY_SPEED = 41.2
 
 function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
@@ -654,7 +562,7 @@ function Portfolio() {
       <a className="skip-link" href="#lineup">프로젝트 목록으로 이동</a>
       <main className="portfolio">
         <Hero />
-        <ShowLineup onSelect={setSelectedProject} />
+        <StageWorks onSelect={setSelectedProject} />
         <ArtistGallery onOpen={setArchiveOrigin} />
         <DirectorsNote />
         <Contact />
