@@ -127,3 +127,7 @@ Entry ticket (2026-09-29)
 Backstage button spotlight (2026-09-29)
 - Artwork: exact masked photo layer exported from supplied Figma node 296:205 inside button 296:189; exported bounds 432 x 192. src/assets/backstage/backstage-choice-art.png.
 - Interaction adapted from React Bits ChromaGrid (David Haz): src/ts-default/Components/ChromaGrid. Radius 100px, damping 0.55s (power3.out), fade-out 0.2s. Dark-to-grayscale reveal; animation uses the existing Motion dependency. See src/licenses/React-Bits-LICENSE.md.
+
+ON STAGE hover artwork (2026-09-29)
+- Supplied Figma button 296:186; exact separate PNG exports of grandma 296:225, bottle 296:247, cup 296:246 at 2x, preserving Figma clipping, colors and alpha.
+- Sequential entrance: grandma, bottle, cup with 0 / 110 / 220ms delays, overshoot and settling. Reduced-motion mode displays the final layout without movement.
