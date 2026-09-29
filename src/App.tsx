@@ -293,7 +293,14 @@ function DirectorsNote() {
           </div>
           <div className="director__paragraphs">{profile.paragraphs.map((lines, index) => (
             <p key={index}>{lines.map((line, lineIndex) => (
-              <Fragment key={lineIndex}>{lineIndex > 0 && ' '}<span className="director__line">{line}</span></Fragment>
+              <Fragment key={lineIndex}>
+                {lineIndex > 0 && ' '}
+                <span className="director__line">
+                  {line.split(/(‘관객이 어떻게 느낄까’|‘이 사람의 다른 작업도 보고 싶다’)/u).map((part, partIndex) => (
+                    partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+                  ))}
+                </span>
+              </Fragment>
             ))}</p>
           ))}</div>
         </div>
