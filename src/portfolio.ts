@@ -100,13 +100,4 @@ export const projects: Project[] = [
 // 피그마의 1 / 3 구성을 유지합니다. 아직 없는 프로젝트는 COMING SOON입니다.
 export const plannedProjectPages = 3
 
-export interface GalleryPhoto {
-  src: string
-  alt: string
-}
-
-// 피그마의 4개 트랙 × 10개 사진 자리. 원본이 없어 현재는 비어 있습니다.
-export const galleryPhotos: GalleryPhoto[] = Array.from({ length: 40 }, (_, index) => ({
-  src: '',
-  alt: `아티스트 갤러리 사진 ${index + 1}`,
-}))
+// 메인 화면 Artist Gallery 사진은 src/galleryPhotos.ts, 아카이브 화면 사진은 src/archivePhotos.ts에 있습니다.

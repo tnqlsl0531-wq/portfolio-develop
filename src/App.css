@@ -336,20 +336,21 @@
 }
 .gallery__tracks { display: flex; align-items: flex-start; gap: calc(24 * var(--u)); transform: rotate(37.34deg); pointer-events: auto; }
 .gallery__column { width: calc(192 * var(--u)); height: calc(2656 * var(--u)); flex-shrink: 0; overflow: hidden; }
-.gallery__moving { animation: gallery-marquee 65s linear infinite; animation-play-state: paused; }
+.gallery__moving { animation: gallery-marquee var(--duration, 60s) linear infinite; animation-play-state: paused; }
 .gallery__moving--down { animation-direction: reverse; }
 .gallery__sequence { display: flex; flex-direction: column; gap: calc(24 * var(--u)); padding-bottom: calc(24 * var(--u)); }
-.gallery__photo { width: 100%; height: calc(244 * var(--u)); border: 1px solid #a3a3a3; border-radius: calc(8 * var(--u)); overflow: hidden; flex-shrink: 0; }
-.gallery__photo--0 { background: #e5e5e5; }
-.gallery__photo--1 { background: #d4d4d4; }
-.gallery__photo--2 { background: #f0f0f0; }
-.gallery__photo img { width: 100%; height: 100%; object-fit: cover; }
+/* 사진(피그마 122-625): 폭 192, 높이는 원본 비율(--h), 모서리 8.
+   메인에서는 채도를 아주 낮게 — 흑백은 아니고 '색이 조금 있구나' 싶을 만큼만. --gallery-saturate로 조절(1 = 원본, 0 = 흑백). */
+.gallery { --gallery-saturate: .22; }
+.gallery__photo { width: 100%; height: calc(var(--h, 244) * var(--u)); border-radius: calc(8 * var(--u)); overflow: hidden; flex-shrink: 0; background: #e5e5e5; }
+.gallery__photo img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(var(--gallery-saturate)); }
 .gallery[data-active='true'] .gallery__moving { animation-play-state: running; }
 /* Figma 122:627: 기울어진 사진 트랙과 그 사이 간격에서만 호버로 멈춥니다. */
 @media (hover: hover) {
   .gallery__tracks:hover .gallery__moving { animation-play-state: paused; }
 }
-@keyframes gallery-marquee { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+/* 한 벌 길이(--loop, 1920 화면 기준 px)만큼 움직이면 처음과 같은 모습이 되어 끊김 없이 반복됩니다. */
+@keyframes gallery-marquee { from { transform: translateY(0); } to { transform: translateY(calc(var(--loop, 1340) * var(--u) * -1)); } }
 .gallery__fade { position: absolute; pointer-events: none; }
 .gallery__fade--bottom { width: 65.833%; height: 67.593%; top: 32.407%; left: 34.167%; background: linear-gradient(170.059deg, transparent 15.174%, transparent 35.835%, rgb(252 252 252 / 24%) 51.357%, rgb(250 250 250 / 35%) 56.016%, rgb(250 250 250 / 100%) 75.585%); }
 .gallery__fade--edge { width: 65.833%; height: 37.222%; left: 28.542%; bottom: 0; background: linear-gradient(197.012deg, transparent 34.844%, rgb(250 250 250 / 35%) 74.736%, #fafafa 81.555%); }

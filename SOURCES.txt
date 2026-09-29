@@ -61,6 +61,16 @@ src/assets/backstage의 사진은 같은 파일의 원본 이미지를 피그마
 - kooksoondang-intro-after.mp4: 사용자가 제공한 최종 인트로 영상 원본(3840×2160, 60fps, 12.5초, 소리 없음, 변환하지 않음).
   썸네일은 피그마 node 296-254(흰 작품 카드)와 같은 모양이라 ProjectCover 컴포넌트로 그립니다.
 
+메인 Artist Gallery 사진(src/assets/gallery):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-625
+피그마 Diagonal marquee(node 337:843) 4줄 28장. 레이어 이름이 원본 파일 이름이라, 학원 PC Downloads/portfolio_photos의 원본에서
+피그마와 같은 자르기로 표시 크기(폭 192)의 2배, WebP 품질 78로 만들었습니다. IMG_1682.JPG는 피그마처럼 90° 돌려 썼습니다.
+채도는 CSS filter saturate(.22).
+  1줄: 01=018A7622.jpg, 02=IMG_1866.PNG, 03=3S0A6721.JPG, 04=MYXJ_20240422122647053_save.jpg, 05=IMG_7695.JPG, 06=3S0A5261.JPG, 07=7D79B50D-19EB-44FC-9E2C-E7DFB70F709C.jpg, 08=3S0A0571.JPG, 09=IMG_7545.JPG
+  2줄: 01=IMG_7370.PNG, 02=IMG_7569.JPG, 03=018A0973.jpg, 04=IMG_9247.PNG, 05=018A1205.jpg, 06=IMG_4939.JPG, 07=IMG_5930.PNG
+  3줄: 01=018A4788.jpg, 02=IMG_7588.PNG, 03=IMG_5332.JPG, 04=IMG_1682.JPG, 05=IMG_8604.PNG, 06=3S0A0610.JPG, 07=IMG_3955.JPG
+  4줄: 01=018A0082.jpg, 02=1CF9D784-E4FE-4492-90B0-91265E482984.jpg, 03=018A0081.jpg, 04=3S0A5246 복사.jpg, 05=IMG_7543.JPG
+
 Artist Gallery 아카이브 화면 / 사진 크게 보기:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192

@@ -2,8 +2,9 @@ import OnStageChoice from './components/OnStageChoice'
 import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
-import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
+import type { CSSProperties, FormEvent, ReactNode } from 'react'
+import { heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
+import { galleryTracks } from './galleryPhotos'
 import type { PhotoPosition, Project } from './portfolio'
 import heroCurve from './assets/design/hero-curve.svg'
 import heroCurveColor from './assets/design/hero-curve-color.svg'
@@ -188,6 +189,11 @@ function ShowLineup({ onSelect }: { onSelect: (project: Project) => void }) {
   )
 }
 
+// 메인 Artist Gallery 흐름(피그마 122-625): 사진 사이 간격 24, 줄 높이 2656, 1920 화면 기준 1초에 약 41px(예전과 같은 속도)
+const GALLERY_GAP = 24
+const GALLERY_COLUMN = 2656
+const GALLERY_SPEED = 41.2
+
 function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
@@ -204,21 +210,28 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
       <div className="gallery__viewport" aria-hidden="true">
         <div className="gallery__tracks-position">
           <div className="gallery__tracks">
-            {[0, 1, 2, 3].map(track => (
-              <div className="gallery__column" key={track}>
-                <div className={`gallery__moving gallery__moving--${track % 2 === 0 ? 'up' : 'down'}`}>
-                  {[0, 1].map(copy => (
-                    <div className="gallery__sequence" key={copy}>
-                      {galleryPhotos.slice(track * 10, track * 10 + 10).map((photo, index) => (
-                        <div className={`gallery__photo gallery__photo--${(track + index) % 3}`} key={index}>
-                          {photo.src && <img src={photo.src} alt="" loading="lazy" />}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+            {galleryTracks.map((photos, track) => {
+              // 한 벌(사진 + 간격 24) 길이만큼 올라가거나 내려간 뒤 처음으로 돌아가 끊김 없이 반복합니다.
+              // 줄 높이(2656)를 늘 채우도록 필요한 만큼 이어 붙이고, 줄마다 같은 속도로 흐르게 시간을 맞춥니다.
+              const loop = photos.reduce((sum, photo) => sum + photo.height + GALLERY_GAP, 0)
+              const copies = Math.ceil(GALLERY_COLUMN / loop) + 1
+              const style = { '--loop': loop, '--duration': `${loop / GALLERY_SPEED}s` } as CSSProperties
+              return (
+                <div className="gallery__column" key={track}>
+                  <div className={`gallery__moving gallery__moving--${track % 2 === 0 ? 'up' : 'down'}`} style={style}>
+                    {Array.from({ length: copies }, (_, copy) => (
+                      <div className="gallery__sequence" key={copy}>
+                        {photos.map((photo, index) => (
+                          <div className="gallery__photo" style={{ '--h': photo.height } as CSSProperties} key={index}>
+                            <img src={photo.src} alt="" width={192} height={photo.height} loading="lazy" decoding="async" />
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
         <div className="gallery__fade gallery__fade--bottom" />
