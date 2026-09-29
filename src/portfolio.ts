@@ -70,8 +70,10 @@ export interface Project {
   team: 'Team' | 'Personal'
   platform: 'Web' | 'App'
   period: string
-  // 실제 프로젝트 주소가 생기면 여기에 넣어주세요.
+  // 실제 프로젝트 주소가 생기면 여기에 넣어주세요. (작품 선택 화면 ON STAGE, BACKSTAGE 페이지 GO ONSTAGE)
   url?: string
+  // 기획서 주소(PDF·노션·피그마 등)가 생기면 여기에 넣어주세요. (BACKSTAGE 페이지 '기획서 보러가기')
+  planUrl?: string
 }
 
 export const projects: Project[] = [

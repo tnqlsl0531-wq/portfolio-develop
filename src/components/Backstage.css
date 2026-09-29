@@ -1,0 +1,238 @@
+/* BACKSTAGE 페이지 (피그마 96-516, 1920×5930)
+   --bu: 1920 화면 기준 1px. 페이지(스크롤바 제외) 폭에 맞춰 전체가 비율대로 커지고 작아집니다.
+   폰·터치 태블릿에서는 아래 미디어쿼리에서 위에서 아래로 흐르는 한 줄 배치로 바뀝니다. */
+.backstage {
+  position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+  margin: 0; padding: 0; border: 0; background: #0f0f0f; color: #fafafa;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+}
+.backstage::backdrop { background: #0f0f0f; }
+.backstage[open] { animation: backstage-in 520ms ease; }
+@keyframes backstage-in { from { opacity: 0; } }
+.backstage__frame { container-type: inline-size; --bu: calc(100cqw / 1920); }
+/* overflow: clip — 넘치는 부분만 자르고 스크롤 영역은 만들지 않아서, 안쪽 sticky가 페이지 스크롤에 맞춰 붙습니다. */
+.backstage__page {
+  position: relative; height: calc(5930 * var(--bu)); overflow: clip;
+  font-family: 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; line-height: normal;
+}
+.backstage__line { display: block; white-space: nowrap; }
+.backstage strong { font-weight: 800; }
+
+.backstage__close {
+  position: fixed; z-index: 10; top: calc(30 * var(--u)); right: calc(64 * var(--u));
+  padding: 4px 0 4px 8px; border: 0; background: none; color: #fafafa; cursor: pointer;
+  font: 400 max(15px, calc(22 * var(--u)))/1.45 'Noto Sans KR Variable', sans-serif;
+}
+.backstage__close:hover { color: #ffc7c3; }
+
+/* 맨 아래 와인색으로 물드는 배경(피그마 Rectangle 34624337): 위 #0f0f0f → 아래 #502421 */
+.backstage__glow { position: absolute; left: 0; right: 0; bottom: 0; height: calc(1294 * var(--bu)); background: linear-gradient(to top, #502421, #0f0f0f); pointer-events: none; }
+
+/* 맨 위 작품 카드(622×350)와 아래로 검정에 스며드는 그라데이션(854×272) */
+.backstage__cover { position: absolute; left: calc(533 * var(--bu)); top: calc(133 * var(--bu)); width: calc(854 * var(--bu)); height: calc(379 * var(--bu)); }
+.backstage__cover-card { position: absolute; top: 0; left: 50%; width: calc(622.222 * var(--bu)); transform: translateX(-50%); }
+.backstage__cover-fade { position: absolute; left: 0; top: calc(107 * var(--bu)); width: 100%; height: calc(272 * var(--bu)); background: linear-gradient(-0.5725deg, #0f0f0f 14.756%, rgb(7 7 7 / 0%) 98.568%); }
+
+/* 기획서 보러가기 줄: 531px 지점에서 시작해 페이지 끝까지 따라다니는 칸(track) 안에서 sticky로 맨 위에 붙습니다.
+   줄 전체 폭 100%, 검정 반투명(50%) + 뒤 흐림(12px).
+   배경은 줄 아래로 --bar-fade만큼 더 내려가며 부드럽게 사라집니다(아래가 뚝 끊기지 않게). 그 부분은 클릭을 막지 않습니다. */
+.backstage__bar-track { position: absolute; z-index: 5; left: 0; right: 0; top: calc(531 * var(--bu)); bottom: 0; pointer-events: none; }
+.backstage__bar {
+  --bar-fade: max(32px, calc(72 * var(--bu)));
+  position: sticky; top: 0; width: 100%; display: flex; justify-content: center; padding: calc(15 * var(--bu)) 0; pointer-events: none;
+}
+.backstage__bar::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: calc(-1 * var(--bar-fade)); pointer-events: none;
+  background: rgb(15 15 15 / 50%); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  --bar-mask: linear-gradient(to bottom, #000 0, #000 calc(100% - var(--bar-fade)),
+    rgb(0 0 0 / 80%) calc(100% - var(--bar-fade) * .75), rgb(0 0 0 / 48%) calc(100% - var(--bar-fade) * .5),
+    rgb(0 0 0 / 18%) calc(100% - var(--bar-fade) * .25), transparent 100%);
+  -webkit-mask-image: var(--bar-mask); mask-image: var(--bar-mask);
+}
+.backstage__plan {
+  position: relative; pointer-events: auto;
+  display: inline-flex; align-items: center; justify-content: center; padding: calc(15 * var(--bu)) calc(70 * var(--bu));
+  border: 0; border-radius: calc(8 * var(--bu)); background: #f8574f; color: #fafafa; text-decoration: none; cursor: pointer;
+  font: 600 max(15px, calc(24 * var(--bu)))/normal 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; white-space: nowrap;
+  transition: background-color 180ms ease;
+}
+.backstage__plan:hover { background: #e5443c; }
+
+/* 배경 사진 3장: 피그마와 같은 원형 그라데이션으로 가장자리가 사라지고 + 어둡게 35~40%.
+   가장자리는 검정으로 칠하지 않고 투명하게 사라지게(mask) 해서, 아래쪽 와인색 그라데이션 위에서도 네모 테두리가 보이지 않습니다. */
+.backstage__photo { position: absolute; margin: 0; overflow: hidden; transform: translate3d(0, var(--parallax, 0px), 0); will-change: transform; }
+.backstage__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.backstage__photo::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.backstage__photo--1 { left: calc(464 * var(--bu)); top: calc(795 * var(--bu)); width: calc(519 * var(--bu)); height: calc(520 * var(--bu)); }
+.backstage__photo--1 { -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 519 520' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(1.1334e-13 25.109 -26.427 0.059134 267.96 268.91)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 519 520' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(1.1334e-13 25.109 -26.427 0.059134 267.96 268.91)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.backstage__photo--1::after { background: rgb(15 15 15 / 35%); }
+/* 배경사진2: 피그마 수정본 위치(1163, 2036) */
+.backstage__photo--2 { left: calc(1163 * var(--bu)); top: calc(2036 * var(--bu)); width: calc(445 * var(--bu)); height: calc(500 * var(--bu)); }
+.backstage__photo--2 { -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 445 500' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(15.686 19.566 -17.414 17.624 222.5 250)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 445 500' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(15.686 19.566 -17.414 17.624 222.5 250)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.backstage__photo--2::after { background: rgb(15 15 15 / 40%); }
+/* 사진3: '시안에서 최종 화면이 완성되기까지'를 읽는 동안에는 보이지 않도록 피그마(3864)보다 아래로 내리고(4380),
+   천천히 따라오는 정도도 0.6배로 줄였습니다(Backstage.tsx data-parallax). '프로젝트를 마치며' 글 뒤에 깔립니다. */
+.backstage__photo--3 { left: calc(300 * var(--bu)); top: calc(4380 * var(--bu)); width: calc(497 * var(--bu)); height: calc(449 * var(--bu)); }
+.backstage__photo--3 { -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 497 449' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(17.519 17.57 -19.448 15.827 248.5 224.5)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 497 449' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'%3E%3Crect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/%3E%3Cdefs%3E%3CradialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(17.519 17.57 -19.448 15.827 248.5 224.5)'%3E%3Cstop stop-color='%23000' offset='0'/%3E%3Cstop stop-color='%23000' stop-opacity='0' offset='1'/%3E%3C/radialGradient%3E%3C/defs%3E%3C/svg%3E") center / 100% 100% no-repeat; }
+.backstage__photo--3::after { background: rgb(15 15 15 / 40%); }
+
+/* 글 묶음: 제목 32 SemiBold 코랄(#fc7a73), 본문 20 Light 흰색, 굵게 ExtraBold */
+/* 글 묶음은 배경사진보다 항상 위에(사진이 천천히 스크롤되며 글과 겹쳐도 글이 가려지지 않게) */
+.backstage__section { position: absolute; z-index: 1; display: flex; flex-direction: column; gap: calc(32 * var(--bu)); }
+.backstage__title { margin: 0; color: #fc7a73; font-size: calc(32 * var(--bu)); font-weight: 600; line-height: normal; white-space: nowrap; }
+.backstage__text { margin: 0; color: #fff; font-size: calc(20 * var(--bu)); font-weight: 300; line-height: 1.45; }
+.backstage__section--intro { left: calc(302 * var(--bu)); top: calc(1240 * var(--bu)); width: calc(558 * var(--bu)); }
+.backstage__intro-body { display: flex; flex-direction: column; gap: calc(20 * var(--bu)); }
+.backstage__facts { display: flex; flex-direction: column; gap: calc(7 * var(--bu)); margin: 0; color: #fff; font-size: calc(20 * var(--bu)); }
+.backstage__facts > div { display: flex; align-items: flex-start; gap: calc(23 * var(--bu)); }
+.backstage__facts dt { flex-shrink: 0; font-weight: 600; }
+.backstage__facts dd { margin: 0; font-weight: 300; }
+.backstage__section--summary { left: calc(1095 * var(--bu)); top: calc(1839 * var(--bu)); width: calc(525 * var(--bu)); align-items: flex-end; }
+.backstage__section--summary .backstage__text { text-align: right; }
+.backstage__section--process { left: 50%; top: calc(2735 * var(--bu)); transform: translateX(-50%); align-items: center; gap: calc(59 * var(--bu)); text-align: center; }
+.backstage__process-body { display: flex; flex-direction: column; align-items: center; gap: calc(72 * var(--bu)); }
+/* 영상 두 칸(피그마 Frame 1707486921, 1090.5 × 331.5): 490.5 / 483 폭, 사이 117, 영상과 이름 사이 20 */
+.backstage__media { display: flex; align-items: flex-end; gap: calc(117 * var(--bu)); }
+.backstage__clip { display: flex; flex-direction: column; align-items: center; gap: calc(20 * var(--bu)); margin: 0; }
+/* 영상 칸 바탕은 페이지와 같은 검정: 화면 배율에 따라 그림이 1px 모자라도 흰 줄이 보이지 않게 합니다. */
+.backstage__clip-frame { position: relative; width: calc(490.5 * var(--bu)); height: calc(271.638 * var(--bu)); overflow: hidden; background: #0f0f0f; }
+.backstage__clip--current .backstage__clip-frame { width: calc(483 * var(--bu)); height: calc(271.688 * var(--bu)); }
+.backstage__clip-frame video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; background: #0f0f0f; }
+/* 썸네일(누르면 재생). 재생 중에는 사라지고 영상의 재생 버튼들이 보입니다. */
+.backstage__clip-thumb { position: absolute; inset: 0; display: block; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; background: #0f0f0f; }
+button.backstage__clip-thumb { cursor: pointer; }
+.backstage__clip-thumb > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.backstage__clip-cover { width: 100%; }
+/* 재생 표시: 로고를 가리지 않게 오른쪽 아래 작은 원 */
+.backstage__play {
+  position: absolute; right: calc(12 * var(--bu)); bottom: calc(12 * var(--bu)); width: max(28px, calc(40 * var(--bu))); height: max(28px, calc(40 * var(--bu)));
+  border-radius: 50%; background: rgb(15 15 15 / 72%); transition: background-color 180ms ease, transform 180ms ease;
+}
+.backstage__play::before {
+  content: ''; position: absolute; left: 38%; top: 30%; width: 34%; height: 40%; background: #fafafa;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thumb:focus-visible .backstage__play { background: #f8574f; transform: scale(1.08); }
+.backstage__clip figcaption { color: #a3a3a3; font-size: calc(30 * var(--bu)); font-weight: 500; }
+.backstage__clip--current figcaption { color: #ffa29c; font-weight: 700; }
+.backstage__process-text { display: flex; flex-direction: column; gap: calc(20 * var(--bu)); }
+.backstage__process-text p { margin: 0; }
+.backstage__section--lessons { left: calc(300 * var(--bu)); top: calc(4304 * var(--bu)); }
+
+/* 마지막: 가장자리가 부드럽게 사라지는 원(550) 안의 무대 커튼 + 버튼
+   커튼 틀은 피그마 사진 자리처럼 원보다 크게(689×715) 깔고, 원 둘레 ±72px에서 점점 투명해지게 마스크를 씌웠습니다. */
+.backstage__finale { position: absolute; left: calc(533 * var(--bu)); top: calc(5036 * var(--bu)); width: calc(854 * var(--bu)); display: flex; flex-direction: column; align-items: center; gap: calc(75 * var(--bu)); --su: var(--bu); }
+.backstage__stage { position: relative; width: calc(550 * var(--su)); height: calc(550 * var(--su)); flex-shrink: 0; border-radius: 50%; }
+.backstage__stage-art {
+  position: absolute; left: calc(-64.96 * var(--su)); top: calc(-92.39 * var(--su)); width: calc(689.23 * var(--su)); height: calc(714.57 * var(--su));
+  pointer-events: none;
+  --stage-mask: radial-gradient(circle at calc(339.96 * var(--su)) calc(367.39 * var(--su)),
+    #000 calc(203 * var(--su)), rgb(0 0 0 / 84%) calc(239 * var(--su)), rgb(0 0 0 / 50%) calc(275 * var(--su)),
+    rgb(0 0 0 / 16%) calc(311 * var(--su)), transparent calc(347 * var(--su)));
+  -webkit-mask-image: var(--stage-mask); mask-image: var(--stage-mask);
+}
+/* 무대 커튼(StageCurtain / Curtain3D): 늘 닫혀 있고, 마우스를 올리면 아주 살짝 찰랑거립니다.
+   3D 커튼이 준비되면(data-ready) 아래 CSS 커튼은 사라지고, 3D가 안 되는 환경에서는 CSS 커튼이 그대로 쓰입니다. */
+.backstage__curtain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.backstage__curtain-canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; transition: opacity 500ms ease; }
+.backstage__curtain[data-ready='true'] .backstage__curtain-canvas { opacity: 1; }
+.backstage__curtain[data-ready='true'] .backstage__drape,
+.backstage__curtain[data-ready='true'] .backstage__valance { opacity: 0; transition: opacity 500ms ease 150ms; }
+/* CSS 커튼: 3D 커튼과 비슷한 짙은 와인 벨벳. 굵은 세로 주름(밝은 결·어두운 골) + 왼쪽 위에서 비추는 은은한 빛.
+   두 폭이 가운데서 살짝 겹칩니다. */
+.backstage__drape {
+  position: absolute; top: 0; bottom: 0; width: 51%;
+  background:
+    radial-gradient(ellipse 80% 50% at 35% 15%, rgb(255 200 170 / 12%), transparent 70%),
+    linear-gradient(to bottom, rgb(0 0 0 / 35%), transparent 30%, transparent 65%, rgb(0 0 0 / 50%)),
+    repeating-linear-gradient(90deg, #1e0709 0, #3f1115 1.6%, #6a2425 3.2%, #4a1519 4.6%, #2a0a0d 6.4%, #1e0709 7.8%);
+  transform-origin: 50% 0;
+}
+.backstage__drape--left { left: 0; }
+.backstage__drape--right { right: 0; }
+/* 위쪽 가림막: 둥글게 늘어진 세 개의 스웨그(가운데가 조금 더 깊게) */
+.backstage__valance {
+  position: absolute; left: 0; right: 0; top: 0; height: 15%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0, rgb(0 0 0 / 22%) 1.4%, transparent 2.8%),
+    linear-gradient(to bottom, #1a0507, #3c1014 72%, #2e0b0e);
+  --swag: #000 96%, transparent 100%;
+  -webkit-mask-image: radial-gradient(ellipse 17.5% 92% at 16.7% 0%, var(--swag)), radial-gradient(ellipse 17.5% 100% at 50% 0%, var(--swag)), radial-gradient(ellipse 17.5% 92% at 83.3% 0%, var(--swag)), linear-gradient(#000 55%, transparent 62%);
+  mask-image: radial-gradient(ellipse 17.5% 92% at 16.7% 0%, var(--swag)), radial-gradient(ellipse 17.5% 100% at 50% 0%, var(--swag)), radial-gradient(ellipse 17.5% 92% at 83.3% 0%, var(--swag)), linear-gradient(#000 55%, transparent 62%);
+}
+/* CSS 커튼의 찰랑거림: 위는 고정, 아래 끝만 아주 조금 좌우로 흔들립니다. */
+.backstage__curtain[data-hover='true'] .backstage__drape { animation: backstage-curtain-sway 2.4s ease-in-out infinite; }
+.backstage__curtain[data-hover='true'] .backstage__drape--right { animation-delay: -1.1s; }
+@keyframes backstage-curtain-sway {
+  0%, 100% { transform: skewX(0deg); }
+  30% { transform: skewX(0.7deg); }
+  70% { transform: skewX(-0.5deg); }
+}
+.backstage__finale-body { display: flex; flex-direction: column; align-items: center; gap: calc(22 * var(--bu)); width: 100%; }
+.backstage__finale-body p { margin: 0; color: #fff; font-size: max(15px, calc(20 * var(--bu))); font-weight: 600; text-align: center; }
+.backstage__onstage {
+  display: inline-flex; align-items: center; justify-content: center; width: calc(302 * var(--bu)); height: calc(56 * var(--bu));
+  border: 0; border-radius: calc(8 * var(--bu)); background: #fff; color: #f8574f; text-decoration: none; cursor: pointer;
+  font: 600 max(15px, calc(20 * var(--bu)))/normal 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; transition: transform 180ms ease;
+}
+.backstage__onstage:hover { transform: translateY(-3px); }
+
+/* 준비 중 안내 */
+.backstage__toast {
+  position: fixed; z-index: 11; left: 50%; bottom: 40px; margin: 0; padding: 12px 20px; border-radius: 999px;
+  background: rgb(250 250 250 / 92%); color: #171717; font: 500 15px/1.4 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  transform: translate(-50%, 12px); opacity: 0; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease;
+}
+.backstage__toast[data-visible='true'] { opacity: 1; transform: translate(-50%, 0); }
+
+/* 폰·터치 태블릿: 위에서 아래로 흐르는 한 줄 배치 */
+@media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
+  /* 글 폭은 최대 640px(태블릿에서 한 줄이 너무 길어지지 않게), 양옆 여백은 최소 24px */
+  .backstage__page { --pad: max(24px, calc((100cqw - 640px) / 2)); height: auto; display: flex; flex-direction: column; gap: 48px; padding: 76px var(--pad) 96px; }
+  .backstage__line { display: inline; white-space: normal; }
+  .backstage__line::after { content: ' '; }
+  .backstage__close { top: 14px; right: 18px; font-size: 16px; }
+  .backstage__glow { height: 720px; }
+  .backstage__cover { position: relative; left: auto; top: auto; width: 100%; max-width: 560px; height: auto; margin: 0 auto -24px; }
+  .backstage__cover-card { position: relative; left: auto; width: 100%; transform: none; }
+  .backstage__cover-fade { top: 30%; height: 72%; }
+  /* 줄이 페이지 안에서 바로 sticky로 동작하도록 칸(track)을 없앱니다. 폰에서는 화면 양 끝까지 채웁니다. */
+  .backstage__bar-track { display: contents; }
+  /* 폰에서는 오른쪽 위 '돌아가기'와 겹치지 않게 버튼을 왼쪽에 둡니다. */
+  .backstage__bar { z-index: 5; width: auto; margin: 0 calc(-1 * var(--pad)); padding: 12px var(--pad); justify-content: flex-start; }
+  .backstage__plan { padding: 12px 40px; border-radius: 8px; font-size: 17px; }
+  .backstage__bar { --bar-fade: 28px; }
+  .backstage__photo { position: relative; left: auto; top: auto; width: 78%; height: auto; margin-bottom: -96px; }
+  .backstage__photo--1 { aspect-ratio: 519 / 520; margin-left: 12%; }
+  .backstage__photo--2 { aspect-ratio: 445 / 500; margin-left: auto; }
+  /* 사진3: 폰에서는 '프로젝트를 마치며' 글 끝자락 뒤로 옮겨서, 앞 문단을 읽는 동안에는 보이지 않게 합니다. */
+  .backstage__photo--3 { aspect-ratio: 497 / 449; order: 1; margin-top: -120px; margin-bottom: -24px; }
+  .backstage__finale { order: 2; }
+  .backstage__section { position: relative; left: auto; top: auto; width: auto; gap: 20px; transform: none; }
+  .backstage__title { font-size: 22px; line-height: 1.4; white-space: normal; }
+  .backstage__text, .backstage__facts { font-size: 16px; line-height: 1.75; }
+  .backstage__facts { gap: 4px; }
+  .backstage__facts > div { gap: 16px; }
+  .backstage__intro-body { gap: 16px; }
+  .backstage__section--summary { align-items: stretch; }
+  .backstage__section--summary .backstage__text { text-align: left; }
+  .backstage__section--process { align-items: stretch; gap: 24px; }
+  .backstage__process-body { align-items: stretch; gap: 24px; }
+  .backstage__process-text { gap: 14px; text-align: left; }
+  .backstage__media { align-items: flex-start; gap: 12px; }
+  .backstage__clip { flex: 1; min-width: 0; gap: 8px; }
+  .backstage__clip-frame, .backstage__clip--current .backstage__clip-frame { width: 100%; height: auto; aspect-ratio: 490.5 / 271.638; }
+  .backstage__play { right: 8px; bottom: 8px; }
+  .backstage__clip figcaption { font-size: 15px; }
+  /* 원 사진: 부드럽게 사라지는 가장자리까지 화면 안에 들어오도록 조금 작게(최대 약 310px) 둡니다. */
+  .backstage__finale { position: relative; left: auto; top: auto; width: 100%; gap: 40px; margin-top: 24px; --su: calc(min(100cqw - 48px, 360px) / 640); }
+  .backstage__finale-body { gap: 14px; }
+  .backstage__onstage { width: min(100%, 302px); height: 52px; border-radius: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backstage[open] { animation: none; }
+  .backstage__onstage, .backstage__plan, .backstage__toast, .backstage__play { transition: none; }
+  .backstage__curtain-canvas { transition: none; }
+  .backstage__curtain[data-hover='true'] .backstage__drape { animation: none; }
+}

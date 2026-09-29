@@ -36,18 +36,30 @@
   z-index: 2;
   top: max(12px, calc(40 * var(--gu)));
   left: max(12px, calc(48 * var(--gu)));
-  display: inline-flex;
-  align-items: center;
-  gap: .5em;
-  padding: .5em .25em;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: .25em 0;
   border: 0;
   background: none;
-  color: #525252;
-  font: 500 max(15px, calc(22 * var(--gu)))/1.45 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  /* 사진 감상을 방해하지 않게 연한 회색 + 작게(22 → 18). 사진 틀(#a3a3a3 등)보다는 진해서 묻히지 않습니다. 마우스를 올리면 진해집니다. */
+  color: #858585;
+  font: 500 max(14px, calc(18 * var(--gu)))/1.45 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
   cursor: pointer;
   transition: color 200ms ease;
 }
-.archive__back:hover { color: #171717; }
+.archive__back:hover, .archive__back:focus-visible { color: #525252; }
+.archive__back-label { white-space: nowrap; padding-right: .0455em; }
+/* 화살표(피그마 Vector 1810/1811과 같은 굵기·모양): 좌우로 뒤집어 왼쪽을 가리킵니다. 글자 아래에 살짝 겹쳐 붙습니다. */
+.archive__back-arrow {
+  display: block; width: 7.3182em; height: 1.0455em; margin-top: -0.8136em; overflow: visible; transform: scaleX(-1);
+  stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+/* 애니메이션은 '자세히 보러가기'와 같습니다: 선이 130 → 159로 길어지고 꺾인 끝이 29만큼 따라 움직입니다. */
+.archive__back-line { stroke-dasharray: 130 400; transition: stroke-dasharray 360ms cubic-bezier(.22, .61, .36, 1); }
+.archive__back-tail { transition: transform 360ms cubic-bezier(.22, .61, .36, 1); }
+.archive__back:hover .archive__back-line, .archive__back:focus-visible .archive__back-line { stroke-dasharray: 159 400; }
+.archive__back:hover .archive__back-tail, .archive__back:focus-visible .archive__back-tail { transform: translateX(29px); }
 
 /* 사진 줄: 윗줄 top 138, 아랫줄 top 634, 줄 높이 310(사진은 줄 가운데 정렬) */
 .archive__row { position: absolute; left: 0; right: 0; height: calc(310 * var(--gu)); display: flex; align-items: center; }
@@ -135,5 +147,5 @@
   .archive[open], .archive[data-closing='true'], .archive-viewer[open], .archive-viewer[open]::backdrop { animation: none; }
   .archive__track { animation: none; }
   .archive__row { overflow-x: auto; }
-  .archive__photo, .archive__back { transition: none; }
+  .archive__photo, .archive__back, .archive__back-line, .archive__back-tail { transition: none; }
 }

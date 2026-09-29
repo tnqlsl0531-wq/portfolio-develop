@@ -1,5 +1,5 @@
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
-import type { FormEvent, ReactNode, RefObject } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
 import type { PhotoPosition, Project } from './portfolio'
 import heroCurve from './assets/design/hero-curve.svg'
@@ -11,14 +11,15 @@ import jaduLogo from './assets/design/jadu-logo.svg'
 import questionMark from './assets/design/question-mark.svg'
 import paperclip from './assets/design/paperclip.svg'
 import StrokePresenter from './components/StrokePresenter'
+import { useColorReveal } from './hooks/useColorReveal'
 import GalleryArchive from './components/GalleryArchive'
+import ProjectCover from './components/ProjectCover'
+import Backstage, { hasBackstage } from './components/Backstage'
 import type { ArchiveOrigin } from './components/GalleryArchive'
 
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
-
-type Detail = { kind: 'project'; project: Project } | null
 
 const photoDescriptions: Record<PhotoPosition, string> = {
   main: '최수빈의 공연 사진 · 한복 의상',
@@ -35,7 +36,7 @@ const photoSizes: Record<PhotoPosition, [number, number]> = {
 
 // 같은 사진을 두 장 겹칩니다. 아래 장은 채도를 90% 뺀 사진, 위 장은 원래 색 사진이며
 // 위 장은 커서 주변 원 안에서만 보입니다(가장자리 페이드는 바깥 틀이 두 장에 함께 적용).
-// data-reveal: 커서 위치(--mx/--my)를 받는 요소 표시(App.tsx useHeroColorReveal)
+// data-reveal: 커서 위치(--mx/--my)를 받는 요소 표시(src/hooks/useColorReveal.ts)
 function PhotoSlot({ position }: { position: PhotoPosition }) {
   const src = heroPhotos[position]
   const className = 'hero__photo hero__photo--' + position
@@ -56,87 +57,22 @@ function PhotoSlot({ position }: { position: PhotoPosition }) {
      사진은 원래 색, GRAND·EXHIBITION 글자와 아래 배경은 코랄·와인 색(피그마 263-409),
      히어로 아래 물결(피그마 150-1626)은 히어로 배경이 끝나는 색(#502421)
    - 망점 효과와 화면이 휘는 렌즈 왜곡은 넣지 않았습니다.
-   - 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보입니다(CSS). */
-const REVEAL_FOLLOW = 0.07 // 원이 커서를 따라가는 시간(초). 작을수록 바로 붙습니다.
-const REVEAL_FADE = 0.2 // 원이 나타나고 사라지는 시간(초)
-
-// stage: 히어로 + 아래 물결을 감싼 영역. 이 안에서 마우스가 움직이는 동안 원이 따라다닙니다.
-function useHeroColorReveal(stageRef: RefObject<HTMLElement | null>, heroRef: RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const stage = stageRef.current
-    const hero = heroRef.current
-    if (!stage || !hero || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    // 색 레이어(사진·글자·배경·물결)마다 자기 기준의 커서 위치를 넣어줍니다.
-    const targets = [...stage.querySelectorAll<HTMLElement>('[data-reveal]')]
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const s = { x: 0, y: 0, sx: 0, sy: 0, active: 0, target: 0, raf: 0, prev: 0 }
-
-    const apply = () => {
-      stage.style.setProperty('--reveal', s.active.toFixed(3))
-      // 원 크기: 히어로 높이의 21% (물결은 히어로 밖에 있어서 px로 넘겨줍니다)
-      stage.style.setProperty('--reveal-r', (hero.clientHeight * 0.21).toFixed(1) + 'px')
-      const base = stage.getBoundingClientRect()
-      for (const target of targets) {
-        const box = target.getBoundingClientRect()
-        target.style.setProperty('--mx', (s.sx - (box.left - base.left)).toFixed(1) + 'px')
-        target.style.setProperty('--my', (s.sy - (box.top - base.top)).toFixed(1) + 'px')
-      }
-    }
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, Math.max(0.001, (now - s.prev) / 1000))
-      s.prev = now
-      const follow = reduced ? 1 : 1 - Math.exp(-dt / REVEAL_FOLLOW)
-      const fade = reduced ? 1 : 1 - Math.exp(-dt / REVEAL_FADE)
-      s.sx += (s.x - s.sx) * follow
-      s.sy += (s.y - s.sy) * follow
-      s.active += (s.target - s.active) * fade
-      const settled = Math.abs(s.x - s.sx) < 0.2 && Math.abs(s.y - s.sy) < 0.2 && Math.abs(s.target - s.active) < 0.002
-      if (settled) {
-        s.sx = s.x
-        s.sy = s.y
-        s.active = s.target
-      }
-      apply()
-      s.raf = settled ? 0 : requestAnimationFrame(tick)
-    }
-    const start = () => {
-      if (s.raf) return
-      s.prev = performance.now()
-      s.raf = requestAnimationFrame(tick)
-    }
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return
-      const rect = stage.getBoundingClientRect()
-      s.x = event.clientX - rect.left
-      s.y = event.clientY - rect.top
-      // 원이 사라진 상태에서 다시 들어오면 커서 위치에서 바로 나타나게 합니다(미끄러져 오지 않게).
-      if (s.active < 0.02) {
-        s.sx = s.x
-        s.sy = s.y
-      }
-      s.target = 1
-      start()
-    }
-    const onLeave = () => {
-      s.target = 0
-      start()
-    }
-    stage.addEventListener('pointermove', onMove, { passive: true })
-    stage.addEventListener('pointerenter', onMove, { passive: true })
-    stage.addEventListener('pointerleave', onLeave, { passive: true })
-    return () => {
-      if (s.raf) cancelAnimationFrame(s.raf)
-      stage.removeEventListener('pointermove', onMove)
-      stage.removeEventListener('pointerenter', onMove)
-      stage.removeEventListener('pointerleave', onLeave)
-    }
-  }, [stageRef, heroRef])
-}
-
+   - 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보입니다(CSS).
+   - 원이 따라오는 속도·나타나는 시간: src/hooks/useColorReveal.ts의 REVEAL_FOLLOW · REVEAL_FADE */
 function Hero() {
   const stageRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLElement>(null)
-  useHeroColorReveal(stageRef, heroRef)
+  // 원 크기: 히어로 높이의 21%
+  useColorReveal(stageRef, heroRef, 0.21)
+  // 히어로가 화면 밖으로 나가면 GRAND EXHIBITION 반짝임을 멈춥니다.
+  // 흑백 글자와 컬러 글자가 함께 멈추고 함께 다시 흘러서 박자가 어긋나지 않습니다.
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero) return
+    const observer = new IntersectionObserver(([entry]) => { hero.dataset.onscreen = String(entry.isIntersecting) })
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [])
   return (
     <div ref={stageRef} className="hero-stage">
       <section ref={heroRef} className="hero" aria-labelledby="exhibition-title">
@@ -537,9 +473,17 @@ function Contact() {
   )
 }
 
-function DetailDialog({ detail, onClose }: { detail: Detail; onClose: () => void }) {
+/* 작품 선택 화면 (피그마 104-8)
+   Show Line-up의 작품 카드를 누르면 뒤 화면이 흐려지고(6px) 어두워지며(#171717 58%),
+   가운데에 작품 썸네일과 ON STAGE(완성된 프로젝트) / BACKSTAGE(기획 의도와 작업 과정) 선택지가 뜹니다.
+   - 썸네일·글꼴·닫기 위치는 수정된 시안(피그마 186-201)을 따릅니다: 흰 16:9 카드 + 로고, 선택지 글꼴 Min Sans.
+   - ON STAGE: portfolio.ts의 url이 있으면 새 창으로 열고, 아직 없으면 준비 중 안내가 뜹니다.
+   - BACKSTAGE: 백스테이지 페이지(피그마 96-516)가 있는 작품(국순당)은 그 페이지로 이동하고, 없으면 준비 중 안내가 뜹니다.
+   Esc, 빈 곳 클릭, 오른쪽 위 '돌아가기 ×'로 닫습니다. */
+function ProjectSelect({ project, onClose, onBackstage }: { project: Project | null; onClose: () => void; onBackstage: (project: Project) => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
-  const isOpen = detail !== null
+  const [notice, setNotice] = useState('')
+  const isOpen = project !== null
   useEffect(() => {
     const element = dialog.current
     if (!element) return
@@ -551,33 +495,83 @@ function DetailDialog({ detail, onClose }: { detail: Detail; onClose: () => void
     return () => { document.body.style.overflow = previousOverflow }
   }, [isOpen])
 
-  let content: ReactNode = null
-  if (detail?.kind === 'project') {
-    const project = detail.project
-    content = <>
-      <ProjectArtwork project={project} />
-      <h2 id="detail-title">{project.title}</h2>
-      <dl className="detail-dialog__meta">
-        <div><dt>기관</dt><dd>{project.organization}</dd></div>
-        <div><dt>유형</dt><dd>{project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'} · {project.platform}</dd></div>
-        <div><dt>기간</dt><dd>{project.period}</dd></div>
-      </dl>
-      {project.url ? <a className="detail-dialog__action" href={project.url} target="_blank" rel="noreferrer">프로젝트 보러가기 ↗</a> : <p className="detail-dialog__notice">프로젝트 상세 내용과 링크는 준비 중입니다.</p>}
-    </>
-  }
+  const close = () => dialog.current?.close()
+  const choiceContent = (title: string, description: string) => <>
+    <span className="stage-choice__title">{title}</span>
+    <span className="stage-choice__desc">{description}</span>
+  </>
 
   return (
-    <dialog ref={dialog} className="detail-dialog" aria-labelledby="detail-title" onClose={onClose} onClick={event => { if (event.target === event.currentTarget) onClose() }}>
-      <div className="detail-dialog__body">
-        <button className="detail-dialog__close" onClick={onClose} aria-label="상세 화면 닫기">닫기 ×</button>
-        {content}
-      </div>
+    <dialog
+      ref={dialog}
+      className="project-select"
+      aria-labelledby="project-select-title"
+      onClose={() => { setNotice(''); onClose() }}
+      onClick={event => { if (event.target === event.currentTarget) close() }}
+    >
+      <button className="project-select__close" onClick={close}>돌아가기 ×</button>
+      {project && (
+        <div className="project-select__content">
+          <h2 id="project-select-title" className="sr-only">{project.title}</h2>
+          <ProjectCover project={project} className="project-select__cover" />
+          <div className="project-select__choices">
+            {project.url ? (
+              <a className="stage-choice stage-choice--on" href={project.url} target="_blank" rel="noreferrer">
+                {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
+              </a>
+            ) : (
+              <button className="stage-choice stage-choice--on" onClick={() => setNotice('완성된 프로젝트 페이지를 준비하고 있어요.')}>
+                {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
+              </button>
+            )}
+            <button
+              className="stage-choice stage-choice--back"
+              onClick={() => hasBackstage(project.id) ? onBackstage(project) : setNotice('기획 의도와 작업 과정 페이지를 준비하고 있어요.')}
+            >
+              {choiceContent('BACKSTAGE', '기획 의도와 작업 과정 보기')}
+            </button>
+          </div>
+          <p className="project-select__notice" role="status">{notice}</p>
+        </div>
+      )}
     </dialog>
   )
 }
 
+// BACKSTAGE 페이지 주소: 주소 끝에 #backstage-kooksoondang 처럼 붙습니다.
+// 그래서 브라우저 '뒤로 가기'로 닫히고, 이 주소로 바로 들어와도 백스테이지가 열립니다.
+const BACKSTAGE_HASH = '#backstage-'
+function readBackstageHash() {
+  if (!window.location.hash.startsWith(BACKSTAGE_HASH)) return null
+  const id = window.location.hash.slice(BACKSTAGE_HASH.length)
+  return projects.find(project => project.id === id && hasBackstage(project.id)) ?? null
+}
+
 export default function App() {
-  const [detail, setDetail] = useState<Detail>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [backstageProject, setBackstageProject] = useState<Project | null>(readBackstageHash)
+  useEffect(() => {
+    const sync = () => setBackstageProject(readBackstageHash())
+    window.addEventListener('popstate', sync)
+    window.addEventListener('hashchange', sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      window.removeEventListener('hashchange', sync)
+    }
+  }, [])
+  const openBackstage = (project: Project) => {
+    setSelectedProject(null)
+    window.history.pushState({ backstage: project.id }, '', BACKSTAGE_HASH + project.id)
+    setBackstageProject(project)
+  }
+  // 이 사이트 안에서 연 경우에는 '뒤로 가기'와 같게 닫고, 주소로 바로 들어온 경우에는 주소 끝(#...)만 지웁니다.
+  const closeBackstage = () => {
+    if (window.history.state?.backstage) window.history.back()
+    else {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      setBackstageProject(null)
+    }
+  }
   const [archiveOrigin, setArchiveOrigin] = useState<ArchiveOrigin | null>(null)
   useEffect(() => {
     document.title = 'Grand exhibition | 최수빈'
@@ -588,12 +582,13 @@ export default function App() {
       <a className="skip-link" href="#lineup">프로젝트 목록으로 이동</a>
       <main className="portfolio">
         <Hero />
-        <ShowLineup onSelect={project => setDetail({ kind: 'project', project })} />
+        <ShowLineup onSelect={setSelectedProject} />
         <ArtistGallery onOpen={setArchiveOrigin} />
         <DirectorsNote />
         <Contact />
       </main>
-      <DetailDialog detail={detail} onClose={() => setDetail(null)} />
+      <ProjectSelect project={selectedProject} onClose={() => setSelectedProject(null)} onBackstage={openBackstage} />
+      <Backstage project={backstageProject} onClose={closeBackstage} />
       <GalleryArchive origin={archiveOrigin} onClose={() => setArchiveOrigin(null)} />
     </>
   )

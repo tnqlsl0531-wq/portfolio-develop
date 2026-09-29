@@ -101,8 +101,14 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
       }}
       onAnimationEnd={event => { if (event.target === event.currentTarget && closing) archive.current?.close() }}
     >
+      {/* 돌아가기: '자세히 보러가기'와 같은 선+꺾인 끝 화살표(피그마 217-1556)를 좌우로 뒤집어 왼쪽을 가리키게 했습니다.
+          선 길이는 글자 폭 + 50(원본과 같은 비율), 마우스를 올리면 선이 29만큼 왼쪽으로 길어지고 꺾인 끝이 따라갑니다. */}
       <button className="archive__back" onClick={requestClose} autoFocus>
-        <span aria-hidden="true">←</span> 돌아가기
+        <span className="archive__back-label">돌아가기</span>
+        <svg className="archive__back-arrow" viewBox="0 0 161 23" fill="none" aria-hidden="true" focusable="false">
+          <line className="archive__back-line" x1="1" y1="22" x2="160" y2="22" />
+          <path className="archive__back-tail" d="M131 22L111.5 1" />
+        </svg>
       </button>
 
       {rows.map(row => {

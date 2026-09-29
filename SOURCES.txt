@@ -27,9 +27,39 @@ GSAP 대신 브라우저 requestAnimationFrame을 사용하며, 추가 런타임
 글꼴 설정은 피그마 node 122-767을 따릅니다: Special Gothic Expanded One Regular, 자간 0, 외곽선 1px.
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 
+히어로 GRAND EXHIBITION 반짝임 참고 / 적용:
+https://reactbits.dev/c/text-animations/shiny-text
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/ShinyText
+React Bits Shiny Text의 spread 120°, shineColor #ffffff, 왼쪽 방향과 배경 위치 150% → -50% 이동 방식을 따랐습니다.
+사용자 요청으로 speed는 3.5초, delay는 1.5초, 반짝임은 흰색 40%로 은은하게 조정했고,
+GRAND가 먼저 지나가고 2.1초 뒤 EXHIBITION이 이어서 지나가도록 두 단어의 시작 시간을 나눴습니다.
+글자 기본색(color)은 쓰지 않고 기존 글자 그라데이션 위에 반짝임 띠만 겹쳤습니다. motion 라이브러리 대신 CSS 애니메이션으로 구현해 추가 의존성은 없습니다.
+React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
+
 갤러리 호버 정지 범위:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-627
 기울어진 4개 사진 트랙에만 hover 정지를 적용했습니다.
+
+Show Line-up 작품 선택 화면(ON STAGE / BACKSTAGE):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=104-8
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=186-201 (수정본: 흰 16:9 작품 카드, Min Sans 글꼴)
+작품 카드의 국순당 로고는 기존 src/assets/design의 로고·점·마스크 SVG를 피그마 위치 그대로 배치했습니다.
+자두야 카드는 시안이 없어 같은 비율로 가운데에 두었습니다.
+
+BACKSTAGE 페이지(국순당):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-516
+src/assets/backstage의 사진은 같은 파일의 원본 이미지를 피그마 자르기(crop) 영역 그대로 잘라 WebP로 저장했습니다.
+- kooksoondang-photo-1~3.webp: 배경사진1~3(표시 크기의 2배). 가장자리 원형 그라데이션(투명하게 사라지는 마스크)·어둡게는 CSS로 피그마 값 그대로 적용.
+- kooksoondang-stage.webp: IMG_5931(표시 크기의 2배). 피그마 채도 -53%와 회색(#646464) 52% 덮개를 그림에 적용했고,
+  밝은 부분/어두운 부분 보정은 비슷하게 맞췄습니다. 원 가장자리 흐림(72px)은 CSS 마스크로 표현했습니다.
+- kooksoondang-intro-before/after.webp: 기존·최종 인트로 영상의 첫 장면 그림(피그마 영상 채우기의 미리보기 이미지).
+- kooksoondang-stage-color.webp: 같은 IMG_5931 원본을 같은 영역으로 잘라, 피그마 node 217-1474(원래 색 버전)의 보정
+  (채도 -19%, 대비 약간 낮춤)과 비슷하게 맞춘 그림.
+- (지금은 마지막 자리를 무대 커튼이 덮고 있어 kooksoondang-stage.webp·stage-color.webp는 화면에 쓰지 않고 파일만 남겨 두었습니다.)
+- kooksoondang-intro-before.mp4: 피그마 node 216-422 영상 채우기를 피그마 웹에서 재생할 때 쓰는 가장 큰 화질(848×464, 24fps, 9초)을
+  그대로 받아 mp4로 옮긴 것(다시 압축하지 않음, 무음 오디오 트랙만 제거). 원본 영상 파일은 남아 있지 않았습니다.
+- kooksoondang-intro-after.mp4: 사용자가 제공한 최종 인트로 영상 원본(3840×2160, 60fps, 12.5초, 소리 없음, 변환하지 않음).
+  썸네일은 피그마 node 296-254(흰 작품 카드)와 같은 모양이라 ProjectCover 컴포넌트로 그립니다.
 
 Artist Gallery 아카이브 화면 / 사진 크게 보기:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
@@ -55,6 +85,11 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=278-477
 src/assets/lanyard/strap.png는 피그마 목줄 디자인(node 257-2227: #D4D4D4 줄, #E5E5E5 Syncopate Bold 'CHOI - SUBIN')의 한 주기(길이 180 × 폭 37.333)를 6배로 그린 이미지이며, 3D 줄을 따라 반복됩니다.
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=257-2227
 사용 패키지: three, @react-three/fiber, @react-three/drei, @react-three/rapier, meshline
+
+BACKSTAGE 마지막 무대 커튼(src/components/Curtain3D.tsx, StageCurtain.tsx):
+외부 모델·이미지 없이 three.js 평면을 코드로 접어 만든 3D 커튼입니다(주름·흔들림은 매 프레임 계산).
+색은 페이지 아래 와인색 그라데이션(#502421)에 맞췄고, 벨벳 광택은 three.js MeshPhysicalMaterial의 sheen을 씁니다.
+사용 패키지: three, @react-three/fiber(Lanyard와 같은 패키지, 추가 설치 없음)
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 
 Director’s Note:
