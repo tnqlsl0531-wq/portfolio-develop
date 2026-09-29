@@ -1,3 +1,4 @@
+import OnStageChoice from './components/OnStageChoice'
 import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
@@ -524,15 +525,12 @@ function ProjectSelect({ project, onClose, onBackstage }: { project: Project | n
           <h2 id="project-select-title" className="sr-only">{project.title}</h2>
           <ProjectCover project={project} className="project-select__cover" />
           <div className="project-select__choices">
-            {project.url ? (
-              <a className="stage-choice stage-choice--on" href={project.url} target="_blank" rel="noreferrer">
-                {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
-              </a>
-            ) : (
-              <button className="stage-choice stage-choice--on" onClick={() => setNotice('완성된 프로젝트 페이지를 준비하고 있어요.')}>
-                {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
-              </button>
-            )}
+            <OnStageChoice
+              href={project.url}
+              onClick={() => setNotice('완성된 프로젝트 페이지를 준비하고 있어요.')}
+            >
+              {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
+            </OnStageChoice>
             <BackstageChoice
               key={project.id}
               onClick={() => hasBackstage(project.id) ? onBackstage(project) : setNotice('기획 의도와 작업 과정 페이지를 준비하고 있어요.')}
