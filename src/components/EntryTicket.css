@@ -61,7 +61,7 @@
 .entry-ticket__signature { position: absolute; left: 24px; top: 222px; font-family: 'Syncopate', sans-serif; font-size: 18px; font-weight: 700; line-height: normal; letter-spacing: -1.44px; color: #737373; white-space: nowrap; }
 .entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 172.62px; padding: 6.3px; border-radius: 3.15px; background: #fafafa; color: #000; display: flex; align-items: center; justify-content: center; text-align: center; gap: 6.09651px; pointer-events: none; font-size: 12.19302px; font-weight: 500; line-height: 17.41824px; letter-spacing: -0.304794px; white-space: nowrap; }
 .entry-ticket__tooltip img { width: 14.63112px; height: 14.63112px; flex: 0 0 auto; }
-.entry-ticket .tear-ticket__piece--stub:focus-visible .entry-ticket__signature { outline: 2px solid #ae302b; outline-offset: 6px; border-radius: 2px; }
+.entry-ticket .tear-ticket__piece--stub:focus-visible .entry-ticket__signature { outline: 2px solid #ae302b; outline-offset: 0; border-radius: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .entry-ticket { transition: none; }
   .entry-ticket::before { animation: none; }

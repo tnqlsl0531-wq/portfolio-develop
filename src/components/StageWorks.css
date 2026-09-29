@@ -56,11 +56,13 @@
 .stage-carousel[data-dragging], .stage-carousel[data-dragging] .stage-card { cursor: grabbing; }
 /* Do not add opacity, filter, overflow clipping or paint containment to these
    two wrappers: they flatten CSS 3D and break the joined-face geometry. */
+/* --stage-tilt: 카드를 내려다보는 각도. 음수일수록 위(윗면)가 많이 보이고, 0이면 완전히 수평(윗면 안 보임). 예전 -10deg. */
 .stage-carousel__camera {
+  --stage-tilt: -4deg;
   position: absolute; left: calc(50% - var(--face-width) / 2); top: 0;
   width: var(--face-width); height: var(--face-height);
   transform-style: preserve-3d;
-  transform: translateZ(calc(-1 * var(--prism-radius))) rotateX(-10deg);
+  transform: translateZ(calc(-1 * var(--prism-radius))) rotateX(var(--stage-tilt));
 }
 .stage-prism { position: absolute; inset: 0; transform-style: preserve-3d; }
 .stage-prism__cap {

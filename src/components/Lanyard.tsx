@@ -11,9 +11,11 @@
  * - 카메라 거리와 목줄 고정점 높이를 Contact 섹션 배치에 맞춤
  * - 화면 밖에서는 물리 계산과 렌더링을 멈춤(active)
  * - 뒷면도 보이도록, 가만히 있을 때 카드가 천천히 돌아 뒷면을 보여주고 다시 앞면으로 돌아옴(SHOWCASE)
+ * - 목줄 고정점을 캔버스 가운데가 아닌 곳에 둘 수 있음(anchorLeft) — 카드가 떨어질 때 잘리지 않게 캔버스를 한쪽으로 넓히기 위해
+ * - 카드가 다 떨어져 자리를 잡으면 한 번 알려줌(onLanded, 기준은 LANDING) — 그 뒤에 Contact 제안서가 올라옴
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, extend, useFrame } from '@react-three/fiber'
+import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
 import type { ThreeElement, ThreeEvent } from '@react-three/fiber'
 import { Environment, Lightformer, useGLTF, useTexture } from '@react-three/drei'
 import { BallCollider, CuboidCollider, Physics, RigidBody, useRopeJoint, useSphericalJoint } from '@react-three/rapier'
@@ -42,6 +44,10 @@ interface LanyardProps {
   cameraDistance?: number
   /** 목줄 고정점 높이(월드 단위). 카메라 위쪽 밖에 두면 목줄이 화면 위에서 내려옵니다. */
   anchorY?: number
+  /** 목줄 고정점의 가로 위치(캔버스 폭 대비 0~1, 왼쪽 끝 = 0). 기본 0.5 = 가운데 */
+  anchorLeft?: number
+  /** 카드가 다 떨어져 자리를 잡았을 때 한 번 불립니다(기준: LANDING). */
+  onLanded?: () => void
   fov?: number
   gravity?: [number, number, number]
   lanyardWidth?: number
@@ -52,10 +58,12 @@ export default function Lanyard({
   active = true,
   cameraDistance = 11.6,
   anchorY = 4,
+  anchorLeft = 0.5,
   fov = 20,
   gravity = [0, -40, 0],
   lanyardWidth = 1,
   onReady,
+  onLanded,
 }: LanyardProps) {
   return (
     <div className="lanyard">
@@ -69,7 +77,7 @@ export default function Lanyard({
       >
         <ambientLight intensity={1} />
         <Physics gravity={gravity} timeStep={1 / 60} paused={!active}>
-          <Band anchorY={anchorY} lanyardWidth={lanyardWidth} onReady={onReady} />
+          <Band anchorY={anchorY} anchorLeft={anchorLeft} lanyardWidth={lanyardWidth} onReady={onReady} onLanded={onLanded} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -88,12 +96,19 @@ type LerpedBody = RapierRigidBody & { lerped?: THREE.Vector3 }
 // 카드를 잡고 끄는 동안은 멈추고, 놓으면 앞면부터 다시 셉니다. stiffness가 클수록 빨리 돕니다.
 const SHOWCASE = { firstBack: 1.8, front: 6, back: 3.5, stiffness: 10 }
 
+// 착지로 보는 기준: 카드가 고정점에서 fallen(월드 단위)보다 아래까지 떨어진 뒤(줄 끝 = 약 4.5),
+// 속도가 speed(월드 단위/초) 아래로 hold초 동안 머물면 '다 떨어져 자리를 잡았다'고 봅니다.
+// speed를 낮추면 더 완전히 멈춘 뒤에, 높이면 더 일찍 제안서가 올라옵니다.
+const LANDING = { fallen: 4, speed: 1.5, hold: 0.15 }
+
 interface BandProps {
   anchorY: number
+  anchorLeft: number
   lanyardWidth: number
   maxSpeed?: number
   minSpeed?: number
   onReady?: () => void
+  onLanded?: () => void
 }
 
 // 카드 두께: card.glb는 가로 대비 두께가 0.56%라 종이처럼 얇습니다.
@@ -143,7 +158,7 @@ interface CardGLTF {
   materials: Record<'base' | 'metal', THREE.MeshStandardMaterial>
 }
 
-function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: BandProps) {
+function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady, onLanded }: BandProps) {
   const band = useRef<THREE.Mesh<MeshLineGeometry, MeshLineMaterial>>(null!)
   const fixed = useRef<RapierRigidBody>(null!)
   const j1 = useRef<LerpedBody>(null!)
@@ -155,6 +170,13 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
   const [quat, euler] = useMemo(() => [new THREE.Quaternion(), new THREE.Euler()], [])
   // 뒷면 보여주기 시계(초). 처음에는 firstBack초 뒤에 뒤집히도록 시작점을 당겨 둡니다.
   const showcase = useRef(SHOWCASE.front - SHOWCASE.firstBack)
+  // 목줄 고정점 가로 위치(월드 단위): 캔버스 가운데(0)에서 anchorLeft만큼 옮긴 자리. 물리 몸체가 처음 만들어질 때 한 번만 정합니다.
+  const viewportWidth = useThree(state => state.viewport.width)
+  const [anchorX] = useState(() => (anchorLeft - 0.5) * viewportWidth)
+  // 착지 알림(LANDING): fallen = 줄 끝까지 떨어졌는지, calm = 느리게 움직인 시간(초), done = 이미 알렸는지
+  const landing = useRef({ fallen: false, calm: 0, done: false })
+  const onLandedRef = useRef(onLanded)
+  useEffect(() => { onLandedRef.current = onLanded }, [onLanded])
   const segmentProps: RigidBodyProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 }
 
   const { nodes, materials } = useGLTF(cardModel, false, false) as unknown as CardGLTF
@@ -249,6 +271,19 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
     curve.points[2].copy(getLerped(j1.current))
     curve.points[3].copy(fixed.current.translation())
     band.current.geometry.setPoints(curve.getPoints(32))
+    // 착지 확인: 줄 끝까지 떨어진 뒤 속도가 LANDING.speed 아래로 LANDING.hold초 머물면 한 번 알립니다(끄는 중에는 세지 않음).
+    if (!landing.current.done) {
+      const position = card.current.translation()
+      const velocity = card.current.linvel()
+      if (anchorY - position.y > LANDING.fallen) landing.current.fallen = true
+      const speed = Math.hypot(velocity.x, velocity.y, velocity.z)
+      // 느린 컴퓨터에서도 실제 시간으로 셉니다(한 번에 0.25초까지만).
+      landing.current.calm = landing.current.fallen && !dragged && speed < LANDING.speed ? landing.current.calm + Math.min(rawDelta, 0.25) : 0
+      if (landing.current.calm >= LANDING.hold) {
+        landing.current.done = true
+        onLandedRef.current?.()
+      }
+    }
     // 카드가 세로축으로 목표 각도(앞면 0 / 뒷면 180°)를 향해 부드럽게 돌도록 회전 속도를 조금씩 보탭니다.
     // (원본은 늘 앞면(0)으로만 되돌렸습니다.)
     // 시계는 실제 흐른 시간으로 셉니다(느린 컴퓨터에서도 같은 박자). 화면 밖에서 멈췄다 돌아올 때 튀지 않게 한 번에 0.25초까지만.
@@ -267,7 +302,7 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
 
   return (
     <>
-      <group position={[0, anchorY, 0]}>
+      <group position={[anchorX, anchorY, 0]}>
         <RigidBody ref={fixed} {...segmentProps} type="fixed" />
         <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>
         <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps}><BallCollider args={[0.1]} /></RigidBody>

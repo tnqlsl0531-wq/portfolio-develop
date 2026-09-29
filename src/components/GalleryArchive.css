@@ -61,16 +61,18 @@
 .archive__back:hover .archive__back-line, .archive__back:focus-visible .archive__back-line { stroke-dasharray: 159 400; }
 .archive__back:hover .archive__back-tail, .archive__back:focus-visible .archive__back-tail { transform: translateX(29px); }
 
-/* 사진 줄: 윗줄 top 138, 아랫줄 top 634, 줄 높이 310(사진은 줄 가운데 정렬) */
-.archive__row { position: absolute; left: 0; right: 0; height: calc(310 * var(--gu)); display: flex; align-items: center; }
+/* 사진 줄: 윗줄 top 138, 아랫줄 top 634, 줄 높이 310(사진은 줄 가운데 정렬)
+   줄을 마우스·손가락으로 옆으로 끌 수 있습니다(세로 스와이프는 브라우저에 맡김). */
+.archive__row {
+  position: absolute; left: 0; right: 0; height: calc(310 * var(--gu)); display: flex; align-items: center;
+  cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+}
 .archive__row--left { top: calc(138 * var(--gu)); }
 .archive__row--right { top: calc(634 * var(--gu)); }
-/* 같은 줄 두 벌을 이어 붙이고 한 벌 길이(-50%)만큼 움직인 뒤 처음으로 돌아가 끊김 없이 반복합니다.
-   --duration은 GalleryArchive.tsx에서 사진 수에 맞춰 계산합니다. 두 줄이 같은 모양으로 시작하지 않도록 시작 위치를 다르게 했습니다. */
-.archive__track { display: flex; width: max-content; animation: archive-marquee var(--duration, 120s) linear infinite; }
-.archive__row--left .archive__track { animation-delay: calc(var(--duration, 120s) * -.3); }
-.archive__row--right .archive__track { animation-direction: reverse; animation-delay: calc(var(--duration, 120s) * -.6); }
-@keyframes archive-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.archive__row[data-dragging='true'], .archive__row[data-dragging='true'] .archive__photo { cursor: grabbing; }
+/* 같은 줄 두 벌을 이어 붙이고, 한 벌 길이만큼 움직이면 처음으로 돌아가 끊김 없이 반복합니다.
+   움직임(흐르기·끌기·멈추기)은 GalleryArchive.tsx가 매 프레임 transform으로 정합니다. */
+.archive__track { display: flex; width: max-content; will-change: transform; }
 .archive__sequence { display: flex; align-items: center; gap: calc(34 * var(--gu)); margin: 0; padding: 0 calc(34 * var(--gu)) 0 0; list-style: none; }
 .archive__sequence li { display: flex; }
 
@@ -96,18 +98,14 @@
   user-select: none;
 }
 
-/* 사진에 마우스를 올리면: 그 줄만 멈추고 사진이 아주 살짝(4%) 커지며 원래 색으로. 키보드로 사진을 골랐을 때도 같게 동작합니다. */
+/* 사진에 마우스를 올리면: 그 줄만 멈추고(GalleryArchive.tsx) 사진이 아주 살짝(4%) 커지며 원래 색으로.
+   키보드로 사진을 골랐을 때도 같게 동작합니다. 사진을 크게 보는 중이거나 닫히는 중에는 두 줄 모두 멈춥니다. */
 @media (hover: hover) {
-  .archive__row:has(.archive__photo:hover) .archive__track { animation-play-state: paused; }
   .archive__photo:hover { transform: scale(1.04); }
   .archive__photo:hover img { filter: none; }
 }
-.archive__row:has(.archive__photo:focus-visible) .archive__track { animation-play-state: paused; }
-.archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 3px; }
+.archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 0; }
 .archive__photo:focus-visible img { filter: none; }
-/* 사진을 크게 보는 중이거나 닫히는 중에는 두 줄 모두 멈춤 */
-.archive[data-viewing='true'] .archive__track,
-.archive[data-closing='true'] .archive__track { animation-play-state: paused; }
 
 /* 위에서 내려오는 조명(피그마 Spotlight · Grayscale)과 가운데 제목 */
 .archive__spotlight { position: absolute; z-index: 1; top: 0; left: 50%; width: calc(320 * var(--gu)); height: calc(378 * var(--gu)); transform: translateX(-50%); pointer-events: none; }
@@ -155,10 +153,8 @@
 @keyframes archive-viewer-show { from { opacity: 0; transform: scale(.96); } }
 @keyframes archive-viewer-fade { from { opacity: 0; } }
 
-/* 움직임 줄이기 설정: 여닫는 효과와 흐름을 끄고, 사진 줄은 손으로 옆으로 밀어서 봅니다. */
+/* 움직임 줄이기 설정: 여닫는 효과와 흐름을 끄고(GalleryArchive.tsx), 사진 줄은 손으로 끌어서 봅니다. */
 @media (prefers-reduced-motion: reduce) {
   .archive[open], .archive[data-closing='true'], .archive-viewer[open], .archive-viewer[open]::backdrop { animation: none; }
-  .archive__track { animation: none; }
-  .archive__row { overflow-x: auto; }
   .archive__photo, .archive__photo img, .archive__back, .archive__back-line, .archive__back-tail { transition: none; }
 }

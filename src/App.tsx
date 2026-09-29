@@ -2,7 +2,7 @@ import OnStageChoice from './components/OnStageChoice'
 import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import StageWorks from './components/StageWorks'
-import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { Component, Fragment, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import { heroPhotos, profile, projects } from './portfolio'
 import { galleryTracks } from './galleryPhotos'
@@ -19,6 +19,9 @@ import type { ArchiveOrigin } from './components/GalleryArchive'
 
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
 import CurvedLoop from './components/CurvedLoop'
+import ScrollFloat from './components/ScrollFloat'
+import SplashCursor from './components/SplashCursor'
+import { heroCurveEdge } from './heroCurveEdge'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
 
@@ -192,7 +195,8 @@ function DirectorsNote() {
 
   return (
     <section id="director" className="director" aria-labelledby="director-title">
-      <h2 id="director-title" className="section-heading director__title">Director’s Note</h2>
+      {/* 제목(피그마 351-185): 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
+      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" />
       <div className="director__body">
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
@@ -291,32 +295,49 @@ class LanyardBoundary extends Component<{ onError: () => void; children: ReactNo
   render() { return this.state.failed ? null : this.props.children }
 }
 
-function ContactPass() {
+// 3D 목줄 무대(App.css .contact__lanyard): 화면 왼쪽 끝(0)부터 폭 1300(1920 기준). 목줄 고정점은 스태프 패스 가운데(x 470.667)라서 폭의 470.667/1300 자리.
+// 카드가 오른쪽에서 떨어지며 흔들리므로, 떨어지는 동안 카드가 무대 오른쪽 끝에서 잘려 보이지 않도록 폭을 넉넉히 잡았습니다(예전 941.333).
+const LANYARD_ANCHOR_LEFT = 470.667 / 1300
+// 3D 목줄이 착지를 알리지 못하는 경우(아주 느린 기기 등)를 대비해, 내려오기 시작하고 이만큼(ms) 지나면 착지한 것으로 봅니다.
+const LANDING_FALLBACK_MS = 5000
+
+/** onLanded: 목걸이가 다 떨어져 자리를 잡았을 때 알려줍니다(3D 목줄이면 true, 폰 등에서 그림 카드면 false). */
+function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }) {
   const area = useRef<HTMLDivElement>(null)
+  const dropZone = useRef<HTMLDivElement>(null)
   const enabled = useLanyardEnabled()
   const [near, setNear] = useState(false)
   const [visible, setVisible] = useState(false)
   const [failed, setFailed] = useState(false)
-  // 목걸이는 Contact 섹션이 화면에 50% 이상 보였을 때 처음 내려옵니다(그 전에는 멈춘 채 숨어 있음).
+  // 목걸이는 카드가 매달릴 자리(.contact__drop-zone)가 화면에 조금이라도 보이면 바로 내려옵니다(그 전에는 멈춘 채 숨어 있음).
+  // 섹션이 화면에 얼마나 들어왔는지(비율)는 따지지 않습니다.
   const [dropped, setDropped] = useState(false)
   const show3D = enabled && !failed
+  // 그림 카드(폰 등)는 떨어지는 움직임이 없어서, 내려올 때가 되면 바로 알려줍니다.
+  useEffect(() => { if (dropped && !show3D) onLanded?.(false) }, [dropped, show3D, onLanded])
+  // 3D 목줄은 Lanyard가 착지를 알려줍니다. 혹시 못 알리면 LANDING_FALLBACK_MS 뒤에 알려줍니다.
+  useEffect(() => {
+    if (!dropped || !show3D) return
+    const timer = window.setTimeout(() => onLanded?.(true), LANDING_FALLBACK_MS)
+    return () => window.clearTimeout(timer)
+  }, [dropped, show3D, onLanded])
+  const handleLanded = useCallback(() => onLanded?.(true), [onLanded])
 
   useEffect(() => {
     const element = area.current
     if (!element) return
-    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '800px 0px' })
-    const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.2 })
-    nearObserver.observe(element)
-    visibleObserver.observe(element)
-    // 섹션이 화면보다 길어도 '화면의 절반 이상을 채웠을 때'도 50%로 봅니다.
     const section = element.closest('section') ?? element
+    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '800px 0px' })
+    // 섹션이 화면에 1px이라도 보이면 목걸이 물리 계산을 켭니다 → 화면을 많이 내리거나 올린 상태에서도 목걸이를 끌며 놀 수 있어요.
+    const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting))
+    nearObserver.observe(section)
+    visibleObserver.observe(section)
     const dropObserver = new IntersectionObserver(([entry]) => {
-      const half = entry.intersectionRatio >= 0.5 || entry.intersectionRect.height >= window.innerHeight * 0.5
-      if (!half) return
+      if (!entry.isIntersecting) return
       setDropped(true)
       dropObserver.disconnect()
-    }, { threshold: Array.from({ length: 21 }, (_, index) => index / 20) })
-    dropObserver.observe(section)
+    })
+    dropObserver.observe(dropZone.current ?? section)
     return () => {
       nearObserver.disconnect()
       visibleObserver.disconnect()
@@ -326,12 +347,13 @@ function ContactPass() {
 
   return (
     <div ref={area} className="contact__pass-area" data-lanyard={show3D ? '3d' : 'static'}>
+      <div ref={dropZone} className="contact__drop-zone" aria-hidden="true" />
       {show3D ? (
         near && (
           <div className="contact__lanyard" aria-hidden="true">
             <LanyardBoundary onError={() => setFailed(true)}>
               <Suspense fallback={null}>
-                <Lanyard active={visible && dropped} />
+                <Lanyard active={visible && dropped} anchorLeft={LANYARD_ANCHOR_LEFT} onLanded={handleLanded} />
               </Suspense>
             </LanyardBoundary>
           </div>
@@ -381,11 +403,38 @@ function MarqueeBand() {
   )
 }
 
+// 제안서(문의 폼) 등장: 목걸이가 다 떨어져 자리를 잡으면(Lanyard의 onLanded) afterLanding(ms) 뒤에
+// 폼이 땅(아래 글자 띠) 뒤에서 '뿅' 올라옵니다. 목걸이가 떨어지는 동안에는 폼이 보이지 않아 목걸이를 가리지 않습니다.
+// 폰처럼 3D 목줄 대신 그림 카드가 나오는 화면은 폼이 화면에 들어오면 afterCard(ms) 뒤에 올라옵니다.
+// 착지로 보는 기준은 Lanyard.tsx의 LANDING, 올라오는 거리·튀는 느낌은 App.css의 .contact__form-area(--form-pop-from, transition)에서 조절합니다.
+const FORM_POP = { afterLanding: 200, afterCard: 150 }
+
 function Contact() {
   const [draft, setDraft] = useState<{ href: string; text: string } | null>(null)
   const [copyStatus, setCopyStatus] = useState('')
   // 필수 칸(이름·이메일·문의 유형·메시지)이 모두 알맞게 채워졌는지 — 채워지면 '문의 보내기'가 코랄색으로 바뀝니다.
   const [complete, setComplete] = useState(false)
+
+  const formArea = useRef<HTMLDivElement>(null)
+  const [landed, setLanded] = useState<{ withLanyard: boolean } | null>(null)
+  const [formInView, setFormInView] = useState(false)
+  const [formShown, setFormShown] = useState(false)
+  const handleLanded = useCallback((withLanyard: boolean) => setLanded(previous => previous ?? { withLanyard }), [])
+
+  // 폼 자리가 화면에 조금이라도 들어왔는지(비율은 따지지 않음. 폰에서는 목걸이 카드 아래에 있어서 따로 봅니다)
+  useEffect(() => {
+    const element = formArea.current
+    if (!element || formInView) return
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setFormInView(true) })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [formInView])
+
+  useEffect(() => {
+    if (!landed || !formInView || formShown) return
+    const timer = window.setTimeout(() => setFormShown(true), landed.withLanyard ? FORM_POP.afterLanding : FORM_POP.afterCard)
+    return () => window.clearTimeout(timer)
+  }, [landed, formInView, formShown])
 
   function submitInquiry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -410,8 +459,9 @@ function Contact() {
 
   return (
     <section id="contact" className="contact" aria-labelledby="contact-title">
-      <ContactPass />
-      <div className="contact__form-area">
+      <ContactPass onLanded={handleLanded} />
+      {/* 키보드로 폼 칸에 먼저 들어오면 기다리지 않고 바로 보여줍니다. */}
+      <div ref={formArea} className="contact__form-area" data-shown={formShown} onFocus={() => setFormShown(true)}>
         <img className="contact__paperclip" src={paperclip} alt="" aria-hidden="true" />
         <form
           className="contact-form"
@@ -527,7 +577,22 @@ function readBackstageHash() {
   return projects.find(project => project.id === id && hasBackstage(project.id)) ?? null
 }
 
+// 커서 물감 효과는 마우스(정밀 포인터)가 있는 기기에서만, 동작 줄이기 설정이 아닐 때만 켭니다.
+const splashCursorQuery = '(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+function useSplashCursorEnabled() {
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    const media = window.matchMedia(splashCursorQuery)
+    const update = () => setEnabled(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+  return enabled
+}
+
 function Portfolio() {
+  const splashCursor = useSplashCursorEnabled()
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [backstageProject, setBackstageProject] = useState<Project | null>(readBackstageHash)
   useEffect(() => {
@@ -571,6 +636,8 @@ function Portfolio() {
       <ProjectSelect project={selectedProject} onClose={() => setSelectedProject(null)} onBackstage={openBackstage} />
       <Backstage project={backstageProject} onClose={closeBackstage} />
       <GalleryArchive origin={archiveOrigin} onClose={() => setArchiveOrigin(null)} />
+      {/* 히어로 아래 물결(피그마 346-296)의 흰 부분부터 커서를 따라 코랄 물감이 번지고, Contact에 들어오면 서서히 사라집니다(React Bits Splash Cursor). */}
+      {splashCursor && <SplashCursor startBelow=".hero-curve" startEdge={heroCurveEdge} fadeInto="#contact" />}
     </>
   )
 }

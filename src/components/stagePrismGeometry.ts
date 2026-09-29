@@ -4,7 +4,8 @@ export const FACE_WIDTH = 706.8
 export const FACE_HEIGHT = 255.6
 export const FACE_STEP = 120
 export const PRISM_RADIUS = FACE_WIDTH / (2 * Math.tan(Math.PI / 3))
-export const REST_YAW = -45
+// 멈춰 있을 때 가운데 카드가 향하는 각도. 0 = 100% 정면(옆면이 보이지 않음). 예전 -45는 옆면이 비스듬히 보였습니다.
+export const REST_YAW = 0
 
 export function faceAngle(index: number) { return (index - 1) * FACE_STEP }
 

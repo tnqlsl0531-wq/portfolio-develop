@@ -45,6 +45,8 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=104-8
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=186-201 (수정본: 흰 16:9 작품 카드, Min Sans 글꼴)
 작품 카드의 국순당 로고는 기존 src/assets/design의 로고·점·마스크 SVG를 피그마 위치 그대로 배치했습니다.
 자두야 카드는 시안이 없어 같은 비율로 가운데에 두었습니다.
+국순당 카드를 눌렀을 때 작품 프레임 외곽선: 피그마 node 186-237(229:1607) — 테두리 #F8981C 5px(안쪽), 모서리 11.409.
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=186-237
 
 BACKSTAGE 페이지(국순당):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-516
@@ -66,6 +68,16 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192
 조명 그림(src/assets/design/gallery-spotlight.svg)은 node 109:11(Spotlight · Grayscale)을 SVG로 내보낸 원본 그대로입니다.
 여는 효과(버튼 자리에서 원이 커지며 화면을 채움)는 같은 파일의 메모(node 94:1160)를 따랐습니다.
+아카이브 사진(src/assets/archive): 피그마 node 334-2(06 · Artist gallery archive)에 채운 38장.
+사용자 PC의 Downloads/portfolio_photos(구글 드라이브에서 받은 원본)에서 같은 사진을 찾아(피그마 화면과 픽셀 비교) 만들었습니다.
+- top-01.webp 등: 피그마 사진 틀과 같은 자르기, 표시 크기의 2배, WebP 품질 80.
+- top-01-full.webp 등: 자르지 않은 원본 전체(사진 방향 보정), 긴 변 최대 1800px, WebP 품질 82.
+- IMG_1686.JPG는 파일이 옆으로 누워 저장돼 있어 피그마처럼 90° 돌려 썼습니다.
+- 채도: 줄에서는 CSS filter saturate(.75), 마우스를 올린 사진과 크게 보기는 원래 색.
+- 끌기(드래그): 두 줄을 마우스·손가락으로 끌 수 있게 CSS 애니메이션 대신 매 프레임 위치를 계산합니다(GalleryArchive.tsx).
+  6px 넘게 움직이면 끌기, 아니면 누르기(크게 보기). 놓을 때 속도(최대 2000px/초)로 미끄러지다가 원래 속도로 돌아옵니다.
+  윗줄: 01=IMG_1866.PNG, 02=018A0973.jpg, 03=7D79B50D-19EB-44FC-9E2C-E7DFB70F709C.jpg, 04=018A1489.jpg, 05=IMG_5906.jpg, 06=IMG_1681.JPG, 07=IMG_7588.PNG, 08=IMG_7569.JPG, 09=3S0A5246 복사.jpg, 10=018A3958.jpg, 11=IMG_7543.JPG, 12=3S0A0571.JPG, 13=IMG_7370.PNG, 14=018A0081.jpg, 15=IMG_9247.PNG, 16=IMG_1686.JPG, 17=IMG_6002.PNG, 18=3S0A6721.JPG, 19=IMG_4939.JPG
+  아랫줄: 01=IMG_7545.JPG, 02=IMG_6352.JPG, 03=018A0082.jpg, 04=IMG_7369.PNG, 05=IMG_0924.JPG, 06=1_IMG_1913.jpg, 07=3S0A0610.JPG, 08=IMG_5930.PNG, 09=IMG_3955.JPG, 10=018A0059.jpg, 11=1CF9D784-E4FE-4492-90B0-91265E482984.jpg, 12=018A4788.jpg, 13=IMG_7024.PNG, 14=018A9809.jpg, 15=IMG_7695.JPG, 16=MYXJ_20240422122647053_save.jpg, 17=018A9984.jpg, 18=IMG_6068.JPG, 19=IMG_5332.JPG
 
 Contact 섹션(스태프 패스·문의 폼·카피라이트):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
@@ -73,6 +85,8 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
 수정본(피그마 node 337-877): 입력칸 배경 rgb(255 227 225 / 34%), 종이클립 색 Primary/500 #F8574F(node 337-928).
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=337-877
 문의 보내기 버튼은 평소 검정(#0F0F0F), 필수 칸을 모두 채우면(form.checkValidity) Primary/500 코랄로 바뀝니다.
+제안서 크기·위치: 바닥(아래 글자 띠)에 붙여 세우고, 폼 높이가 창 높이 - 106.667 - 48px를 넘지 않도록 폼 전체를 같은 비율로 줄임(--form-u, 최대 피그마 크기, 최소 60%).
+제안서 등장: 목걸이가 다 떨어져 자리를 잡으면(줄 끝까지 떨어진 뒤 속도 1.5 아래로 0.15초, Lanyard.tsx LANDING) 200ms 뒤 폼이 자기 높이의 32% 아래에서 올라옴(900ms, cubic-bezier(.34, 1.6, .5, 1) = 약 11% 튀어 오름).
 
 Contact 3D 목줄 애니메이션:
 https://reactbits.dev/components/lanyard
@@ -88,8 +102,9 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=278-477
 src/assets/lanyard/strap.png는 피그마 목줄 디자인(node 257-2227: #D4D4D4 줄, #E5E5E5 Syncopate Bold 'CHOI - SUBIN')의 한 주기(길이 180 × 폭 37.333)를 6배로 그린 이미지이며, 3D 줄을 따라 반복됩니다.
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=257-2227
 사용 패키지: three, @react-three/fiber, @react-three/drei, @react-three/rapier, meshline
-목걸이가 내려오는 때: Contact 섹션이 화면에 50% 이상 보일 때(원본은 불러오자마자). 뒷면 보여주기: 원본은 카드를 늘 앞면으로 되돌리는데,
+목걸이가 내려오는 때: 카드가 매달릴 자리(섹션 위에서 370~980)가 화면에 조금이라도 보일 때(원본은 불러오자마자). 섹션이 조금이라도 보이면 물리 계산이 계속 돌아 언제든 끌 수 있음. 뒷면 보여주기: 원본은 카드를 늘 앞면으로 되돌리는데,
 정해진 박자(내려온 뒤 1.8초, 그다음 앞면 6초 / 뒷면 3.5초)에 목표 각도를 0°/180°로 바꿔 천천히 돌게 했습니다.
+목줄 무대 폭: 카드가 오른쪽에서 떨어질 때 무대 끝에서 잘리지 않도록 941.333 → 1300으로 넓히고, 고정점은 스태프 패스 가운데(폭의 470.667/1300)에 둠(Lanyard anchorLeft).
 
 맨 아래 글자 띠(Curved Loop):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=342-180
@@ -109,6 +124,23 @@ React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 Director’s Note:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=207-362
 src/assets/photos/director-portrait.webp는 사용자가 준 원본 사진(1509×2367 PNG)을 피그마 표시 크기 404×634의 2배(808×1268)로 줄여 WebP로 저장한 파일입니다.
+
+Director’s Note 제목 떠오르기(Scroll Float):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=351-185
+https://reactbits.dev/c/text-animations/scroll-float?stagger=0.02
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/ScrollFloat
+React Bits Scroll Float(TS + CSS)를 src/components/ScrollFloat.tsx/.css로 옮겼습니다. GSAP ScrollTrigger 대신 스크롤 위치로 같은 값을 직접 계산합니다(추가 패키지 없음):
+글자마다 투명 0→1, yPercent 120→0, scaleY 2.3→1, scaleX 0.7→1, transformOrigin 50% 0%, back.inOut(2), duration 1, stagger 0.02,
+start 'center bottom+=50%', end 'bottom bottom-=40%', scrub. 화면 읽기 프로그램에는 쪼개지 않은 제목을 읽어 줍니다.
+React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
+
+커서 물감 효과(Splash Cursor):
+https://reactbits.dev/animations/splash-cursor?DENSITY_DISSIPATION=8.5&CURL=0&COLOR_UPDATE_SPEED=24&SPLAT_RADIUS=0.65&VELOCITY_DISSIPATION=4&COLOR=FC7A73&PRESSURE=0&SHADING=false&SPLAT_FORCE=5500
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Animations/SplashCursor
+React Bits Splash Cursor(TS)를 src/components/SplashCursor.tsx로 옮겼습니다. 유체 계산은 Pavel Dobryakov의 WebGL Fluid Simulation(MIT, Copyright (c) 2017 Pavel Dobryakov)을 바탕으로 합니다.
+위 설정값 그대로, 색은 한 가지(#FC7A73, RAINBOW_MODE 끔). 바꾼 점: 히어로 아래 물결(피그마 346-296, hero-curve.svg)의 검은 물결 아래 흰 부분부터 나옴(경로 곡선을 src/heroCurveEdge.ts로 옮겨 경계선을 따라 clip-path polygon으로 잘라 냄), Contact가 화면에 들어오면 스크롤한 만큼 서서히 사라짐(FADE),
+전체 불투명도 50%(OPACITY, 물감이 쌓여도 뒤 내용이 보이게), 보이지 않을 때 계산 멈춤, 창(dialog)이 열려 있으면 안 나옴, 사라질 때 이벤트 정리, 마우스(정밀 포인터) 기기·동작 줄이기 아님일 때만.
+React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 
 히어로 사진(GRAND EXHIBITION):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-582
@@ -138,7 +170,6 @@ Entry ticket (2026-09-29)
 - IBM Plex Mono Medium: google/fonts, ofl/ibmplexmono; SIL Open Font License, src/assets/fonts/IBMPlexMono-OFL.txt.
 - Admission persists for the current tab session; a fresh session shows the ticket again. Keyboard: Enter or Space.
 
-<<<<<<< HEAD
 Backstage button spotlight (2026-09-29)
 - Artwork: exact masked photo layer exported from supplied Figma node 296:205 inside button 296:189; exported bounds 432 x 192. src/assets/backstage/backstage-choice-art.png.
 - Interaction adapted from React Bits ChromaGrid (David Haz): src/ts-default/Components/ChromaGrid. Radius 100px, damping 0.55s (power3.out), fade-out 0.2s. Dark-to-grayscale reveal; animation uses the existing Motion dependency. See src/licenses/React-Bits-LICENSE.md.
@@ -147,9 +178,10 @@ ON STAGE hover artwork (2026-09-29)
 - Supplied Figma button 296:186; exact separate PNG exports of grandma 296:225, bottle 296:247, cup 296:246 at 2x, preserving Figma clipping, colors and alpha.
 - Sequential entrance: grandma, bottle, cup with 0 / 110 / 220ms delays, overshoot and settling. Reduced-motion mode displays the final layout without movement.
 - 그림은 버튼 위에서 마우스가 실제로 움직였을 때만 들어옵니다(pointermove). 창이 커서 바로 아래에 열릴 때 브라우저가 보내는 pointerenter로는 나오지 않습니다. 마우스가 나가면(pointerleave) 빠집니다.
-=======
+- 작품 선택 창이 열릴 때 그림이 잠깐 다 나왔다가 들어가던 문제 수정: 이미 숨김 상태면 거꾸로 재생(play)하지 않음(거꾸로 play는 끝으로 되감긴 뒤 재생되기 때문).
+
 Stage Works carousel (2026-09-29)
 - Design: Figma 91q9GLdpPNhT5Xv6cDpKg6, node 346:295.
 - The spotlight, stage, shadows and footlights in src/assets/stage are direct SVG exports from the supplied Figma frame; future-preview.png is the frame's upcoming-project artwork export.
 - Cards loop left/right with drag, click and arrow-key controls. Depth is simulated with position, scale and opacity instead of WebGL 3D.
->>>>>>> 3062adde9af7c36d72e4ea146a9617eabe33c1cc
+- 멈춰 있을 때 가운데 카드는 100% 정면(stagePrismGeometry.ts REST_YAW 0, 예전 -45), 내려다보는 각도는 -4deg(StageWorks.css --stage-tilt, 예전 -10deg).

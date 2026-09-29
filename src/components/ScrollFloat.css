@@ -1,0 +1,5 @@
+/* React Bits Scroll Float: 글자가 제목 줄 아래에서 올라오는 동안 줄 밖으로 나온 부분은 가립니다. */
+.scroll-float { overflow: hidden; }
+.scroll-float__text { display: inline-block; }
+/* 글자 하나하나. 움직임은 ScrollFloat.tsx가 스크롤에 맞춰 opacity·transform으로 정합니다(처음에는 숨김). */
+.scroll-float__char { display: inline-block; opacity: 0; transform-origin: 50% 0%; will-change: opacity, transform; }

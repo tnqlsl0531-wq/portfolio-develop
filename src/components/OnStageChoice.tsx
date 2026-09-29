@@ -55,7 +55,12 @@ export default function OnStageChoice({ href, onClick, children }: { href?: stri
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     for (const animation of animations.current) {
-      if (reduce) {
+      // 이미 가야 할 자리(보임 = 580, 숨김 = 0)에 있으면 재생하지 않고 그 자리에 둡니다.
+      // 숨김(0)에서 거꾸로 play()를 부르면 브라우저가 끝(580 = 다 보임)으로 되감은 뒤 거꾸로 재생해서,
+      // 작품 선택 창이 열릴 때 할머니·병·잔이 호버하지 않았는데도 잠깐 다 나와 있다가 들어가던 문제가 있었습니다.
+      const time = Number(animation.currentTime ?? 0)
+      const arrived = active ? time >= 580 : time <= 0
+      if (reduce || arrived) {
         animation.pause()
         animation.currentTime = active ? 580 : 0
       } else {

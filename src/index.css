@@ -44,7 +44,8 @@ button { cursor: pointer; }
 button:disabled { cursor: default; }
 a { color: inherit; text-underline-offset: 4px; }
 img { display: block; }
-:focus-visible { outline: 3px solid var(--primary-500); outline-offset: 5px; }
+/* 키보드 초점·클릭 뒤 남는 테두리: 간격 없이 버튼 가장자리에 딱 붙게(outline-offset 0) — 사이트 전체 공통 */
+:focus-visible { outline: 3px solid var(--primary-500); outline-offset: 0; }
 ::selection { color: #171717; background: #ffc7c3; }
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

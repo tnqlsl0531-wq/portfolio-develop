@@ -403,7 +403,7 @@
 
 /* 맨 아래 흐르는 글자 띠(피그마 342-180): 코랄 #f8574f, 1920 × 346, Special Gothic Expanded One 96 · 자간 -2.88(-3%)
    글자 크기는 SVG 좌표(1920 기준)라 화면 폭에 맞춰 함께 커지고 작아집니다. */
-.marquee-band { position: relative; overflow: hidden; background: #f8574f; }
+.marquee-band { position: relative; z-index: 2; overflow: hidden; background: #f8574f; }
 .marquee-band__text { font-family: 'Special Gothic Expanded One', sans-serif; font-size: 96px; font-weight: 400; letter-spacing: -2.88px; dominant-baseline: central; }
 
 /* CONTACT */
@@ -411,15 +411,25 @@
   position: relative; min-height: calc(1080 * var(--u)); display: grid;
   grid-template-columns: 26.863% 57.192%; gap: 15.945%;
   margin-left: 13.75%; margin-right: 6.111%; align-items: start;
+  /* 제안서(문의 폼) 크기 단위 --form-u: 피그마 크기(--u)보다 커지지 않으면서, 폼 높이가 '창 높이 - 106.667 - 48px'를 넘지 않도록
+     폼 전체를 같은 비율로 줄입니다(땅이 화면 아래 끝에 올 때 폼이 한 화면에 다 보임). 글자가 너무 작아지지 않게 --u의 60%까지만 줄어듭니다.
+     더 줄이거나 키우려면 48px을 바꾸세요. */
+  --form-u: max(calc(var(--u) * .6), min(var(--u), calc((100vh - 106.667 * var(--u) - 48px) / 973.333)));
+}
+@supports (height: 100dvh) {
+  .contact { --form-u: max(calc(var(--u) * .6), min(var(--u), calc((100dvh - 106.667 * var(--u) - 48px) / 973.333))); }
 }
 .contact__pass-area { position: relative; min-width: 0; padding-top: calc(106.667 * var(--u)); }
 /* 목줄(피그마 node 257-2227): 회색 줄 위에 CHOI - SUBIN 글자가 세로로(위→아래) 두 번 찍혀 있습니다. 3D 목줄은 같은 무늬의 strap.png를 씁니다. */
 .contact__strap { position: absolute; top: calc(-21.333 * var(--u)); left: 45.484%; width: 9.032%; height: calc(477.333 * var(--u)); display: flex; flex-direction: column; align-items: center; gap: 1em; padding-top: 1.2165em; overflow: hidden; background: #d4d4d4; border-radius: calc(10.667 * var(--u)); color: #e5e5e5; font: 700 calc(20 * var(--u))/normal 'Syncopate', sans-serif; letter-spacing: -0.08em; }
 .contact__strap span { writing-mode: vertical-rl; white-space: nowrap; }
 .contact__title { position: relative; font-size: calc(120 * var(--u)); line-height: 1.2; margin-left: calc(7 * var(--u)); }
-/* 3D 목줄 무대: 섹션 왼쪽 끝(0)부터 스태프 패스 중심(470.667)을 기준으로 좌우 대칭, 섹션 높이만큼 */
-.contact__lanyard { position: absolute; z-index: 0; top: 0; left: calc(-264 * var(--u)); width: calc(941.333 * var(--u)); height: calc(1080 * var(--u)); }
+/* 3D 목줄 무대: 화면 왼쪽 끝(0)부터 폭 1300, 섹션 높이만큼. 목줄 고정점은 스태프 패스 중심(x 470.667)에 맞춥니다(App.tsx LANYARD_ANCHOR_LEFT).
+   카드가 오른쪽(제안서 쪽)에서 떨어지며 흔들려도 무대 끝에서 잘리지 않게 오른쪽을 넉넉히 넓혔습니다. 폭을 바꾸면 LANYARD_ANCHOR_LEFT도 같이 바꾸세요. */
+.contact__lanyard { position: absolute; z-index: 0; top: 0; left: calc(-264 * var(--u)); width: calc(1300 * var(--u)); height: calc(1080 * var(--u)); }
 .contact__pass-area[data-lanyard='3d'] .contact__title { z-index: 1; pointer-events: none; }
+/* 목걸이 카드가 매달리는 자리(섹션 위에서 370~980). 여기가 화면에 조금이라도 보이면 목걸이가 떨어집니다(App.tsx ContactPass). 눈에는 안 보입니다. */
+.contact__drop-zone { position: absolute; left: 0; right: 0; top: calc(370 * var(--u)); height: calc(610 * var(--u)); pointer-events: none; }
 .contact__form-area { z-index: 1; }
 .contact__connector { position: absolute; top: calc(360 * var(--u)); left: 43.226%; width: 13.548%; height: calc(32 * var(--u)); border-radius: calc(10.667 * var(--u)); background: #737373; }
 .staff-pass {
@@ -442,9 +452,20 @@
 .staff-pass a { text-decoration: none; }
 .staff-pass a:hover { text-decoration: underline; }
 .staff-pass dd.staff-pass__instagram { font-size: calc(18.667 * var(--u)); }
-.contact__form-area { min-width: 0; position: relative; padding-top: calc(106.667 * var(--u)); }
-/* 피그마에서 내보낸 원본 파일에 종이클립의 회전이 이미 포함되어 있습니다. */
-.contact__paperclip { position: absolute; z-index: 1; top: calc(32 * var(--u)); right: calc(15.276 * var(--u)); width: calc(160.726 * var(--u)); height: auto; pointer-events: none; }
+/* 폼은 오른쪽 여백(피그마 117)에 붙이고, 바닥(아래 글자 띠 = 땅)에 딱 붙여 세워 둡니다(원본처럼 땅에 박힌 모습, align-self: end).
+   창이 낮으면 폭·안쪽 크기가 --form-u로 같은 비율로 줄고 그만큼 윗선이 내려옵니다. 창이 충분히 높으면 윗선 = 'Contact' 제목 윗선(106.667). */
+.contact__form-area {
+  justify-self: end; align-self: end; width: calc(880 * var(--form-u)); max-width: 100%; min-width: 0; position: relative; padding-top: calc(106.667 * var(--u));
+  /* 제안서 등장(App.tsx FORM_POP): 목걸이가 다 떨어져 자리를 잡은 뒤, 땅(글자 띠) 뒤에서 자기 높이의 32%만큼 아래에서 올라오며 끝에서 살짝 튀어 올랐다 자리 잡습니다('뿅').
+     튀는 정도는 cubic-bezier의 두 번째 숫자(1.6)가 클수록 커집니다. 올라오는 동안 아래 글자 띠 뒤에서 나옵니다. */
+  --form-pop-from: 32%;
+  transition: transform 900ms cubic-bezier(.34, 1.6, .5, 1), opacity 420ms ease-out;
+}
+.contact__form-area[data-shown='false'] { opacity: 0; transform: translateY(var(--form-pop-from)); }
+/* 피그마에서 내보낸 원본 파일에 종이클립의 회전이 이미 포함되어 있습니다. 폼 윗선보다 74.667 위에서 시작합니다(폼과 같은 비율로 줄어듦). */
+.contact__paperclip { position: absolute; z-index: 1; top: calc(106.667 * var(--u) - 74.667 * var(--form-u)); right: calc(15.276 * var(--form-u)); width: calc(160.726 * var(--form-u)); height: auto; pointer-events: none; }
+/* 폼 안쪽(글자·칸·버튼·여백)은 모두 --form-u 기준으로 그려집니다. */
+.contact-form { --u: var(--form-u); }
 .contact-form {
   display: flex; flex-direction: column; justify-content: space-between; gap: calc(28 * var(--u));
   min-height: calc(973.333 * var(--u)); padding: calc(53.333 * var(--u)) calc(48 * var(--u)) calc(37.333 * var(--u));
@@ -502,6 +523,9 @@
    피그마(186-201)처럼 화면 가운데보다 약 7px 위에 놓습니다. */
 .project-select__content { position: relative; display: flex; flex-direction: column; align-items: center; gap: calc(64 * var(--pu)); margin-bottom: calc(14.5 * var(--pu)); }
 .project-select__cover { width: calc(600 * var(--pu)); }
+/* 국순당 카드를 눌렀을 때 작품 프레임 외곽선(피그마 186-237의 229:1607): 주황 #F8981C 5px(카드 폭 600 기준 = 0.8333cqw), 안쪽 선.
+   BACKSTAGE 페이지 맨 위 카드는 원래 연회색 테두리 그대로입니다. */
+.project-select__cover .project-cover--kooksoondang { box-shadow: inset 0 0 0 .8333cqw #f8981c; }
 .project-select__choices { display: flex; gap: calc(48 * var(--pu)); }
 .stage-choice {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(16 * var(--pu));
@@ -515,8 +539,9 @@
 .stage-choice__desc { font-size: max(12px, calc(18 * var(--pu))); font-weight: 400; }
 .stage-choice--on .stage-choice__desc { color: #525252; }
 .stage-choice--back .stage-choice__desc { color: #d4d4d4; }
-.stage-choice:hover, .stage-choice:focus-visible { transform: translateY(-5px); border-color: #ffa29c; }
-.stage-choice:focus-visible { outline: 2px solid #ffa29c; outline-offset: 3px; }
+/* 마우스를 올리면 살짝 떠오르기만 합니다(외곽선 색 바뀜 없음). 키보드로 골랐을 때만 아래 분홍 테두리가 보입니다. */
+.stage-choice:hover, .stage-choice:focus-visible { transform: translateY(-5px); }
+.stage-choice:focus-visible { outline: 2px solid #ffa29c; outline-offset: 0; }
 /* 준비 중 안내: 선택지 아래에 떠서 화면 배치를 밀지 않습니다. */
 .project-select__notice { position: absolute; top: calc(100% + 28 * var(--pu)); left: 0; right: 0; color: #fafafa; font: 400 max(14px, calc(20 * var(--pu)))/1.45 'Noto Sans KR Variable', sans-serif; text-align: center; }
 
@@ -590,7 +615,7 @@
   .staff-pass dt { font-size: 18px; margin-bottom: 9px; }
   .staff-pass dd { font-size: 18.5px; }
   .staff-pass dd.staff-pass__instagram { font-size: 16px; }
-  .contact__form-area { width: min(100%, 760px); margin: 0 auto; padding-top: 32px; }
+  .contact__form-area { width: min(100%, 760px); margin: 0 auto; padding-top: 32px; --form-pop-from: 96px; }
   .contact__paperclip { width: 112px; right: 12px; top: -24px; }
   .contact-form { min-height: 850px; padding: 44px 36px 24px; gap: 28px; border-radius: 14px; box-shadow: -3px -2px 14px rgb(0 0 0 / 10%), 6px -4px 14px rgb(0 0 0 / 10%); }
   .contact-form__heading h3 { font-size: 32px; }
@@ -688,4 +713,5 @@
   .project-select[open]::backdrop, .project-select[open] .project-select__content { animation: none; }
   .stage-choice { transition: none; }
   .project-card--ready, .gallery__link-line, .gallery__link-tail { transition: none; }
+  .contact__form-area, .contact__form-area[data-shown='false'] { transition: none; opacity: 1; transform: none; }
 }
