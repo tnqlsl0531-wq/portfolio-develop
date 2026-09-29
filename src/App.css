@@ -16,6 +16,11 @@
   font-family: 'Special Gothic Expanded One', sans-serif;
 }
 
+/* 히어로에서는 마우스 화살표를 숨기고, 커서 주변 색 원(커서 효과)만 보여줍니다(마우스가 있는 기기만). */
+@media (hover: hover) and (pointer: fine) {
+  .hero-stage { cursor: none; }
+}
+
 /* 첫 화면 하단의 어두운 배경 */
 .hero__shade {
   position: absolute;
@@ -396,6 +401,11 @@
 /* 피그마 문단은 맨 앞에 한 칸 띄어 쓰여 있어 같은 폭만큼 들여씁니다. 브라우저 글자 폭이 피그마보다 약 1% 넓어 자간을 살짝 줄여 줄 길이를 맞춥니다. */
 .director__paragraphs { width: 100%; display: flex; flex-direction: column; gap: calc(50 * var(--u)); color: #525252; font: 400 calc(22 * var(--u))/calc(38 * var(--u)) 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; text-indent: 0.25em; letter-spacing: -0.01em; margin-bottom: calc((1em - 1lh) / 2); }
 
+/* 맨 아래 흐르는 글자 띠(피그마 342-180): 코랄 #f8574f, 1920 × 346, Special Gothic Expanded One 96 · 자간 -2.88(-3%)
+   글자 크기는 SVG 좌표(1920 기준)라 화면 폭에 맞춰 함께 커지고 작아집니다. */
+.marquee-band { position: relative; overflow: hidden; background: #f8574f; }
+.marquee-band__text { font-family: 'Special Gothic Expanded One', sans-serif; font-size: 96px; font-weight: 400; letter-spacing: -2.88px; dominant-baseline: central; }
+
 /* CONTACT */
 .contact {
   position: relative; min-height: calc(1080 * var(--u)); display: grid;
@@ -447,15 +457,18 @@
 .contact-form label { display: flex; flex-direction: column; gap: calc(10.667 * var(--u)); min-width: 0; color: #383838; font-size: calc(17.333 * var(--u)); font-weight: 700; }
 .contact-form input, .contact-form select, .contact-form textarea {
   width: 100%; min-width: 0; height: calc(64 * var(--u)); border: 1px solid transparent; border-radius: calc(10.667 * var(--u));
-  background: #ffe3e1; color: #171717; padding: calc(18.667 * var(--u)) calc(21.333 * var(--u)); font-size: calc(18.667 * var(--u)); font-weight: 400;
+  background: rgb(255 227 225 / 34%); color: #171717; padding: calc(18.667 * var(--u)) calc(21.333 * var(--u)); font-size: calc(18.667 * var(--u)); font-weight: 400;
 }
 .contact-form input::placeholder, .contact-form textarea::placeholder { color: #737373; opacity: 1; }
 .contact-form select { color: #737373; cursor: pointer; }
 .contact-form select:valid { color: #171717; }
 .contact-form textarea { height: calc(154.667 * var(--u)); min-height: calc(154.667 * var(--u)); resize: vertical; }
 .contact-form__submit { display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--u)); }
-.contact-form__submit button { width: 48.639%; min-height: calc(69.333 * var(--u)); padding: 12px; border: 0; border-radius: calc(10.667 * var(--u)); background: var(--primary-500); color: var(--neutral-white); font-size: calc(21.333 * var(--u)); font-weight: 700; }
-.contact-form__submit button:hover { background: #e3463e; }
+/* 문의 보내기(피그마 337-877): 평소에는 검정(#0f0f0f), 필수 칸(*)이 모두 채워지면 코랄(#f8574f)로 바뀝니다. */
+.contact-form__submit button { width: 48.639%; min-height: calc(69.333 * var(--u)); padding: 12px; border: 0; border-radius: calc(10.667 * var(--u)); background: var(--neutral-black, #0f0f0f); color: var(--neutral-white); font-size: calc(21.333 * var(--u)); font-weight: 700; transition: background-color 300ms ease; }
+.contact-form__submit button:hover { background: #2e2e2e; }
+.contact-form[data-complete='true'] .contact-form__submit button { background: var(--primary-500); }
+.contact-form[data-complete='true'] .contact-form__submit button:hover { background: #e3463e; }
 .contact-form__submit p { color: #737373; font-size: max(11px, calc(13 * var(--u))); text-align: center; }
 /* 피그마 프레임 기준 왼쪽 117.333, 위 1018.667 위치의 카피라이트 (.contact 왼쪽 여백 264를 빼서 계산) */
 .contact__copyright { position: absolute; left: calc(-146.667 * var(--u)); top: calc(1018.667 * var(--u)); color: #171717; font: 400 max(11px, calc(16 * var(--u)))/1.45 'Noto Sans KR Variable', sans-serif; white-space: nowrap; }
@@ -560,6 +573,8 @@
   .project-select__close { top: 16px; right: 20px; font-size: 16px; }
   .project-select__notice { top: calc(100% + 16px); font-size: 14px; }
   .contact { grid-template-columns: minmax(0, 1fr); gap: 64px; margin: 0; padding: 80px 7% 70px; }
+  /* 폰·태블릿: 글자 띠를 2배로 키우고 양옆은 잘라서 글자가 너무 작아지지 않게 합니다. */
+  .marquee-band .curved-loop-svg { flex-shrink: 0; width: 200%; }
   .contact__pass-area { width: 360px; max-width: 100%; margin-inline: auto; padding-top: 80px; }
   .contact__strap { top: -80px; left: calc(50% - 16px); width: 32px; height: 415px; border-radius: 10px; font-size: 17.143px; }
   .contact__title { font-size: 96px; text-align: center; margin: 0; line-height: 1.2; }

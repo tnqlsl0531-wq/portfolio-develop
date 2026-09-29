@@ -65,9 +65,12 @@ export default function OnStageChoice({ href, onClick, children }: { href?: stri
     }
   }, [active])
 
+  // 창이 열릴 때 마우스가 이미 버튼 자리에 있으면 브라우저가 '올라왔다'고 알려서 그림이 바로 나와 있었습니다.
+  // 그래서 마우스가 실제로 움직였을 때만 들어오게 하고(pointermove + 움직인 거리), 나가면 바로 나가게 합니다.
   const interaction = {
-    onPointerEnter: (event: PointerEvent<HTMLElement>) => {
-      if (event.pointerType !== 'touch') setHovered(true)
+    onPointerMove: (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType === 'touch' || hovered) return
+      if (event.movementX !== 0 || event.movementY !== 0) setHovered(true)
     },
     onPointerLeave: () => setHovered(false),
     onPointerCancel: () => setHovered(false),

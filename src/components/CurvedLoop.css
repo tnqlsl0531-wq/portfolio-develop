@@ -1,0 +1,16 @@
+/* React Bits Curved Loop 기본 모양(원본 CurvedLoop.css) — 글자 크기·색은 쓰는 곳에서 className으로 정합니다. */
+.curved-loop-jacket {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  touch-action: pan-y; /* 가로로 끌기는 마퀴가, 세로 스크롤은 페이지가 받습니다. */
+}
+.curved-loop-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}

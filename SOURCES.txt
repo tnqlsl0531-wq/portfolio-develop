@@ -88,6 +88,9 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192
 Contact 섹션(스태프 패스·문의 폼·카피라이트):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
 종이클립은 같은 파일에서 내보낸 기존 src/assets/design/paperclip.svg를 그대로 사용합니다.
+수정본(피그마 node 337-877): 입력칸 배경 rgb(255 227 225 / 34%), 종이클립 색 Primary/500 #F8574F(node 337-928).
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=337-877
+문의 보내기 버튼은 평소 검정(#0F0F0F), 필수 칸을 모두 채우면(form.checkValidity) Primary/500 코랄로 바뀝니다.
 
 Contact 3D 목줄 애니메이션:
 https://reactbits.dev/components/lanyard
@@ -103,6 +106,17 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=278-477
 src/assets/lanyard/strap.png는 피그마 목줄 디자인(node 257-2227: #D4D4D4 줄, #E5E5E5 Syncopate Bold 'CHOI - SUBIN')의 한 주기(길이 180 × 폭 37.333)를 6배로 그린 이미지이며, 3D 줄을 따라 반복됩니다.
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=257-2227
 사용 패키지: three, @react-three/fiber, @react-three/drei, @react-three/rapier, meshline
+목걸이가 내려오는 때: Contact 섹션이 화면에 50% 이상 보일 때(원본은 불러오자마자). 뒷면 보여주기: 원본은 카드를 늘 앞면으로 되돌리는데,
+정해진 박자(내려온 뒤 1.8초, 그다음 앞면 6초 / 뒷면 3.5초)에 목표 각도를 0°/180°로 바꿔 천천히 돌게 했습니다.
+
+맨 아래 글자 띠(Curved Loop):
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=342-180
+https://reactbits.dev/text-animations/curved-loop (marqueeText, speed 2.2, curveAmount 0)
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/CurvedLoop
+React Bits Curved Loop(TS + CSS)를 src/components/CurvedLoop.tsx/.css로 옮겼습니다(MIT + Commons Clause, src/licenses/React-Bits-LICENSE.md).
+바꾼 점: viewBox를 피그마 프레임(1920 × 346)에 맞춤, 60fps 기준 속도를 화면 주사율과 상관없이 같게, 화면 밖·동작 줄이기면 멈춤,
+글자 채우기를 피그마 그라데이션(112.93°, #999 4.16% → #333 85.82%)을 화면 기준 가로 그라데이션으로 옮긴 것으로, 반복 사이에 ' · ' 추가.
+글꼴: Special Gothic Expanded One 96 / 자간 -2.88(기존 src/assets/fonts/special-gothic-expanded-one.ttf).
 
 BACKSTAGE 마지막 무대 커튼(src/components/Curtain3D.tsx, StageCurtain.tsx):
 외부 모델·이미지 없이 three.js 평면·원기둥·구를 코드로 만든 3D 커튼입니다(커튼 봉, 가림막·자보, 커튼 두 폭. 주름·흔들림은 매 프레임 계산).
@@ -132,6 +146,7 @@ CSS 원형 마스크로 커서 주변만 보이게 합니다(App.tsx useHeroColo
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=263-409
 src/assets/design/hero-curve-color.svg는 히어로 아래 물결(피그마 node 150-1626, hero-curve.svg)과 같은 모양에서
 흰 바탕을 빼고 색만 히어로 배경이 끝나는 색(#502421)으로 바꾼 파일입니다. 커서 주변 원 안에서만 보입니다.
+마우스가 있는 기기(hover: hover, pointer: fine)에서는 히어로 위의 마우스 화살표를 숨기고(cursor: none) 커서 원만 보입니다.
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
 
 
@@ -149,3 +164,4 @@ Backstage button spotlight (2026-09-29)
 ON STAGE hover artwork (2026-09-29)
 - Supplied Figma button 296:186; exact separate PNG exports of grandma 296:225, bottle 296:247, cup 296:246 at 2x, preserving Figma clipping, colors and alpha.
 - Sequential entrance: grandma, bottle, cup with 0 / 110 / 220ms delays, overshoot and settling. Reduced-motion mode displays the final layout without movement.
+- 그림은 버튼 위에서 마우스가 실제로 움직였을 때만 들어옵니다(pointermove). 창이 커서 바로 아래에 열릴 때 브라우저가 보내는 pointerenter로는 나오지 않습니다. 마우스가 나가면(pointerleave) 빠집니다.

@@ -10,6 +10,7 @@
  * - 고리가 걸리는 작은 동그란 구멍을 막고, 피그마 '패스 구멍' 모양(가로로 긴 둥근 슬롯)으로 뚫음
  * - 카메라 거리와 목줄 고정점 높이를 Contact 섹션 배치에 맞춤
  * - 화면 밖에서는 물리 계산과 렌더링을 멈춤(active)
+ * - 뒷면도 보이도록, 가만히 있을 때 카드가 천천히 돌아 뒷면을 보여주고 다시 앞면으로 돌아옴(SHOWCASE)
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, extend, useFrame } from '@react-three/fiber'
@@ -83,6 +84,10 @@ export default function Lanyard({
 
 type LerpedBody = RapierRigidBody & { lerped?: THREE.Vector3 }
 
+// 뒷면 보여주기: 내려오고 firstBack초 뒤 처음 뒤집히고, 그다음부터는 앞면 front초 → 뒷면 back초를 반복합니다.
+// 카드를 잡고 끄는 동안은 멈추고, 놓으면 앞면부터 다시 셉니다. stiffness가 클수록 빨리 돕니다.
+const SHOWCASE = { firstBack: 1.8, front: 6, back: 3.5, stiffness: 10 }
+
 interface BandProps {
   anchorY: number
   lanyardWidth: number
@@ -146,7 +151,10 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
   const j3 = useRef<RapierRigidBody>(null!)
   const card = useRef<RapierRigidBody>(null!)
 
-  const [vec, ang, rot, dir] = useMemo(() => [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], [])
+  const [vec, ang, dir] = useMemo(() => [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()], [])
+  const [quat, euler] = useMemo(() => [new THREE.Quaternion(), new THREE.Euler()], [])
+  // 뒷면 보여주기 시계(초). 처음에는 firstBack초 뒤에 뒤집히도록 시작점을 당겨 둡니다.
+  const showcase = useRef(SHOWCASE.front - SHOWCASE.firstBack)
   const segmentProps: RigidBodyProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 }
 
   const { nodes, materials } = useGLTF(cardModel, false, false) as unknown as CardGLTF
@@ -241,9 +249,20 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
     curve.points[2].copy(getLerped(j1.current))
     curve.points[3].copy(fixed.current.translation())
     band.current.geometry.setPoints(curve.getPoints(32))
+    // 카드가 세로축으로 목표 각도(앞면 0 / 뒷면 180°)를 향해 부드럽게 돌도록 회전 속도를 조금씩 보탭니다.
+    // (원본은 늘 앞면(0)으로만 되돌렸습니다.)
+    // 시계는 실제 흐른 시간으로 셉니다(느린 컴퓨터에서도 같은 박자). 화면 밖에서 멈췄다 돌아올 때 튀지 않게 한 번에 0.25초까지만.
+    if (dragged) showcase.current = 0
+    else showcase.current += Math.min(rawDelta, 0.25)
+    const cycle = SHOWCASE.front + SHOWCASE.back
+    const target = showcase.current % cycle < SHOWCASE.front ? 0 : Math.PI
     ang.copy(card.current.angvel())
-    rot.copy(card.current.rotation())
-    card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true)
+    const r = card.current.rotation()
+    euler.setFromQuaternion(quat.set(r.x, r.y, r.z, r.w), 'YXZ')
+    let error = target - euler.y
+    error = Math.atan2(Math.sin(error), Math.cos(error)) // -180° ~ 180° 사이로
+    if (target === Math.PI && Math.abs(Math.abs(error) - Math.PI) < 0.05) error = Math.PI // 정면에서 시작할 때는 늘 같은 방향으로 돔
+    card.current.setAngvel({ x: ang.x, y: ang.y + error * SHOWCASE.stiffness * Math.min(rawDelta, 0.1), z: ang.z }, true)
   })
 
   return (

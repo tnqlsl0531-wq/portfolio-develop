@@ -22,6 +22,7 @@ import Backstage, { hasBackstage } from './components/Backstage'
 import type { ArchiveOrigin } from './components/GalleryArchive'
 
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
+import CurvedLoop from './components/CurvedLoop'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
 
@@ -388,6 +389,8 @@ function ContactPass() {
   const [near, setNear] = useState(false)
   const [visible, setVisible] = useState(false)
   const [failed, setFailed] = useState(false)
+  // 목걸이는 Contact 섹션이 화면에 50% 이상 보였을 때 처음 내려옵니다(그 전에는 멈춘 채 숨어 있음).
+  const [dropped, setDropped] = useState(false)
   const show3D = enabled && !failed
 
   useEffect(() => {
@@ -397,9 +400,19 @@ function ContactPass() {
     const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.2 })
     nearObserver.observe(element)
     visibleObserver.observe(element)
+    // 섹션이 화면보다 길어도 '화면의 절반 이상을 채웠을 때'도 50%로 봅니다.
+    const section = element.closest('section') ?? element
+    const dropObserver = new IntersectionObserver(([entry]) => {
+      const half = entry.intersectionRatio >= 0.5 || entry.intersectionRect.height >= window.innerHeight * 0.5
+      if (!half) return
+      setDropped(true)
+      dropObserver.disconnect()
+    }, { threshold: Array.from({ length: 21 }, (_, index) => index / 20) })
+    dropObserver.observe(section)
     return () => {
       nearObserver.disconnect()
       visibleObserver.disconnect()
+      dropObserver.disconnect()
     }
   }, [])
 
@@ -410,7 +423,7 @@ function ContactPass() {
           <div className="contact__lanyard" aria-hidden="true">
             <LanyardBoundary onError={() => setFailed(true)}>
               <Suspense fallback={null}>
-                <Lanyard active={visible} />
+                <Lanyard active={visible && dropped} />
               </Suspense>
             </LanyardBoundary>
           </div>
@@ -432,9 +445,39 @@ function ContactPass() {
   )
 }
 
+// 맨 아래 흐르는 글자 띠(피그마 342-180, React Bits Curved Loop: speed 2.2, curveAmount 0 = 곧은 줄)
+// 글자 색은 피그마처럼 왼쪽 연회색(#999)에서 오른쪽 짙은 회색(#333)으로 — 화면 기준으로 고정되어 글자가 지나가며 색이 바뀝니다.
+// 마우스로 끌어서 움직일 수 있고, 끈 방향으로 계속 흐릅니다. 한 벌이 끝나면 ' · '로 이어집니다.
+const MARQUEE_TEXT = 'GRAND EXHIBITION · CHOISUBIN DESIGN PORTFOLIO · '
+
+function MarqueeBand() {
+  return (
+    <section className="marquee-band" aria-label="GRAND EXHIBITION · CHOISUBIN DESIGN PORTFOLIO">
+      <CurvedLoop
+        marqueeText={MARQUEE_TEXT}
+        speed={2.2}
+        curveAmount={0}
+        width={1920}
+        height={346}
+        lineY={173}
+        className="marquee-band__text"
+        fill="url(#marquee-band-fill)"
+        defs={(
+          <linearGradient id="marquee-band-fill" gradientUnits="userSpaceOnUse" x1="-360" y1="0" x2="1991" y2="0">
+            <stop offset="0" stopColor="#999999" />
+            <stop offset="1" stopColor="#333333" />
+          </linearGradient>
+        )}
+      />
+    </section>
+  )
+}
+
 function Contact() {
   const [draft, setDraft] = useState<{ href: string; text: string } | null>(null)
   const [copyStatus, setCopyStatus] = useState('')
+  // 필수 칸(이름·이메일·문의 유형·메시지)이 모두 알맞게 채워졌는지 — 채워지면 '문의 보내기'가 코랄색으로 바뀝니다.
+  const [complete, setComplete] = useState(false)
 
   function submitInquiry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -462,7 +505,16 @@ function Contact() {
       <ContactPass />
       <div className="contact__form-area">
         <img className="contact__paperclip" src={paperclip} alt="" aria-hidden="true" />
-        <form className="contact-form" onSubmit={submitInquiry} onChange={() => { if (draft) setDraft(null) }}>
+        <form
+          className="contact-form"
+          data-complete={complete}
+          onSubmit={submitInquiry}
+          onInput={event => setComplete(event.currentTarget.checkValidity())}
+          onChange={event => {
+            setComplete(event.currentTarget.checkValidity())
+            if (draft) setDraft(null)
+          }}
+        >
           <div className="contact-form__heading"><h3>GET IN TOUCH</h3><p>함께할 프로젝트나 제안을 남겨주세요.</p></div>
           <div className="contact-form__pair">
             <label>이름 *<input name="name" autoComplete="name" placeholder="이름을 입력해주세요" required maxLength={80} pattern=".*\S.*" /></label>
@@ -606,6 +658,7 @@ function Portfolio() {
         <ArtistGallery onOpen={setArchiveOrigin} />
         <DirectorsNote />
         <Contact />
+        <MarqueeBand />
       </main>
       <ProjectSelect project={selectedProject} onClose={() => setSelectedProject(null)} onBackstage={openBackstage} />
       <Backstage project={backstageProject} onClose={closeBackstage} />
