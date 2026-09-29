@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode, RefObject } from 'react'
 import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
 import type { PhotoPosition, Project } from './portfolio'
 import heroCurve from './assets/design/hero-curve.svg'
+import heroCurveColor from './assets/design/hero-curve-color.svg'
 import chevron from './assets/design/chevron.svg'
 import kooksoondangLogo from './assets/design/kooksoondang-logo.svg'
 import kooksoondangDot from './assets/design/kooksoondang-dot.svg'
@@ -32,14 +33,15 @@ const photoSizes: Record<PhotoPosition, [number, number]> = {
 
 // 같은 사진을 두 장 겹칩니다. 아래 장은 채도를 90% 뺀 사진, 위 장은 원래 색 사진이며
 // 위 장은 커서 주변 원 안에서만 보입니다(가장자리 페이드는 바깥 틀이 두 장에 함께 적용).
+// data-reveal: 커서 위치(--mx/--my)를 받는 요소 표시(App.tsx useHeroColorReveal)
 function PhotoSlot({ position }: { position: PhotoPosition }) {
   const src = heroPhotos[position]
   const className = 'hero__photo hero__photo--' + position
   const [width, height] = photoSizes[position]
   return src ? (
-    <span className={className}>
+    <span className={className} data-reveal="">
       <img className="hero__photo-img" src={src} alt={photoDescriptions[position]} width={width} height={height} decoding="async" />
-      <img className="hero__photo-img hero__photo-color" src={src} alt="" aria-hidden="true" width={width} height={height} decoding="async" />
+      <img className="hero__photo-img hero__color-layer" src={src} alt="" aria-hidden="true" width={width} height={height} decoding="async" />
     </span>
   ) : (
     <div className={className + ' hero__photo--empty'} role="img" aria-label={photoDescriptions[position] + ' 자리'} />
@@ -47,26 +49,35 @@ function PhotoSlot({ position }: { position: PhotoPosition }) {
 }
 
 /* 히어로 색 드러내기 (React Bits Halftone Reveal의 돋보기 느낌만 참고)
-   - 마우스를 올리기 전: 사진 채도 90% 제거
-   - 마우스를 올리면: 커서 주변 원(히어로 높이의 21%, 가장자리 부드러움 0.5) 안에서만 원래 색
+   - 마우스를 올리기 전: 사진 채도 90% 제거, 글자·배경은 회색(피그마 122-582)
+   - 마우스를 올리면: 커서 주변 원(히어로 높이의 21%, 가장자리 부드러움 0.5) 안에서만
+     사진은 원래 색, GRAND·EXHIBITION 글자와 아래 배경은 코랄·와인 색(피그마 263-409),
+     히어로 아래 물결(피그마 150-1626)은 히어로 배경이 끝나는 색(#502421)
    - 망점 효과와 화면이 휘는 렌즈 왜곡은 넣지 않았습니다.
    - 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보입니다(CSS). */
 const REVEAL_FOLLOW = 0.07 // 원이 커서를 따라가는 시간(초). 작을수록 바로 붙습니다.
 const REVEAL_FADE = 0.2 // 원이 나타나고 사라지는 시간(초)
 
-function useHeroColorReveal(heroRef: RefObject<HTMLElement | null>) {
+// stage: 히어로 + 아래 물결을 감싼 영역. 이 안에서 마우스가 움직이는 동안 원이 따라다닙니다.
+function useHeroColorReveal(stageRef: RefObject<HTMLElement | null>, heroRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
+    const stage = stageRef.current
     const hero = heroRef.current
-    if (!hero || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    const photos = [...hero.querySelectorAll<HTMLElement>('.hero__photo')]
+    if (!stage || !hero || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    // 색 레이어(사진·글자·배경·물결)마다 자기 기준의 커서 위치를 넣어줍니다.
+    const targets = [...stage.querySelectorAll<HTMLElement>('[data-reveal]')]
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const s = { x: 0, y: 0, sx: 0, sy: 0, active: 0, target: 0, raf: 0, prev: 0 }
 
     const apply = () => {
-      hero.style.setProperty('--reveal', s.active.toFixed(3))
-      for (const photo of photos) {
-        photo.style.setProperty('--mx', (s.sx - photo.offsetLeft).toFixed(1) + 'px')
-        photo.style.setProperty('--my', (s.sy - photo.offsetTop).toFixed(1) + 'px')
+      stage.style.setProperty('--reveal', s.active.toFixed(3))
+      // 원 크기: 히어로 높이의 21% (물결은 히어로 밖에 있어서 px로 넘겨줍니다)
+      stage.style.setProperty('--reveal-r', (hero.clientHeight * 0.21).toFixed(1) + 'px')
+      const base = stage.getBoundingClientRect()
+      for (const target of targets) {
+        const box = target.getBoundingClientRect()
+        target.style.setProperty('--mx', (s.sx - (box.left - base.left)).toFixed(1) + 'px')
+        target.style.setProperty('--my', (s.sy - (box.top - base.top)).toFixed(1) + 'px')
       }
     }
     const tick = (now: number) => {
@@ -93,7 +104,7 @@ function useHeroColorReveal(heroRef: RefObject<HTMLElement | null>) {
     }
     const onMove = (event: PointerEvent) => {
       if (event.pointerType === 'touch') return
-      const rect = hero.getBoundingClientRect()
+      const rect = stage.getBoundingClientRect()
       s.x = event.clientX - rect.left
       s.y = event.clientY - rect.top
       // 원이 사라진 상태에서 다시 들어오면 커서 위치에서 바로 나타나게 합니다(미끄러져 오지 않게).
@@ -108,36 +119,44 @@ function useHeroColorReveal(heroRef: RefObject<HTMLElement | null>) {
       s.target = 0
       start()
     }
-    hero.addEventListener('pointermove', onMove, { passive: true })
-    hero.addEventListener('pointerenter', onMove, { passive: true })
-    hero.addEventListener('pointerleave', onLeave, { passive: true })
+    stage.addEventListener('pointermove', onMove, { passive: true })
+    stage.addEventListener('pointerenter', onMove, { passive: true })
+    stage.addEventListener('pointerleave', onLeave, { passive: true })
     return () => {
       if (s.raf) cancelAnimationFrame(s.raf)
-      hero.removeEventListener('pointermove', onMove)
-      hero.removeEventListener('pointerenter', onMove)
-      hero.removeEventListener('pointerleave', onLeave)
+      stage.removeEventListener('pointermove', onMove)
+      stage.removeEventListener('pointerenter', onMove)
+      stage.removeEventListener('pointerleave', onLeave)
     }
-  }, [heroRef])
+  }, [stageRef, heroRef])
 }
 
 function Hero() {
+  const stageRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLElement>(null)
-  useHeroColorReveal(heroRef)
+  useHeroColorReveal(stageRef, heroRef)
   return (
-    <>
+    <div ref={stageRef} className="hero-stage">
       <section ref={heroRef} className="hero" aria-labelledby="exhibition-title">
         <div className="hero__shade" aria-hidden="true" />
+        <div className="hero__shade hero__shade--color hero__color-layer" data-reveal="" aria-hidden="true" />
         <PhotoSlot position="right" />
         <h1 id="exhibition-title" className="hero__title">
           <span className="hero__word hero__word--grand">GRAND</span>{' '}
+          <span className="hero__word hero__word--grand hero__word--color hero__color-layer" data-reveal="" aria-hidden="true">GRAND</span>
           <span className="hero__word hero__word--exhibition">EXHIBITION</span>
+          <span className="hero__word hero__word--exhibition hero__word--color hero__color-layer" data-reveal="" aria-hidden="true">EXHIBITION</span>
         </h1>
         <PhotoSlot position="main" />
         <PhotoSlot position="upper" />
         <StrokePresenter />
       </section>
-      <img className="hero-curve" src={heroCurve} alt="" aria-hidden="true" />
-    </>
+      {/* 히어로 아래 물결(피그마 150-1626): 기본은 검정, 커서 주변 원 안에서는 히어로 배경이 끝나는 색 */}
+      <div className="hero-curve" aria-hidden="true">
+        <img className="hero-curve__img" src={heroCurve} alt="" />
+        <img className="hero-curve__img hero-curve__color hero__color-layer" src={heroCurveColor} alt="" data-reveal="" />
+      </div>
+    </div>
   )
 }
 

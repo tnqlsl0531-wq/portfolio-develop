@@ -40,7 +40,9 @@ https://reactbits.dev/components/lanyard
 https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Components/Lanyard
 React Bits Lanyard(TS + CSS)를 src/components/Lanyard.tsx로 옮기고 카메라 거리·목줄 굵기·재질을 Contact 배치에 맞게 수정했습니다.
 src/assets/lanyard/card.glb는 React Bits의 card.glb에서 로고가 그려진 텍스처 이미지만 1×1 흰색으로 바꾼 파일입니다(모양은 그대로).
-src/assets/lanyard/staff-pass-card.png는 위 Contact 피그마(node 178-181 스태프 패스)를 기준으로 만든 카드 앞·뒤 그림입니다.
+src/assets/lanyard/staff-pass-card.png는 스태프 패스 피그마(node 278-477: 앞면 271:420, 뒷면 271:435)를 기준으로 만든 카드 앞·뒤 그림입니다.
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=278-477
+뒷면의 물결 모양은 피그마 'Vector 1811'(#FFE3E1)을 그대로 옮겼고, 가장자리 글씨와 CHOI - SUBIN PRESENTS는 피그마 글자 폭(403px, 432px)에 맞게 자간만 조정했습니다.
 프로필 이름·이메일을 바꾸면 이 그림도 다시 만들어야 합니다.
 카드 윗부분의 슬롯 구멍은 피그마 '패스 구멍'(72×9.6, 둥근 모서리 4.8)을 따라 그렸고, staff-pass-card-cutout.png(검은색=뚫린 부분)로 실제로 뚫습니다.
 모델에 있던 작은 동그란 구멍은 Lanyard.tsx에서 같은 재질의 작은 원판으로 막았습니다.
@@ -65,5 +67,9 @@ https://reactbits.dev/c/animations/halftone-reveal?contrast=0.6&idleReveal=0.57&
 https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Animations/HalftoneReveal
 커서를 따라가는 원형 돋보기(반지름 0.21, 가장자리 0.5, 부드러운 추적·등장)의 느낌만 참고했고,
 망점(halftone)·렌즈 왜곡·WebGL은 쓰지 않았습니다. 채도를 뺀 사진 위에 원래 색 사진을 겹치고
-CSS 원형 마스크로 커서 주변만 보이게 합니다(App.tsx useHeroColorReveal, App.css .hero__photo-color).
+CSS 원형 마스크로 커서 주변만 보이게 합니다(App.tsx useHeroColorReveal, App.css .hero__color-layer).
+커서 주변에 드러나는 글자·배경 색은 피그마 node 263-409를 따릅니다:
+https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=263-409
+src/assets/design/hero-curve-color.svg는 히어로 아래 물결(피그마 node 150-1626, hero-curve.svg)과 같은 모양에서
+흰 바탕을 빼고 색만 히어로 배경이 끝나는 색(#502421)으로 바꾼 파일입니다. 커서 주변 원 안에서만 보입니다.
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md

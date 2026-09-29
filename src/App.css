@@ -134,11 +134,11 @@
 /* 마우스를 올리기 전: 채도 90% 제거 */
 .hero__photo-img:first-child { filter: saturate(0.1); }
 
-/* 마우스를 올리면: 커서 주변 원 안에서만 원래 색
-   --reveal(0~1)은 원이 나타난 정도, --mx/--my는 사진 안에서의 커서 위치입니다(App.tsx).
+/* 마우스를 올리면: 커서 주변 원 안에서만 색 레이어(사진 원래 색·코랄 글자·코랄 배경)가 보입니다.
+   --reveal(0~1)은 원이 나타난 정도, --mx/--my는 각 요소 안에서의 커서 위치입니다(App.tsx).
    원 크기는 히어로 높이의 21%이고, 가장자리는 반지름의 ±22.5% 구간에서 부드럽게 사라집니다. */
-.hero__photo-color {
-  --r: calc(21cqh * (0.6 + 0.4 * var(--reveal, 0)));
+.hero__color-layer {
+  --r: calc(var(--reveal-r, 21cqh) * (0.6 + 0.4 * var(--reveal, 0)));
   --reveal-mask: radial-gradient(
     circle at var(--mx, -9999px) var(--my, -9999px),
     #000 calc(var(--r) * 0.775),
@@ -151,12 +151,28 @@
   -webkit-mask-image: var(--reveal-mask);
   mask-image: var(--reveal-mask);
   pointer-events: none;
+  user-select: none;
 }
 
-/* 마우스가 없는 기기(터치)에서는 처음부터 원래 색으로 보여줍니다. */
+/* 색 레이어의 색(피그마 node 263-409).
+   배경은 회색 그라데이션이 시작되는 지점(34.685%)부터 흰 바탕을 깔아 회색을 완전히 가립니다.
+   (그 위쪽은 원래 흰 배경이라 아무것도 그리지 않아, 원 테두리에 옅은 줄무늬가 생기지 않게 했습니다.) */
+.hero__shade--color {
+  background:
+    linear-gradient(180deg, rgb(255 162 156 / 0%) 34.685%, rgb(174 48 43 / 75%) 78.961%, #502421 100%),
+    linear-gradient(180deg, transparent 34.685%, var(--neutral-white) 34.685%);
+}
+.hero__word--grand.hero__word--color {
+  background-image: linear-gradient(93.512046284deg, #ffc7c3 4.1604%, #812b27 85.816%);
+}
+.hero__word--exhibition.hero__word--color {
+  background-image: linear-gradient(99.287514289deg, #ffa29c 5.1776%, #812b27 54.232%, #502421 91.728%);
+}
+
+/* 마우스가 없는 기기(터치)에서는 사진만 처음부터 원래 색, 글자·배경은 기본(회색) 상태로 보여줍니다. */
 @media (hover: none), (pointer: coarse) {
   .hero__photo-img:first-child { filter: none; }
-  .hero__photo-color { display: none; }
+  .hero__color-layer { display: none; }
 }
 
 /* 사진 파일이 없을 때 보이는 자리 표시 */
@@ -218,7 +234,9 @@
 /* 아래 섹션은 1920px 피그마 비율을 바탕으로, 작은 화면에서는 읽기 쉽게 재배치합니다. */
 .portfolio { width: 100%; overflow-x: clip; }
 .section-heading { font-family: 'Lisu Bosa', Georgia, serif; font-weight: 700; }
-.hero-curve { width: 100%; height: auto; margin-top: -1px; }
+.hero-curve { position: relative; margin-top: -1px; }
+.hero-curve__img { display: block; width: 100%; height: auto; }
+.hero-curve__color { position: absolute; inset: 0; height: 100%; }
 
 /* SHOW LINE-UP */
 .lineup { min-height: calc(1080 * var(--u)); padding-top: calc(61 * var(--u)); }
@@ -367,11 +385,13 @@
   position: relative; margin-top: calc(133.333 * var(--u)); width: 100%; min-height: calc(596 * var(--u));
   border: 1px solid var(--primary-300); border-radius: calc(10.667 * var(--u)); background: #fff3f2;
   padding: calc(67 * var(--u)) calc(6.667 * var(--u)) calc(32 * var(--u));
-  display: flex; flex-direction: column; gap: calc(21.333 * var(--u)); overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; gap: calc(21.333 * var(--u)); overflow: hidden;
 }
 .staff-pass__hole { position: absolute; left: 41.129%; top: calc(21 * var(--u) - 1px); width: 17.419%; height: calc(9.6 * var(--u)); border-bottom: 1px solid #e5e5e5; border-left: 1px solid #e5e5e5; border-radius: calc(4.8 * var(--u)); background: #f7f7f7; }
-.staff-pass__edge { font: 700 calc(14.667 * var(--u))/1.2 'Syncopate', sans-serif; letter-spacing: calc(-1.1733 * var(--u)); color: #ffe3e1; white-space: nowrap; }
-.staff-pass__body { display: flex; flex-direction: column; gap: calc(30 * var(--u)); padding: 0 calc(26.667 * var(--u)) calc(13.333 * var(--u)); }
+.staff-pass__edge { font: 700 calc(14.667 * var(--u))/1.2 'Syncopate', sans-serif; letter-spacing: calc(-1.6508 * var(--u)); color: #ffe3e1; white-space: nowrap; }
+/* 피그마 node 278-477: 가장자리 글씨는 가운데 정렬하고 카드 폭의 97.5%(1920 기준 403px)가 되도록 자간을 맞춤, 본문은 카드 폭 전체.
+   Syncopate는 작은 글자 크기에서 폭이 비례하지 않아 모바일 자간은 따로 잰 값입니다. */
+.staff-pass__body { align-self: stretch; display: flex; flex-direction: column; gap: calc(30 * var(--u)); padding: 0 calc(26.667 * var(--u)) calc(13.333 * var(--u)); }
 .staff-pass__staff { font: 400 calc(64 * var(--u))/1.2 'Special Gothic Expanded One', sans-serif; color: var(--primary-500); opacity: .7; }
 .staff-pass__person h3 { font-size: calc(42.667 * var(--u)); line-height: 1.2; font-weight: 700; }
 .staff-pass__person p { color: #737373; font-size: calc(20 * var(--u)); font-weight: 300; line-height: 1.5; }
@@ -485,7 +505,7 @@
   .contact__connector { top: 284px; left: calc(50% - 24px); width: 48px; height: 28px; border-radius: 8px; }
   .staff-pass { margin-top: 112.8px; min-height: 520px; border-radius: 10px; padding: 58px 6px 28px; gap: 19px; }
   .staff-pass__hole { top: 20px; height: 8px; }
-  .staff-pass__edge { font-size: 12.77px; letter-spacing: -1.02px; }
+  .staff-pass__edge { font-size: 12.77px; letter-spacing: -1.09px; }
   .staff-pass__body { padding: 0 23px 12px; gap: 26px; }
   .staff-pass__staff { font-size: 55px; }
   .staff-pass__person h3 { font-size: 37px; }
@@ -571,7 +591,7 @@
   .contact__pass-area { width: 300px; }
   .contact__title { font-size: 82px; }
   .staff-pass { margin-top: 129.6px; padding-top: 52px; min-height: 490px; }
-  .staff-pass__edge { font-size: 10.45px; letter-spacing: -.836px; }
+  .staff-pass__edge { font-size: 10.45px; letter-spacing: -0.2875px; }
   .staff-pass__body { padding-inline: 18px; }
   .staff-pass__staff { font-size: 48px; }
   .staff-pass__person h3 { font-size: 34px; }
