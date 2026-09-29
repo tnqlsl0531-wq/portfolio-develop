@@ -84,6 +84,7 @@ export const projects: Project[] = [
     team: 'Team',
     platform: 'Web',
     period: '2026.05 ~ 2026.08',
+    url: 'https://jin0484.github.io/kooksoondang/',
   },
   {
     id: 'jadu',
