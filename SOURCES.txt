@@ -54,36 +54,18 @@ src/assets/backstage의 사진은 같은 파일의 원본 이미지를 피그마
   밝은 부분/어두운 부분 보정은 비슷하게 맞췄습니다. 원 가장자리 흐림(72px)은 CSS 마스크로 표현했습니다.
 - kooksoondang-intro-before/after.webp: 기존·최종 인트로 영상의 첫 장면 그림(피그마 영상 채우기의 미리보기 이미지).
 - kooksoondang-stage-color.webp: 같은 IMG_5931 원본을 같은 영역으로 잘라, 피그마 node 217-1474(원래 색 버전)의 보정
-  (채도 -19%, 대비 약간 낮춤)과 비슷하게 맞춘 그림. 무대 커튼 뒤에 깔려, 커서 주변 원 안에서만 보입니다.
-- (kooksoondang-stage.webp는 지금 화면에 쓰지 않고 파일만 남겨 두었습니다.)
+  (채도 -19%, 대비 약간 낮춤)과 비슷하게 맞춘 그림.
+- (지금은 마지막 자리를 무대 커튼이 덮고 있어 kooksoondang-stage.webp·stage-color.webp는 화면에 쓰지 않고 파일만 남겨 두었습니다.)
 - kooksoondang-intro-before.mp4: 피그마 node 216-422 영상 채우기를 피그마 웹에서 재생할 때 쓰는 가장 큰 화질(848×464, 24fps, 9초)을
   그대로 받아 mp4로 옮긴 것(다시 압축하지 않음, 무음 오디오 트랙만 제거). 원본 영상 파일은 남아 있지 않았습니다.
 - kooksoondang-intro-after.mp4: 사용자가 제공한 최종 인트로 영상 원본(3840×2160, 60fps, 12.5초, 소리 없음, 변환하지 않음).
   썸네일은 피그마 node 296-254(흰 작품 카드)와 같은 모양이라 ProjectCover 컴포넌트로 그립니다.
-
-메인 Artist Gallery 사진(src/assets/gallery):
-https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=122-625
-피그마 Diagonal marquee(node 337:843) 4줄 28장. 레이어 이름이 원본 파일 이름이라, 학원 PC Downloads/portfolio_photos의 원본에서
-피그마와 같은 자르기로 표시 크기(폭 192)의 2배, WebP 품질 78로 만들었습니다. IMG_1682.JPG는 피그마처럼 90° 돌려 썼습니다.
-채도는 CSS filter saturate(.22).
-  1줄: 01=018A7622.jpg, 02=IMG_1866.PNG, 03=3S0A6721.JPG, 04=MYXJ_20240422122647053_save.jpg, 05=IMG_7695.JPG, 06=3S0A5261.JPG, 07=7D79B50D-19EB-44FC-9E2C-E7DFB70F709C.jpg, 08=3S0A0571.JPG, 09=IMG_7545.JPG
-  2줄: 01=IMG_7370.PNG, 02=IMG_7569.JPG, 03=018A0973.jpg, 04=IMG_9247.PNG, 05=018A1205.jpg, 06=IMG_4939.JPG, 07=IMG_5930.PNG
-  3줄: 01=018A4788.jpg, 02=IMG_7588.PNG, 03=IMG_5332.JPG, 04=IMG_1682.JPG, 05=IMG_8604.PNG, 06=3S0A0610.JPG, 07=IMG_3955.JPG
-  4줄: 01=018A0082.jpg, 02=1CF9D784-E4FE-4492-90B0-91265E482984.jpg, 03=018A0081.jpg, 04=3S0A5246 복사.jpg, 05=IMG_7543.JPG
 
 Artist Gallery 아카이브 화면 / 사진 크게 보기:
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=109-8
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=96-192
 조명 그림(src/assets/design/gallery-spotlight.svg)은 node 109:11(Spotlight · Grayscale)을 SVG로 내보낸 원본 그대로입니다.
 여는 효과(버튼 자리에서 원이 커지며 화면을 채움)는 같은 파일의 메모(node 94:1160)를 따랐습니다.
-아카이브 사진(src/assets/archive): 피그마 node 334-2(06 · Artist gallery archive)에 채운 38장.
-사용자 PC의 Downloads/portfolio_photos(구글 드라이브에서 받은 원본)에서 같은 사진을 찾아(피그마 화면과 픽셀 비교) 만들었습니다.
-- top-01.webp 등: 피그마 사진 틀과 같은 자르기, 표시 크기의 2배, WebP 품질 80.
-- top-01-full.webp 등: 자르지 않은 원본 전체(사진 방향 보정), 긴 변 최대 1800px, WebP 품질 82.
-- IMG_1686.JPG는 파일이 옆으로 누워 저장돼 있어 피그마처럼 90° 돌려 썼습니다.
-- 채도: 줄에서는 CSS filter saturate(.75), 마우스를 올린 사진과 크게 보기는 원래 색.
-  윗줄: 01=IMG_1866.PNG, 02=018A0973.jpg, 03=7D79B50D-19EB-44FC-9E2C-E7DFB70F709C.jpg, 04=018A1489.jpg, 05=IMG_5906.jpg, 06=IMG_1681.JPG, 07=IMG_7588.PNG, 08=IMG_7569.JPG, 09=3S0A5246 복사.jpg, 10=018A3958.jpg, 11=IMG_7543.JPG, 12=3S0A0571.JPG, 13=IMG_7370.PNG, 14=018A0081.jpg, 15=IMG_9247.PNG, 16=IMG_1686.JPG, 17=IMG_6002.PNG, 18=3S0A6721.JPG, 19=IMG_4939.JPG
-  아랫줄: 01=IMG_7545.JPG, 02=IMG_6352.JPG, 03=018A0082.jpg, 04=IMG_7369.PNG, 05=IMG_0924.JPG, 06=1_IMG_1913.jpg, 07=3S0A0610.JPG, 08=IMG_5930.PNG, 09=IMG_3955.JPG, 10=018A0059.jpg, 11=1CF9D784-E4FE-4492-90B0-91265E482984.jpg, 12=018A4788.jpg, 13=IMG_7024.PNG, 14=018A9809.jpg, 15=IMG_7695.JPG, 16=MYXJ_20240422122647053_save.jpg, 17=018A9984.jpg, 18=IMG_6068.JPG, 19=IMG_5332.JPG
 
 Contact 섹션(스태프 패스·문의 폼·카피라이트):
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=178-131
@@ -105,8 +87,7 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=257-2227
 사용 패키지: three, @react-three/fiber, @react-three/drei, @react-three/rapier, meshline
 
 BACKSTAGE 마지막 무대 커튼(src/components/Curtain3D.tsx, StageCurtain.tsx):
-외부 모델·이미지 없이 three.js 평면·원기둥·구를 코드로 만든 3D 커튼입니다(커튼 봉, 가림막·자보, 커튼 두 폭. 주름·흔들림은 매 프레임 계산).
-커튼 가운데 안내 문구 '마우스를 올려보세요 !': 피그마 node 333-808(Min Sans Regular 20, #f0f0f0).
+외부 모델·이미지 없이 three.js 평면을 코드로 접어 만든 3D 커튼입니다(주름·흔들림은 매 프레임 계산).
 색은 페이지 아래 와인색 그라데이션(#502421)에 맞췄고, 벨벳 광택은 three.js MeshPhysicalMaterial의 sheen을 씁니다.
 사용 패키지: three, @react-three/fiber(Lanyard와 같은 패키지, 추가 설치 없음)
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
@@ -142,10 +123,7 @@ Entry ticket (2026-09-29)
 - IBM Plex Mono Medium: google/fonts, ofl/ibmplexmono; SIL Open Font License, src/assets/fonts/IBMPlexMono-OFL.txt.
 - Admission persists for the current tab session; a fresh session shows the ticket again. Keyboard: Enter or Space.
 
-Backstage button spotlight (2026-09-29)
-- Artwork: exact masked photo layer exported from supplied Figma node 296:205 inside button 296:189; exported bounds 432 x 192. src/assets/backstage/backstage-choice-art.png.
-- Interaction adapted from React Bits ChromaGrid (David Haz): src/ts-default/Components/ChromaGrid. Radius 100px, damping 0.55s (power3.out), fade-out 0.2s. Dark-to-grayscale reveal; animation uses the existing Motion dependency. See src/licenses/React-Bits-LICENSE.md.
-
-ON STAGE hover artwork (2026-09-29)
-- Supplied Figma button 296:186; exact separate PNG exports of grandma 296:225, bottle 296:247, cup 296:246 at 2x, preserving Figma clipping, colors and alpha.
-- Sequential entrance: grandma, bottle, cup with 0 / 110 / 220ms delays, overshoot and settling. Reduced-motion mode displays the final layout without movement.
+Stage Works carousel (2026-09-29)
+- Design: Figma 91q9GLdpPNhT5Xv6cDpKg6, node 346:295.
+- The spotlight, stage, shadows and footlights in src/assets/stage are direct SVG exports from the supplied Figma frame; future-preview.png is the frame's upcoming-project artwork export.
+- Cards loop left/right with drag, click and arrow-key controls. Depth is simulated with position, scale and opacity instead of WebGL 3D.
