@@ -1,3 +1,4 @@
+import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
@@ -532,12 +533,12 @@ function ProjectSelect({ project, onClose, onBackstage }: { project: Project | n
                 {choiceContent('ON STAGE', '완성된 프로젝트 보기')}
               </button>
             )}
-            <button
-              className="stage-choice stage-choice--back"
+            <BackstageChoice
+              key={project.id}
               onClick={() => hasBackstage(project.id) ? onBackstage(project) : setNotice('기획 의도와 작업 과정 페이지를 준비하고 있어요.')}
             >
               {choiceContent('BACKSTAGE', '기획 의도와 작업 과정 보기')}
-            </button>
+            </BackstageChoice>
           </div>
           <p className="project-select__notice" role="status">{notice}</p>
         </div>
