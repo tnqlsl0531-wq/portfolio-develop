@@ -3,7 +3,6 @@ import type { PointerEvent } from 'react'
 import TearTicket from './TearTicket'
 import wave from '../assets/ticket/wave.svg'
 import barcode from '../assets/ticket/barcode.svg'
-import arrow from '../assets/ticket/arrow.svg'
 import tooltipArrow from '../assets/ticket/tooltipArrow.svg'
 import './EntryTicket.css'
 
@@ -70,7 +69,7 @@ export default function EntryTicket({ onEnter }: { onEnter: () => void }) {
             <span className="entry-ticket__admit">ADMIT<br />ONE</span>
             <img className="entry-ticket__barcode" src={barcode} alt="" draggable={false} />
             <span className="entry-ticket__serial">NO. 2026—001</span>
-            <span className="entry-ticket__cta">당겨서 입장하기<img src={arrow} alt="" draggable={false} /></span>
+            <span className="entry-ticket__signature">CHOI - SUBIN</span>
           </>}
         >
           <img className="entry-ticket__wave" src={wave} alt="" draggable={false} />
