@@ -114,3 +114,11 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=263-409
 src/assets/design/hero-curve-color.svg는 히어로 아래 물결(피그마 node 150-1626, hero-curve.svg)과 같은 모양에서
 흰 바탕을 빼고 색만 히어로 배경이 끝나는 색(#502421)으로 바꾼 파일입니다. 커서 주변 원 안에서만 보입니다.
 React Bits 라이선스: src/licenses/React-Bits-LICENSE.md
+
+
+Entry ticket (2026-09-29)
+- Design: Figma 91q9GLdpPNhT5Xv6cDpKg6, node 311:334. Wave, barcode and arrows exported from the supplied design.
+- TearTicket: React Bits / David Haz, upstream 056aa235d4b5a17aa8ba2b5808554e0f37d2cf27, src/ts-default/Micro/TearTicket. See src/licenses/React-Bits-LICENSE.md.
+- Reference effects: holes 20, notch 10, parallax 0, perspective 1800, tiltMax 10, border false, recenter false; dimensions adapted to the 725 × 267 Figma ticket.
+- IBM Plex Mono Medium: google/fonts, ofl/ibmplexmono; SIL Open Font License, src/assets/fonts/IBMPlexMono-OFL.txt.
+- Admission persists for the current tab session; a fresh session shows the ticket again. Keyboard: Enter or Space.

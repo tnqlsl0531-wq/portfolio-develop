@@ -1,3 +1,4 @@
+import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import { Component, Fragment, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { galleryPhotos, heroPhotos, plannedProjectPages, profile, projects } from './portfolio'
@@ -554,7 +555,7 @@ function readBackstageHash() {
   return projects.find(project => project.id === id && hasBackstage(project.id)) ?? null
 }
 
-export default function App() {
+function Portfolio() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [backstageProject, setBackstageProject] = useState<Project | null>(readBackstageHash)
   useEffect(() => {
@@ -599,4 +600,19 @@ export default function App() {
       <GalleryArchive origin={archiveOrigin} onClose={() => setArchiveOrigin(null)} />
     </>
   )
+}
+
+
+// Keep the exhibition unmounted until admission so its opening animations start on entry.
+export default function App() {
+  const [entered, setEntered] = useState(hasEnteredPortfolio)
+  const admittedNow = useRef(false)
+  useEffect(() => {
+    if (!entered || !admittedNow.current) return
+    const main = document.querySelector<HTMLElement>('main.portfolio')
+    main?.setAttribute('tabindex', '-1')
+    main?.focus({ preventScroll: true })
+  }, [entered])
+  if (!entered) return <EntryTicket onEnter={() => { admittedNow.current = true; setEntered(true) }} />
+  return <Portfolio />
 }

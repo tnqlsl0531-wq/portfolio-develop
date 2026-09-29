@@ -1,0 +1,48 @@
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('../assets/fonts/IBMPlexMono-Medium.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+.entry-ticket {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(-38.382992deg, rgba(248,87,79,.1) 28.111%, rgba(248,87,79,.016) 63.283%, rgba(248,87,79,0) 69.873%), #fff;
+  opacity: 1;
+  transition: opacity 240ms ease;
+}
+.entry-ticket--leaving { opacity: 0; pointer-events: none; }
+.entry-ticket__wrap { width: min(725px, calc(100vw - 56px)); }
+.entry-ticket img { user-select: none; pointer-events: none; -webkit-user-drag: none; }
+.entry-ticket__wave { position: absolute; left: 0; top: 114px; width: 531px; height: 153px; }
+.entry-ticket__heading {
+  position: absolute; left: 28px; top: 24px; width: 475px;
+  font-family: 'Special Gothic Expanded One', sans-serif;
+  font-size: 55px; font-weight: 400; line-height: 55px; letter-spacing: -.5px;
+}
+.entry-ticket__heading span { display: block; width: fit-content; color: transparent; background-clip: text; -webkit-background-clip: text; }
+.entry-ticket__grand { background-image: linear-gradient(-79.22855deg, #ffa29c 10.988%, #ffc2be 95.799%); }
+.entry-ticket__exhibition { background-image: linear-gradient(-74.52596deg, #f88c85 9.0707%, #ffb5b0 95.08%); }
+.entry-ticket__presenter {
+  position: absolute; left: 28px; top: 139px; color: #525252;
+  font-family: Syncopate, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -1.44px;
+}
+.entry-ticket__footer { position: absolute; left: 28px; top: 221px; width: 475px; height: 32px; display: flex; align-items: center; justify-content: space-between; color: #ae302b; }
+.entry-ticket__footer span:first-child { font-family: 'Noto Sans KR Variable', sans-serif; font-size: 13px; font-weight: 500; line-height: 20px; letter-spacing: -.2px; }
+.entry-ticket__footer span:last-child { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 1px; }
+.entry-ticket__pass, .entry-ticket__serial { position: absolute; left: 24px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #ae302b; }
+.entry-ticket__pass { top: 24px; font-size: 10px; line-height: 14px; letter-spacing: 1.5px; }
+.entry-ticket__admit { position: absolute; left: 24px; top: 50px; font-size: 32px; font-weight: 800; line-height: 32px; }
+.entry-ticket__barcode { position: absolute; left: 24px; top: 142px; width: 146px; height: 28px; }
+.entry-ticket__serial { top: 178px; font-size: 9px; line-height: 12px; letter-spacing: .7px; }
+.entry-ticket__cta { position: absolute; left: 24px; top: 214px; width: 117px; height: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: -.35px; white-space: nowrap; }
+.entry-ticket__cta img { width: 16.8px; height: 16.8px; }
+.entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 274px; padding: 10px; border-radius: 5px; background: #fafafa; color: #000; display: flex; align-items: center; gap: 9.677px; pointer-events: none; font-size: 19.354px; font-weight: 500; line-height: 27.648px; letter-spacing: -.4838px; white-space: nowrap; }
+.entry-ticket__tooltip img { width: 23.224px; height: 23.224px; }
+.entry-ticket .tear-ticket__piece--stub:focus-visible .entry-ticket__cta { outline: 2px solid #ae302b; outline-offset: 6px; border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) { .entry-ticket { transition: none; } }
