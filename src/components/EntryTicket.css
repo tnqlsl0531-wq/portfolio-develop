@@ -12,9 +12,27 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: linear-gradient(-38.382992deg, rgba(248,87,79,.1) 28.111%, rgba(248,87,79,.016) 63.283%, rgba(248,87,79,0) 69.873%), #fff;
+  background: #fff;
+  isolation: isolate;
   opacity: 1;
   transition: opacity 240ms ease;
+}
+/* A broad, faint wash travels along the bottom edge, pausing at each end. */
+.entry-ticket::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  bottom: -70%;
+  width: 200%;
+  height: 140%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(248,87,79,.085) 0%, rgba(248,87,79,.0136) 65%, rgba(248,87,79,0) 100%);
+  animation: entry-ticket-tide 28s ease-in-out infinite;
+}
+@keyframes entry-ticket-tide {
+  0%, 8%, 100% { transform: translate3d(0, 0, 0); }
+  46%, 58% { transform: translate3d(-50%, 0, 0); }
 }
 .entry-ticket--leaving { opacity: 0; pointer-events: none; }
 .entry-ticket__wrap { width: min(725px, calc(100vw - 56px)); }
@@ -42,7 +60,10 @@
 .entry-ticket__serial { top: 178px; font-size: 9px; line-height: 12px; letter-spacing: .7px; }
 .entry-ticket__cta { position: absolute; left: 24px; top: 214px; width: 117px; height: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: -.35px; white-space: nowrap; }
 .entry-ticket__cta img { width: 16.8px; height: 16.8px; }
-.entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 274px; padding: 10px; border-radius: 5px; background: #fafafa; color: #000; display: flex; align-items: center; gap: 9.677px; pointer-events: none; font-size: 19.354px; font-weight: 500; line-height: 27.648px; letter-spacing: -.4838px; white-space: nowrap; }
-.entry-ticket__tooltip img { width: 23.224px; height: 23.224px; }
+.entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 246.6px; padding: 9px; border-radius: 4.5px; background: #fafafa; color: #000; display: flex; align-items: center; justify-content: center; text-align: center; gap: 8.7093px; pointer-events: none; font-size: 17.4186px; font-weight: 500; line-height: 24.8832px; letter-spacing: -.43542px; white-space: nowrap; }
+.entry-ticket__tooltip img { width: 20.9016px; height: 20.9016px; flex: 0 0 auto; }
 .entry-ticket .tear-ticket__piece--stub:focus-visible .entry-ticket__cta { outline: 2px solid #ae302b; outline-offset: 6px; border-radius: 2px; }
-@media (prefers-reduced-motion: reduce) { .entry-ticket { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .entry-ticket { transition: none; }
+  .entry-ticket::before { animation: none; }
+}
