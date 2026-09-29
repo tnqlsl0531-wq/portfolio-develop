@@ -54,8 +54,8 @@ src/assets/backstage의 사진은 같은 파일의 원본 이미지를 피그마
   밝은 부분/어두운 부분 보정은 비슷하게 맞췄습니다. 원 가장자리 흐림(72px)은 CSS 마스크로 표현했습니다.
 - kooksoondang-intro-before/after.webp: 기존·최종 인트로 영상의 첫 장면 그림(피그마 영상 채우기의 미리보기 이미지).
 - kooksoondang-stage-color.webp: 같은 IMG_5931 원본을 같은 영역으로 잘라, 피그마 node 217-1474(원래 색 버전)의 보정
-  (채도 -19%, 대비 약간 낮춤)과 비슷하게 맞춘 그림.
-- (지금은 마지막 자리를 무대 커튼이 덮고 있어 kooksoondang-stage.webp·stage-color.webp는 화면에 쓰지 않고 파일만 남겨 두었습니다.)
+  (채도 -19%, 대비 약간 낮춤)과 비슷하게 맞춘 그림. 무대 커튼 뒤에 깔려, 커서 주변 원 안에서만 보입니다.
+- (kooksoondang-stage.webp는 지금 화면에 쓰지 않고 파일만 남겨 두었습니다.)
 - kooksoondang-intro-before.mp4: 피그마 node 216-422 영상 채우기를 피그마 웹에서 재생할 때 쓰는 가장 큰 화질(848×464, 24fps, 9초)을
   그대로 받아 mp4로 옮긴 것(다시 압축하지 않음, 무음 오디오 트랙만 제거). 원본 영상 파일은 남아 있지 않았습니다.
 - kooksoondang-intro-after.mp4: 사용자가 제공한 최종 인트로 영상 원본(3840×2160, 60fps, 12.5초, 소리 없음, 변환하지 않음).

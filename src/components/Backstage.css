@@ -119,10 +119,11 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
 .backstage__process-text p { margin: 0; }
 .backstage__section--lessons { left: calc(300 * var(--bu)); top: calc(4304 * var(--bu)); }
 
-/* 마지막: 가장자리가 부드럽게 사라지는 원(550) 안의 무대 커튼 + 버튼
-   커튼 틀은 피그마 사진 자리처럼 원보다 크게(689×715) 깔고, 원 둘레 ±72px에서 점점 투명해지게 마스크를 씌웠습니다. */
+/* 마지막: 무대 커튼(550×550 네모) 너머의 동그란 단체 사진 + 버튼
+   사진은 피그마처럼 원(550)보다 크게(689×715) 깔고, 원 둘레 ±72px에서 점점 투명해지게 마스크를 씌웠습니다.
+   사진 틀(stage) 밖으로 나가는 부분은 잘라서, 사진은 커튼에 난 원 안으로만 보입니다. */
 .backstage__finale { position: absolute; left: calc(533 * var(--bu)); top: calc(5036 * var(--bu)); width: calc(854 * var(--bu)); display: flex; flex-direction: column; align-items: center; gap: calc(75 * var(--bu)); --su: var(--bu); }
-.backstage__stage { position: relative; width: calc(550 * var(--su)); height: calc(550 * var(--su)); flex-shrink: 0; border-radius: 50%; }
+.backstage__stage { position: relative; width: calc(550 * var(--su)); height: calc(550 * var(--su)); flex-shrink: 0; overflow: hidden; }
 .backstage__stage-art {
   position: absolute; left: calc(-64.96 * var(--su)); top: calc(-92.39 * var(--su)); width: calc(689.23 * var(--su)); height: calc(714.57 * var(--su));
   pointer-events: none;
@@ -131,9 +132,22 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
     rgb(0 0 0 / 16%) calc(311 * var(--su)), transparent calc(347 * var(--su)));
   -webkit-mask-image: var(--stage-mask); mask-image: var(--stage-mask);
 }
-/* 무대 커튼(StageCurtain / Curtain3D): 늘 닫혀 있고, 마우스를 올리면 아주 살짝 찰랑거립니다.
+.backstage__stage-art img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
+/* 무대 커튼(StageCurtain / Curtain3D): 사진 틀과 같은 네모로 사진을 덮고, 가장자리 흐림·페이드 없이 또렷하게 끝납니다.
+   히어로와 같은 커서 효과(src/hooks/useColorReveal.ts)를 거꾸로 써서, 커서 주변 원 안에서만 커튼이 투명해집니다.
+   원 모양(가장자리 부드러운 정도)은 히어로와 같습니다. 마우스를 올리면 아주 살짝 찰랑거립니다.
    3D 커튼이 준비되면(data-ready) 아래 CSS 커튼은 사라지고, 3D가 안 되는 환경에서는 CSS 커튼이 그대로 쓰입니다. */
-.backstage__curtain { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.backstage__curtain {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  --r: calc(var(--reveal-r, 176px) * (0.6 + 0.4 * var(--reveal, 0)));
+  --peek: radial-gradient(circle at var(--mx, -9999px) var(--my, -9999px),
+    rgb(0 0 0 / calc(1 - var(--reveal, 0))) calc(var(--r) * 0.775),
+    rgb(0 0 0 / calc(1 - 0.84 * var(--reveal, 0))) calc(var(--r) * 0.8875),
+    rgb(0 0 0 / calc(1 - 0.5 * var(--reveal, 0))) var(--r),
+    rgb(0 0 0 / calc(1 - 0.16 * var(--reveal, 0))) calc(var(--r) * 1.1125),
+    #000 calc(var(--r) * 1.225));
+  -webkit-mask-image: var(--peek); mask-image: var(--peek);
+}
 .backstage__curtain-canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; opacity: 0; transition: opacity 500ms ease; }
 .backstage__curtain[data-ready='true'] .backstage__curtain-canvas { opacity: 1; }
 .backstage__curtain[data-ready='true'] .backstage__drape,
@@ -152,7 +166,7 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
 .backstage__drape--right { right: 0; }
 /* 위쪽 가림막: 둥글게 늘어진 세 개의 스웨그(가운데가 조금 더 깊게) */
 .backstage__valance {
-  position: absolute; left: 0; right: 0; top: 0; height: 15%;
+  position: absolute; left: 0; right: 0; top: 0; height: 16%;
   background:
     repeating-linear-gradient(90deg, transparent 0, rgb(0 0 0 / 22%) 1.4%, transparent 2.8%),
     linear-gradient(to bottom, #1a0507, #3c1014 72%, #2e0b0e);
@@ -224,8 +238,8 @@ button.backstage__clip-thumb:hover .backstage__play, button.backstage__clip-thum
   .backstage__clip-frame, .backstage__clip--current .backstage__clip-frame { width: 100%; height: auto; aspect-ratio: 490.5 / 271.638; }
   .backstage__play { right: 8px; bottom: 8px; }
   .backstage__clip figcaption { font-size: 15px; }
-  /* 원 사진: 부드럽게 사라지는 가장자리까지 화면 안에 들어오도록 조금 작게(최대 약 310px) 둡니다. */
-  .backstage__finale { position: relative; left: auto; top: auto; width: 100%; gap: 40px; margin-top: 24px; --su: calc(min(100cqw - 48px, 360px) / 640); }
+  /* 커튼(네모): 화면 폭에 맞춰 최대 340px */
+  .backstage__finale { position: relative; left: auto; top: auto; width: 100%; gap: 40px; margin-top: 24px; --su: calc(min(100cqw - 48px, 340px) / 550); }
   .backstage__finale-body { gap: 14px; }
   .backstage__onstage { width: min(100%, 302px); height: 52px; border-radius: 8px; }
 }

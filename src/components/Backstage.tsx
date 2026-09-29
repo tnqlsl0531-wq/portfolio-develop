@@ -3,9 +3,11 @@ import type { ReactNode, RefObject } from 'react'
 import type { Project } from '../portfolio'
 import ProjectCover from './ProjectCover'
 import StageCurtain from './StageCurtain'
+import { useColorReveal } from '../hooks/useColorReveal'
 import photo1 from '../assets/backstage/kooksoondang-photo-1.webp'
 import photo2 from '../assets/backstage/kooksoondang-photo-2.webp'
 import photo3 from '../assets/backstage/kooksoondang-photo-3.webp'
+import stagePhoto from '../assets/backstage/kooksoondang-stage-color.webp'
 import introBefore from '../assets/backstage/kooksoondang-intro-before.webp'
 import introAfter from '../assets/backstage/kooksoondang-intro-after.webp'
 import introAfterVideo from '../assets/backstage/kooksoondang-intro-after.mp4'
@@ -122,8 +124,12 @@ export default function Backstage({ project, onClose }: { project: Project | nul
   const [notice, setNotice] = useState('')
   const isOpen = project !== null
   useBackstageParallax(dialog, isOpen)
-  // 마지막 무대 커튼: 늘 닫혀 있고, 마우스를 올리면 아주 살짝 찰랑거립니다.
-  // 터치 기기는 누르면 잠깐(1.6초) 찰랑거립니다.
+  // 마지막 단체 사진 + 무대 커튼
+  // - 네모난 벨벳 커튼(550×550)이 동그란 단체 사진을 늘 덮고 있습니다.
+  // - 마우스를 올리면 히어로와 같은 커서 효과: 커서 주변 원(사진 크기의 32%) 안에서만 커튼 너머 단체 사진(원래 색, 피그마 217-1474)이 보이고,
+  //   커튼은 아주 살짝 찰랑거립니다. 터치 기기는 누른 자리에 원이 나타났다가 1.5초 뒤 사라집니다.
+  const stage = useRef<HTMLDivElement>(null)
+  useColorReveal(stage, stage, 0.32, isOpen, { touch: true })
   const [curtainHover, setCurtainHover] = useState(false)
   const tapTimer = useRef(0)
   useEffect(() => () => window.clearTimeout(tapTimer.current), [])
@@ -264,11 +270,11 @@ export default function Backstage({ project, onClose }: { project: Project | nul
               </p>
             </section>
 
-            {/* 마지막: 가장자리가 부드럽게 사라지는 원 안의 무대 커튼 + ON STAGE로 가는 버튼 */}
+            {/* 마지막: 무대 커튼 너머의 단체 사진(커서 주변만 보임) + ON STAGE로 가는 버튼 */}
             <section className="backstage__finale" aria-label="무대가 준비되었습니다">
               <div
+                ref={stage}
                 className="backstage__stage"
-                aria-hidden="true"
                 onPointerEnter={event => { if (event.pointerType === 'mouse') setCurtainHover(true) }}
                 onPointerLeave={event => { if (event.pointerType === 'mouse') setCurtainHover(false) }}
                 onPointerDown={event => {
@@ -279,8 +285,9 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                 }}
               >
                 <div className="backstage__stage-art">
-                  <StageCurtain hover={curtainHover} scroller={dialog} />
+                  <img src={stagePhoto} alt="국순당 팀이 발표 화면 앞에서 함께 박수 치는 모습" width={1378} height={1429} loading="lazy" decoding="async" />
                 </div>
+                <StageCurtain hover={curtainHover} scroller={dialog} />
               </div>
               <div className="backstage__finale-body">
                 <p>무대가 준비되었습니다.</p>

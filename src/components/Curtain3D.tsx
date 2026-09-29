@@ -1,7 +1,8 @@
 /*
- * BACKSTAGE 마지막 자리를 덮고 있는 3D 벨벳 커튼
+ * BACKSTAGE 마지막 단체 사진을 덮고 있는 3D 벨벳 커튼(550×550 네모, 가장자리 효과 없음)
  * - 정면에서 본 무대 커튼 두 폭 + 위쪽 가림막(밸런스). 커튼은 늘 닫혀 있습니다.
  * - 평소에는 아주 느리게 숨 쉬듯 흔들리고, 마우스를 올리면(터치는 누르면) 주름이 살짝 찰랑거립니다.
+ * - 커서 주변 원 안에서 커튼 너머 단체 사진이 보이는 효과는 CSS 마스크로 합니다(Backstage.css .backstage__curtain).
  * - 색은 페이지 아래 와인색 그라데이션(#502421)에 맞춘 짙은 와인 벨벳이고,
  *   벨벳 특유의 결 광택(sheen)과 위에서 비추는 따뜻한 조명으로 주름을 표현합니다.
  * - 화면 밖에서는 렌더링을 멈춥니다(active).
@@ -22,8 +23,8 @@ export const CURTAIN = {
   rippleOut: 1.1, // 마우스를 뗀 뒤 잦아드는 데 걸리는 시간(초, 대략)
 }
 
-// 캔버스 = 커튼 틀과 같은 689.23 × 714.57 (디자인 px ÷ 100 = 3D 단위)
-const VIEW = { w: 6.8923, h: 7.1457 }
+// 캔버스 = 피그마 사진 틀(Frame 1707486934)과 같은 550 × 550 (디자인 px ÷ 100 = 3D 단위)
+const VIEW = { w: 5.5, h: 5.5 }
 const FOV = 30
 const DISTANCE = VIEW.h / 2 / Math.tan((FOV / 2) * (Math.PI / 180))
 const PANEL = { nx: 150, ny: 70, top: VIEW.h / 2 + 0.25, height: VIEW.h + 0.6 }
@@ -89,12 +90,12 @@ function Valance({ material }: { material: THREE.Material }) {
       const v = j / ny
       for (let i = 0; i <= nx; i++) {
         const u = i / nx
-        const x = (u - 0.5) * (VIEW.w + 0.8)
+        const x = (u - 0.5) * VIEW.w // 양 끝이 스웨그가 만나는 자리와 맞도록 커튼 폭과 같게
         // 스웨그 하나 안에서 0 → 1 → 0 으로 둥글게(포물선) 늘어짐
         const local = (u * 3) % 1
         const sag = 1 - (2 * local - 1) ** 2
         const centre = u > 1 / 3 && u < 2 / 3 ? 1.12 : 1
-        const depth = 0.95 + 0.34 * sag * centre
+        const depth = 0.85 + 0.3 * sag * centre
         const y = top - v * depth
         // 가로 주름이 스웨그 곡선을 따라 휘어짐 + 아래로 갈수록 앞으로 살짝 불룩
         const pleat = Math.sin((v * 3.4 - 0.18 * sag) * Math.PI * 2)
