@@ -91,9 +91,17 @@ interface BandProps {
   onReady?: () => void
 }
 
+// 카드 두께: card.glb는 가로 대비 두께가 0.56%라 종이처럼 얇습니다.
+// 실제 신용카드 비율(0.76mm ÷ 53.98mm ≈ 1.4%)이 되도록 카드 가운데를 기준으로 앞뒤 방향(z)만 2.5배 늘립니다.
+// (1920 화면 기준 약 2.4px → 6px. 더 얇게 하려면 scale을 줄이세요. 1이면 원래 모델 두께)
+const CARD_DEPTH = { front: 0.005398, back: 0.001373, scale: 2.5 }
+const CARD_MID_Z = (CARD_DEPTH.front + CARD_DEPTH.back) / 2
+const thicken = (z: number) => CARD_MID_Z + (z - CARD_MID_Z) * CARD_DEPTH.scale
+
 // card.glb의 앞·뒷면은 평평해서 좌표(x, y)와 텍스처 좌표(u, v)가 1차식으로 대응합니다(모델에서 측정).
-const FRONT_UV = { ux: 0.695368, u0: 0.249875, vy: -0.750718, v0: 0.772094, z: 0.0056 }
-const BACK_UV = { ux: -0.695998, u0: 0.750691, vy: -0.755039, v0: 0.774547, z: 0.001 }
+// z는 두꺼워진 앞·뒷면 바로 바깥(구멍 막는 원판 위치)입니다.
+const FRONT_UV = { ux: 0.695368, u0: 0.249875, vy: -0.750718, v0: 0.772094, z: thicken(CARD_DEPTH.front) + 0.0002 }
+const BACK_UV = { ux: -0.695998, u0: 0.750691, vy: -0.755039, v0: 0.774547, z: thicken(CARD_DEPTH.back) - 0.0004 }
 // 모델에 원래 뚫려 있던 동그란 고리 구멍(중심 y 0.9418, 반지름 0.0186)을 덮는 크기
 const HOLE = { y: 0.9418, radius: 0.0215 }
 
@@ -169,10 +177,19 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
     roughness: 1, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.6,
   }), [cardMap, cutout])
   const holePatches = useMemo(() => [createHolePatch(FRONT_UV), createHolePatch(BACK_UV)], [])
+  // 원본 모델은 그대로 두고, 복사본을 카드 가운데 기준으로 z 방향만 늘려 두께를 줍니다(클립·고리는 그대로).
+  const cardGeometry = useMemo(() => {
+    const geometry = nodes.card.geometry.clone()
+    geometry.translate(0, 0, -CARD_MID_Z)
+    geometry.scale(1, 1, CARD_DEPTH.scale)
+    geometry.translate(0, 0, CARD_MID_Z)
+    return geometry
+  }, [nodes.card.geometry])
   useEffect(() => () => {
     cardMaterial.dispose()
+    cardGeometry.dispose()
     holePatches.forEach(geometry => geometry.dispose())
-  }, [cardMaterial, holePatches])
+  }, [cardMaterial, cardGeometry, holePatches])
 
   // MeshLineMaterial은 생성자 인자가 필요합니다. 값은 아래 props로 넣고, 인자는 한 번만 만듭니다.
   const [strapMaterialArgs] = useState<[{ resolution: THREE.Vector2 }]>(() => [{ resolution: new THREE.Vector2(1000, 1000) }])
@@ -252,7 +269,7 @@ function Band({ anchorY, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady }: B
               drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())))
             }}
           >
-            <mesh geometry={nodes.card.geometry} material={cardMaterial} />
+            <mesh geometry={cardGeometry} material={cardMaterial} />
             {holePatches.map((geometry, index) => <mesh key={index} geometry={geometry} material={cardMaterial} />)}
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
