@@ -60,8 +60,8 @@
 .entry-ticket__serial { top: 178px; font-size: 9px; line-height: 12px; letter-spacing: .7px; }
 .entry-ticket__cta { position: absolute; left: 24px; top: 214px; width: 117px; height: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: -.35px; white-space: nowrap; }
 .entry-ticket__cta img { width: 16.8px; height: 16.8px; }
-.entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 246.6px; padding: 9px; border-radius: 4.5px; background: #fafafa; color: #000; display: flex; align-items: center; justify-content: center; text-align: center; gap: 8.7093px; pointer-events: none; font-size: 17.4186px; font-weight: 500; line-height: 24.8832px; letter-spacing: -.43542px; white-space: nowrap; }
-.entry-ticket__tooltip img { width: 20.9016px; height: 20.9016px; flex: 0 0 auto; }
+.entry-ticket__tooltip { position: fixed; z-index: 1; left: 0; top: 0; visibility: hidden; width: 172.62px; padding: 6.3px; border-radius: 3.15px; background: #fafafa; color: #000; display: flex; align-items: center; justify-content: center; text-align: center; gap: 6.09651px; pointer-events: none; font-size: 12.19302px; font-weight: 500; line-height: 17.41824px; letter-spacing: -0.304794px; white-space: nowrap; }
+.entry-ticket__tooltip img { width: 14.63112px; height: 14.63112px; flex: 0 0 auto; }
 .entry-ticket .tear-ticket__piece--stub:focus-visible .entry-ticket__cta { outline: 2px solid #ae302b; outline-offset: 6px; border-radius: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .entry-ticket { transition: none; }
