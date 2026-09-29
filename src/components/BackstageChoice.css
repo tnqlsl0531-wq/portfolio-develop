@@ -26,7 +26,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: grayscale(1);
+  filter: grayscale(1) brightness(1.2);
   user-select: none;
 }
 
