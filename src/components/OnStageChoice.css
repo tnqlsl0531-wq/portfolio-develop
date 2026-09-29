@@ -19,50 +19,22 @@
 .onstage-choice__piece {
   position: absolute;
   opacity: 0;
-  transform: translate(var(--enter-x), var(--enter-y)) rotate(var(--enter-rotation)) scale(.72);
-  transition: opacity 160ms ease-out, transform 200ms ease-in;
+  transform: translate(var(--enter-x), var(--enter-y)) scale(.9);
 }
 .onstage-choice__piece img { width: 100%; height: 100%; object-fit: contain; user-select: none; }
 .onstage-choice__grandma {
   left: 65.509259%; top: 15.625%; width: 30.555556%; height: 84.375%;
-  --enter-x: 0%; --enter-y: 125%; --enter-rotation: 0deg;
+  --enter-x: 0%; --enter-y: 125%;
   /* The exported PNG already contains Figma's 30% opacity. */
-  --pop-delay: 0ms; --art-opacity: 1;
   transform-origin: 85% 100%;
 }
 .onstage-choice__bottle {
   left: 2.467177%; top: 12.215169%; width: 23.748101%; height: 64.336650%;
-  --enter-x: -135%; --enter-y: -75%; --enter-rotation: 0deg;
-  --pop-delay: 110ms; --art-opacity: 1;
+  --enter-x: -135%; --enter-y: -75%;
   transform-origin: 30% 85%;
 }
 .onstage-choice__cup {
   left: 13.342285%; top: 56.011455%; width: 15.231888%; height: 33.976746%;
-  --enter-x: -85%; --enter-y: 180%; --enter-rotation: 0deg;
-  --pop-delay: 220ms; --art-opacity: 1;
+  --enter-x: -85%; --enter-y: 180%;
   transform-origin: 50% 100%;
-}
-
-@keyframes onstage-pop-in {
-  from { opacity: 0; transform: translate(var(--enter-x), var(--enter-y)) scale(.9); }
-  to { opacity: var(--art-opacity); transform: translate(0, 0) scale(1); }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .stage-choice--on:hover .onstage-choice__piece {
-    animation: onstage-pop-in 360ms cubic-bezier(.16,1,.3,1) var(--pop-delay) both;
-  }
-}
-.stage-choice--on:focus-visible .onstage-choice__piece {
-  animation: onstage-pop-in 360ms cubic-bezier(.16,1,.3,1) var(--pop-delay) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .onstage-choice__piece { transition: none; }
-  .stage-choice--on:hover .onstage-choice__piece,
-  .stage-choice--on:focus-visible .onstage-choice__piece {
-    animation: none;
-    opacity: var(--art-opacity);
-    transform: none;
-  }
 }
