@@ -85,6 +85,7 @@ export const projects: Project[] = [
     platform: 'Web',
     period: '2026.05 ~ 2026.08',
     url: 'https://jin0484.github.io/kooksoondang/',
+    planUrl: 'https://www.figma.com/deck/tB8up2pNJSwkgLm75pjrZp',
   },
   {
     id: 'jadu',
