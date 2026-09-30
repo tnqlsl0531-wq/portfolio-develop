@@ -410,6 +410,11 @@
 /* CONTACT */
 .contact {
   position: relative; min-height: calc(1080 * var(--u)); display: grid;
+  /* 제안서가 올라오기 전 땅 아래에 숨어 있는 만큼(--form-pop-from) 문서가 길어져서 글자 띠 밑에 빈 흰 여백이 생기고
+     띠가 공중에 떠 보이던 것을 막습니다. 세로만 잘라내고(clip) 가로는 그대로 둬야 왼쪽으로 튀어나온
+     목줄(.contact__lanyard)과 카피라이트(.contact__copyright)가 잘리지 않습니다.
+     clip은 hidden과 달리 스크롤 상자를 만들지 않아서 sticky 같은 다른 동작을 건드리지 않습니다. */
+  overflow: visible clip;
   grid-template-columns: 26.863% 57.192%; gap: 15.945%;
   margin-left: 13.75%; margin-right: 6.111%; align-items: start;
   /* 제안서(문의 폼) 크기 단위 --form-u: 피그마 크기(--u)보다 커지지 않으면서, 폼 높이가 '창 높이 - 106.667 - 48px'를 넘지 않도록
