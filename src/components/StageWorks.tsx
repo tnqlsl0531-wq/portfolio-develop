@@ -68,7 +68,13 @@ const slotDistance = (a: number, b: number) => {
 
 function StageArtwork({ item }: { item: StageItem }) {
   if (item.key === 'future') {
-    return <div className="stage-card__art stage-card__art--future"><img src={futurePreview} width={318} height={208} alt="" /></div>
+    // '리허설 중' 딱지는 다른 카드의 '쇼 종료'와 같은 자리(그림 오른쪽 위)에 회색으로 붙입니다.
+    return (
+      <div className="stage-card__art stage-card__art--future">
+        <img src={futurePreview} width={318} height={208} alt="" />
+        <span className="stage-card__badge stage-card__badge--quiet">{item.badge}</span>
+      </div>
+    )
   }
   return (
     <div className={`stage-card__art stage-card__art--${item.key}`}>
@@ -244,11 +250,6 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
                 <StageCard item={item} />
               </div>
             )
-          }}
-          // 어린이대공원 카드: '리허설 중' 스티커를 카드 틀 밖(오른쪽 위 모서리)에 따로 붙입니다.
-          renderSticker={slot => {
-            const item = itemAt(slot)
-            return item.project ? null : <span className="stage-card__sticker">{item.badge}</span>
           }}
           renderBack={slot => (
             <div className={`stage-card stage-card--back${itemAt(slot).key === 'future' ? ' stage-card--future' : ''}`} style={cardStyle} />

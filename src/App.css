@@ -419,7 +419,7 @@
 /* CONTACT */
 .contact {
   position: relative; min-height: calc(1080 * var(--u)); display: grid;
-  /* 제안서가 올라오기 전 땅 아래에 숨어 있는 만큼(--form-pop-from) 문서가 길어져서 글자 띠 밑에 빈 흰 여백이 생기고
+  /* 제안서가 올라오기 전 아래로 내려가 있는 만큼(--form-pop-from) 문서가 길어져서 글자 띠 밑에 빈 흰 여백이 생기고
      띠가 공중에 떠 보이던 것을 막습니다. 세로만 잘라내고(clip) 가로는 그대로 둬야 왼쪽으로 튀어나온
      목줄(.contact__lanyard)과 카피라이트(.contact__copyright)가 잘리지 않습니다.
      clip은 hidden과 달리 스크롤 상자를 만들지 않아서 sticky 같은 다른 동작을 건드리지 않습니다. */
@@ -467,33 +467,34 @@
 .staff-pass a { text-decoration: none; }
 .staff-pass a:hover { text-decoration: underline; }
 .staff-pass dd.staff-pass__instagram { font-size: calc(18.667 * var(--u)); }
-/* 폼은 오른쪽 여백(피그마 117)에 붙이고, 바닥(아래 글자 띠 = 땅)에 딱 붙여 세워 둡니다(원본처럼 땅에 박힌 모습, align-self: end).
-   창이 낮으면 폭·안쪽 크기가 --form-u로 같은 비율로 줄고 그만큼 윗선이 내려옵니다. 창이 충분히 높으면 윗선 = 'Contact' 제목 윗선(106.667). */
+/* 폼은 오른쪽 여백(피그마 117)에 붙이고, 섹션 세로 가운데에 띄워 둡니다(예전엔 바닥 = 아래 글자 띠에 박혀 있었음, 9/30 사용자 요청).
+   창이 낮으면 폭·안쪽 크기가 --form-u로 같은 비율로 줄어듭니다. */
 .contact__form-area {
-  justify-self: end; align-self: end; width: calc(880 * var(--form-u)); max-width: 100%; min-width: 0; position: relative; padding-top: calc(106.667 * var(--u));
-  /* 제안서 등장(App.tsx FORM_POP): 목걸이가 다 떨어져 자리를 잡은 뒤, 땅(글자 띠) 뒤에서 자기 높이의 32%만큼 아래에서 올라오며 끝에서 살짝 튀어 올랐다 자리 잡습니다('뿅').
-     튀는 정도는 cubic-bezier의 두 번째 숫자(1.6)가 클수록 커집니다. 올라오는 동안 아래 글자 띠 뒤에서 나옵니다. */
+  justify-self: end; align-self: center; width: calc(880 * var(--form-u)); max-width: 100%; min-width: 0; position: relative;
+  /* 제안서 등장(App.tsx FORM_POP): 목걸이가 다 떨어져 자리를 잡은 뒤, 자기 높이의 32%만큼 아래에서 올라오며 끝에서 살짝 튀어 올랐다 자리 잡습니다('뿅').
+     튀는 정도는 cubic-bezier의 두 번째 숫자(1.6)가 클수록 커집니다. */
   --form-pop-from: 32%;
   transition: transform 900ms cubic-bezier(.34, 1.6, .5, 1), opacity 420ms ease-out;
 }
 .contact__form-area[data-shown='false'] { opacity: 0; transform: translateY(var(--form-pop-from)); }
 /* 피그마에서 내보낸 원본 파일에 종이클립의 회전이 이미 포함되어 있습니다. 폼 윗선보다 74.667 위에서 시작합니다(폼과 같은 비율로 줄어듦). */
-.contact__paperclip { position: absolute; z-index: 1; top: calc(106.667 * var(--u) - 74.667 * var(--form-u)); right: calc(15.276 * var(--form-u)); width: calc(160.726 * var(--form-u)); height: auto; pointer-events: none; }
+.contact__paperclip { position: absolute; z-index: 1; top: calc(-74.667 * var(--form-u)); right: calc(15.276 * var(--form-u)); width: calc(160.726 * var(--form-u)); height: auto; pointer-events: none; }
 /* 폼 안쪽(글자·칸·버튼·여백)은 모두 --form-u 기준으로 그려집니다. */
 .contact-form { --u: var(--form-u); }
 .contact-form {
   display: flex; flex-direction: column; justify-content: space-between; gap: calc(28 * var(--u));
-  min-height: calc(973.333 * var(--u)); padding: calc(53.333 * var(--u)) calc(48 * var(--u)) calc(37.333 * var(--u));
-  background: var(--neutral-white); border-radius: calc(16 * var(--u));
-  box-shadow: calc(-4 * var(--u)) calc(-2.667 * var(--u)) calc(15.067 * var(--u)) rgb(0 0 0 / 10%), calc(6.667 * var(--u)) calc(-4 * var(--u)) calc(14.933 * var(--u)) rgb(0 0 0 / 10%);
+  min-height: calc(973.333 * var(--u)); padding: calc(53.333 * var(--u)) calc(48 * var(--u)) calc(40 * var(--u));
+  /* 피그마 337-877 수정본(9/30): 연한 코랄 그라데이션 바탕 + 2px 회색(#e5e5e5) 테두리, 아래 여백 40(예전 37.333) */
+  border: 2px solid #e5e5e5; border-radius: calc(16 * var(--u));
+  background: linear-gradient(146.977deg, #fff3f2 21.524%, #ffe1df 98.709%);
 }
 .contact-form__heading h3 { font-size: calc(37.333 * var(--u)); line-height: 1.2; font-weight: 700; }
 .contact-form__heading p { margin-top: calc(10.667 * var(--u)); color: #737373; font-size: calc(20 * var(--u)); line-height: 1.5; }
 .contact-form__pair { display: grid; grid-template-columns: 1fr 1fr; gap: calc(21.333 * var(--u)); }
 .contact-form label { display: flex; flex-direction: column; gap: calc(10.667 * var(--u)); min-width: 0; color: #383838; font-size: calc(17.333 * var(--u)); font-weight: 700; }
 .contact-form input, .contact-form select, .contact-form textarea {
-  width: 100%; min-width: 0; height: calc(64 * var(--u)); border: 1px solid transparent; border-radius: calc(10.667 * var(--u));
-  background: rgb(255 227 225 / 34%); color: #171717; padding: calc(18.667 * var(--u)) calc(21.333 * var(--u)); font-size: calc(18.667 * var(--u)); font-weight: 400;
+  width: 100%; min-width: 0; height: calc(64 * var(--u)); border: 1px solid #e5e5e5; border-radius: calc(10.667 * var(--u));
+  background: var(--neutral-white); color: #171717; padding: calc(18.667 * var(--u)) calc(21.333 * var(--u)); font-size: calc(18.667 * var(--u)); font-weight: 400;
 }
 .contact-form input::placeholder, .contact-form textarea::placeholder { color: #737373; opacity: 1; }
 .contact-form select { color: #737373; cursor: pointer; }
@@ -574,7 +575,7 @@
 .contact-draft details { margin-top: 16px; }
 .contact-draft pre { white-space: pre-wrap; font: inherit; }
 
-/* 작품 선택 화면 (피그마 104-8). Esc / 돌아가기 / 빈 곳 클릭으로 닫습니다.
+/* 작품 선택 화면 (피그마 104-8). Esc / 빈 곳 클릭으로 닫습니다.
    --pu: 1920×1080 기준 1px. 창이 가로로 길거나 세로로 짧아도 한 화면에 다 들어오도록 가로·세로 중 작은 쪽에 맞춥니다. */
 .project-select {
   --pu: min(100vw / 1920, 100vh / 1080);
@@ -588,11 +589,6 @@
 .project-select[open] .project-select__content { animation: project-select-rise 420ms cubic-bezier(.22, .61, .36, 1); }
 @keyframes project-select-fade { from { opacity: 0; } }
 @keyframes project-select-rise { from { opacity: 0; transform: translateY(calc(24 * var(--pu))); } }
-.project-select__close {
-  position: absolute; top: calc(88 * var(--pu)); right: calc(104 * var(--pu)); padding: 4px 0 4px 8px;
-  border: 0; background: none; color: #fafafa; font: 400 max(15px, calc(22 * var(--pu)))/1.45 'Noto Sans KR Variable', sans-serif; cursor: pointer;
-}
-.project-select__close:hover { color: #ffc7c3; }
 /* 썸네일 600×337.5(흰 16:9 카드, ProjectCover) + 간격 64 + 선택지 432×192 두 개(사이 48).
    피그마(186-201)처럼 화면 가운데보다 약 7px 위에 놓습니다. */
 .project-select__content { position: relative; display: flex; flex-direction: column; align-items: center; gap: calc(64 * var(--pu)); margin-bottom: calc(14.5 * var(--pu)); }
@@ -671,7 +667,6 @@
   .stage-choice { flex: 1; min-width: 0; width: auto; height: clamp(112px, 30vw, 170px); gap: 6px; padding: 0 8px; border-radius: 8px; }
   .stage-choice__title { font-size: clamp(18px, 5.2vw, 30px); }
   .stage-choice__desc { font-size: clamp(11px, 3.2vw, 16px); white-space: normal; text-align: center; }
-  .project-select__close { top: 16px; right: 20px; font-size: 16px; }
   .project-select__notice { top: calc(100% + 16px); font-size: 14px; }
   .contact { grid-template-columns: minmax(0, 1fr); gap: 64px; margin: 0; padding: 80px 7% 70px; }
   /* 폰·태블릿: 글자 띠를 2배로 키우고 양옆은 잘라서 글자가 너무 작아지지 않게 합니다. */
@@ -693,7 +688,7 @@
   .staff-pass dd.staff-pass__instagram { font-size: 16px; }
   .contact__form-area { width: min(100%, 760px); margin: 0 auto; padding-top: 32px; --form-pop-from: 96px; }
   .contact__paperclip { width: 112px; right: 12px; top: -24px; }
-  .contact-form { min-height: 850px; padding: 44px 36px 24px; gap: 28px; border-radius: 14px; box-shadow: -3px -2px 14px rgb(0 0 0 / 10%), 6px -4px 14px rgb(0 0 0 / 10%); }
+  .contact-form { min-height: 850px; padding: 44px 36px 28px; gap: 28px; border-radius: 14px; }
   .contact-form__heading h3 { font-size: 32px; }
   .contact-form__heading p { font-size: 17px; margin-top: 10px; }
   .contact-form__pair { gap: 16px; }

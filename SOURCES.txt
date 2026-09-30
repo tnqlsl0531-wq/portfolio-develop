@@ -280,3 +280,14 @@ https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/
   future-preview.png: 그림에 박혀 있던 흐린 '쇼 예정' 스티커 자리(가로 225~305, 세로 14~62px)를 주변 바탕색(235,232,193, 투명도 60%)으로 칠해 지움(아래 8줄은 아래 그림과 섞음).
   '리허설 중' 스티커: CircularCarousel renderSticker로 카드 틀 밖(가운데에서 가로 +36%, 위 테두리)에 원기둥 면을 따라 붙임, 6도 기울임.
 
+
+섹션 고정 자리 · 문단 묶음 · 제안서 색 (2026-09-30 밤)
+- Director’s Note 소개 글: Scroll Reveal을 문단마다가 아니라 문단 묶음(.director__paragraphs, 피그마 'Director’s note · Lorem ipsum paragraphs') 하나에 걸도록 바꿈.
+  시작 지점을 '아래에서 20%' → '아래에서 5%'(IntersectionObserver rootMargin -5%)로 당겨 화면에 들어오자마자 시작. 단어 사이 시차는 묶음 전체가 1.1초 안에 끝나게(최대 0.025초), 단어 0.45초.
+- 섹션 고정 자리(Pin align): 히어로·Stage Works end, Artist Gallery center, Director’s Note start + 멈춤 110vh.
+  Director’s Note 제목(ScrollFloat pinDriven): 멈춰 있는 동안 스크롤한 만큼(멈춤 거리의 70%에서 완성) 글자가 떠오름. 목차 이동은 멈춤 거리의 80% 자리(landAt .8)로.
+- Stage Works: 카드 밖 '리허설 중' 스티커(renderSticker)를 빼고, 다른 카드 배지와 같은 자리에 회색 배지(#E5E5E5 바탕, #D4D4D4 테두리, #525252 글자).
+- 작품 선택 화면: '돌아가기 ×' 버튼 삭제(Esc·빈 곳 클릭으로 닫힘).
+- Contact 제안서(피그마 337-877 수정본): 크기는 그대로, 색만 반영 — 바탕 그라데이션 146.977도 #FFF3F2 21.524% → #FFE1DF 98.709%, 테두리 2px #E5E5E5, 그림자 없음,
+  입력칸 흰 바탕 + 1px #E5E5E5, 종이클립 #0F0F0F(paperclip.svg 색만 바꿈), 안쪽 여백 53.333 / 48 / 40. 위치는 바닥 → 섹션 세로 가운데.
+  '문의 보내기' 버튼은 피그마에서는 코랄이지만 필수 칸을 다 채우기 전엔 검정으로 두는 기존 동작 유지.

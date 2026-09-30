@@ -321,8 +321,12 @@ export default function ProgramBook() {
     if (!element) return
     event.preventDefault()
     // 휠 스크롤과 같은 부드러운 움직임으로 이동합니다(useSmoothScroll.ts). 화면 고정(Pin) 중인 섹션은 고정이 시작되기 전 자리(묶음 맨 위)로 갑니다.
-    const place = element.closest('.pin') ?? element
-    smoothScrollTo(place.getBoundingClientRect().top + window.scrollY)
+    // landAt이 있는 섹션(Director’s Note)은 제목 애니메이션이 끝난 자리로 내려줍니다.
+    const pin = element.closest<HTMLElement>('.pin')
+    const place = pin ?? element
+    const hold = pin ? parseFloat(getComputedStyle(pin, '::after').height) || 0 : 0
+    const land = pin?.dataset.land ? Number(pin.dataset.land) * hold : 0
+    smoothScrollTo(place.getBoundingClientRect().top + window.scrollY + land)
     setBook(false)
   }, [setBook])
 

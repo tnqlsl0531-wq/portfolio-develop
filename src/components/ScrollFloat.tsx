@@ -10,6 +10,9 @@
  *   이징 back.inOut(2), 글자 사이 시차 0.02(FLOAT.stagger)
  *   시작: 제목 가운데가 '화면 아래 끝 + 화면 높이 50%'에 올 때 / 끝: 제목 아래 끝이 '화면 아래 끝 - 화면 높이 40%'에 올 때.
  *   그 사이를 스크롤한 만큼 진행되고, 스크롤을 되돌리면 거꾸로 돌아갑니다(원본의 scrub: true).
+ * - pinDriven: 제목이 들어 있는 섹션이 화면에 멈춰 있는 동안(Pin) 스크롤한 만큼 떠오릅니다(멈춘 거리의 PIN_SHARE 지점에서 완성).
+ *   멈추기 전(섹션 맨 위가 화면 맨 위에 닿기 전)에는 글자가 안 보여서 흰 화면으로 멈췄다가, 스크롤하면 글자가 떠오릅니다.
+ *   화면 고정을 안 하는 기기(폰·동작 줄이기)에서는 원래 방식(제목 위치 기준)으로 움직입니다.
  * - 화면 읽기 프로그램에는 쪼개지 않은 제목을 그대로 읽어 줍니다.
  * - 동작 줄이기 설정이면 처음부터 완성된 모습으로 보여줍니다.
  */
@@ -20,13 +23,15 @@ import './ScrollFloat.css'
 const FLOAT = { duration: 1, stagger: 0.02, overshoot: 2 }
 // 시작·끝 지점(화면 높이 대비): 시작 = 제목 가운데가 1.5(화면 아래보다 50% 더 아래), 끝 = 제목 아래 끝이 0.6(화면 아래에서 40% 위)
 const TRIGGER = { startCenter: 1.5, endBottom: 0.6 }
+// pinDriven일 때: 멈춰 있는 거리 중 이 비율만큼 스크롤하면 글자가 다 떠오르고, 나머지 동안은 완성된 채로 멈춰 있습니다.
+const PIN_SHARE = 0.7
 
 // GSAP의 back.inOut(2)와 같은 곡선: 살짝 뒤로 갔다가 앞으로 나가고, 끝에서 살짝 넘쳤다가 자리 잡습니다.
 const backIn = (p: number) => p * p * ((FLOAT.overshoot + 1) * p - FLOAT.overshoot)
 const backInOut = (p: number) => (p < 0.5 ? backIn(p * 2) / 2 : 1 - backIn((1 - p) * 2) / 2)
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
-export default function ScrollFloat({ text, id, className = '' }: { text: string; id?: string; className?: string }) {
+export default function ScrollFloat({ text, id, className = '', pinDriven = false }: { text: string; id?: string; className?: string; pinDriven?: boolean }) {
   const heading = useRef<HTMLHeadingElement>(null)
   const chars = useMemo(() => Array.from(text), [text])
 
@@ -44,7 +49,10 @@ export default function ScrollFloat({ text, id, className = '' }: { text: string
       const viewport = window.innerHeight
       const box = element.getBoundingClientRect()
       const distance = box.height / 2 + (TRIGGER.startCenter - TRIGGER.endBottom) * viewport
-      const progress = reduced.matches ? 1 : clamp01((TRIGGER.startCenter * viewport - box.top - box.height / 2) / distance)
+      let progress = reduced.matches ? 1 : clamp01((TRIGGER.startCenter * viewport - box.top - box.height / 2) / distance)
+      const pin = pinDriven && !reduced.matches ? element.closest<HTMLElement>('.pin') : null
+      const hold = pin ? parseFloat(getComputedStyle(pin, '::after').height) || 0 : 0
+      if (pin && hold > 0) progress = clamp01(-pin.getBoundingClientRect().top / (hold * PIN_SHARE))
       if (progress === last) return
       last = progress
       pieces.forEach((piece, index) => {
@@ -65,7 +73,7 @@ export default function ScrollFloat({ text, id, className = '' }: { text: string
       window.removeEventListener('resize', request)
       reduced.removeEventListener('change', request)
     }
-  }, [chars])
+  }, [chars, pinDriven])
 
   return (
     <h2 ref={heading} id={id} className={`scroll-float ${className}`}>

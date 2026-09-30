@@ -168,19 +168,8 @@
 .stage-card__art--future img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: .85; }
 .stage-card__inner--future { align-items: center; }
 .stage-card__inner--future > p { flex: 1; margin: 0; color: #8f8f8f; font: 400 31.808px/1.5 'Special Gothic Expanded One', sans-serif; text-align: center; letter-spacing: .954px; }
-/* 카드 틀 밖에 붙이는 '리허설 중' 스티커(CircularCarousel의 renderSticker). 오른쪽 위 모서리에서 위 테두리에 걸쳐 살짝 기울어 붙습니다. */
-.stage-card__sticker {
-  display: block;
-  padding: 7px 14px;
-  border: 1.5px solid #ffa29c;
-  border-radius: 999px;
-  background: #ffc7c3;
-  box-shadow: 0 4px 10px rgb(80 36 33 / 16%);
-  color: #171717;
-  font: 600 15px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
-  white-space: nowrap;
-  transform: rotate(6deg);
-}
+/* 어린이대공원 '리허설 중' 딱지: 다른 카드의 '쇼 종료'와 같은 자리·모양, 색만 회색. */
+.stage-card__badge--quiet { border-color: #d4d4d4; background: #e5e5e5; color: #525252; }
 
 @media (max-width: 700px) {
   .stage-works__intro { left: 930px; top: 28px; gap: 18px; }

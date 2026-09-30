@@ -197,10 +197,27 @@ function DirectorsNote() {
     return () => observer.disconnect()
   }, [])
 
+  // 소개 문단을 단어로 나눠 둡니다(묶음 전체에서 몇 번째 단어인지 이어서 셈).
+  const paragraphWords = { index: 0 }
+  const paragraphs = profile.paragraphs.map((lines, index) => (
+    <p key={index}>{lines.map((line, lineIndex) => (
+      <Fragment key={lineIndex}>
+        {lineIndex > 0 && ' '}
+        <span className="director__line">
+          {line.split(/(‘관객이 어떻게 느낄까’|‘이 사람의 다른 작업도 보고 싶다’)/u).map((part, partIndex) => (
+            partIndex % 2 === 1
+              ? <strong key={partIndex}>{revealWords(part, paragraphWords)}</strong>
+              : <Fragment key={partIndex}>{revealWords(part, paragraphWords)}</Fragment>
+          ))}
+        </span>
+      </Fragment>
+    ))}</p>
+  ))
+
   return (
     <section id="director" className="director" aria-labelledby="director-title">
       {/* 제목(피그마 351-185): 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
-      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" />
+      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven />
       <div className="director__body">
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
@@ -224,25 +241,10 @@ function DirectorsNote() {
               ))}</dl>
             </div>
           </div>
-          {/* '어릴 때부터~' 문단부터: 흐릿하게 기울어 있다가 한 단어씩 또렷해집니다(React Bits Scroll Reveal, src/components/ScrollReveal.tsx).
-              위의 이름·Profile은 그대로 보여 줍니다. */}
-          <div className="director__paragraphs">{profile.paragraphs.map((lines, index) => {
-            const counter = { index: 0 }
-            return (
-              <ScrollReveal key={index}>{lines.map((line, lineIndex) => (
-                <Fragment key={lineIndex}>
-                  {lineIndex > 0 && ' '}
-                  <span className="director__line">
-                    {line.split(/(‘관객이 어떻게 느낄까’|‘이 사람의 다른 작업도 보고 싶다’)/u).map((part, partIndex) => (
-                      partIndex % 2 === 1
-                        ? <strong key={partIndex}>{revealWords(part, counter)}</strong>
-                        : <Fragment key={partIndex}>{revealWords(part, counter)}</Fragment>
-                    ))}
-                  </span>
-                </Fragment>
-              ))}</ScrollReveal>
-            )
-          })}</div>
+          {/* '어릴 때부터~' 문단 묶음(피그마 'Director’s note · Lorem ipsum paragraphs') 전체에 한 번에 걸립니다:
+              묶음이 흐릿하게 기울어 있다가, 화면에 보이자마자 첫 단어부터 끝 단어까지 차례로 또렷해지며 바로 섭니다
+              (React Bits Scroll Reveal, src/components/ScrollReveal.tsx). 위의 이름·Profile은 그대로 보여 줍니다. */}
+          <ScrollReveal as="div" className="director__paragraphs" words={paragraphWords.index}>{paragraphs}</ScrollReveal>
         </div>
       </div>
     </section>
@@ -523,7 +525,7 @@ function Contact() {
    - 썸네일·글꼴·닫기 위치는 수정된 시안(피그마 186-201)을 따릅니다: 흰 16:9 카드 + 로고, 선택지 글꼴 Min Sans.
    - ON STAGE: portfolio.ts의 url이 있으면 새 창으로 열고, 아직 없으면 준비 중 안내가 뜹니다.
    - BACKSTAGE: 백스테이지 페이지(피그마 96-516)가 있는 작품(국순당)은 그 페이지로 이동하고, 없으면 준비 중 안내가 뜹니다.
-   Esc, 빈 곳 클릭, 오른쪽 위 '돌아가기 ×'로 닫습니다. */
+   Esc나 빈 곳 클릭으로 닫습니다('돌아가기 ×' 버튼은 사용자 요청으로 뺐습니다, 9/30). */
 function ProjectSelect({ project, onClose, onBackstage }: { project: Project | null; onClose: () => void; onBackstage: (project: Project) => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [notice, setNotice] = useState('')
@@ -553,7 +555,6 @@ function ProjectSelect({ project, onClose, onBackstage }: { project: Project | n
       onClose={() => { setNotice(''); onClose() }}
       onClick={event => { if (event.target === event.currentTarget) close() }}
     >
-      <button className="project-select__close" onClick={close}>돌아가기 ×</button>
       {project && (
         <div className="project-select__content">
           <h2 id="project-select-title" className="sr-only">{project.title}</h2>
@@ -648,8 +649,10 @@ function Portfolio() {
       <main className="portfolio">
         <Pin><Hero /></Pin>
         <Pin><StageWorks onSelect={setSelectedProject} /></Pin>
-        <Pin><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
-        <Pin><DirectorsNote /></Pin>
+        {/* Artist Gallery: 섹션 가운데가 화면 가운데에 올 때 멈춤(글자가 너무 위에 붙지 않게) */}
+        <Pin align="center"><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
+        {/* Director’s Note: 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈추고, 멈춰 있는 동안 스크롤하는 만큼 제목 글자가 떠오른 뒤 다시 흘러감 */}
+        <Pin align="start" hold="110vh" landAt={.8}><DirectorsNote /></Pin>
         <Contact />
         <MarqueeBand />
       </main>

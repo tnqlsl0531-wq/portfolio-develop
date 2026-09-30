@@ -14,7 +14,6 @@
  * - 처음 가운데 카드(initialIndex)를 정할 수 있고, 밖에서 특정 카드로 돌리기(focus)를 부를 수 있습니다(공연 순서 목록).
  * - 카드 모양은 원기둥(cylinder) 하나만 남기고, 휠 스크롤·캡션은 뺐습니다.
  * - 안쪽 면 그늘 색(innerColor)을 고를 수 있게 했습니다(밝은 페이지에서 검정 그늘이 회색 벽처럼 보여서).
- * - 카드 틀 밖으로 삐져나오는 스티커(renderSticker)를 붙일 수 있습니다. 띠로 잘리지 않고 카드 면 위에 따로 붙습니다.
  */
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
@@ -28,10 +27,6 @@ type Props = {
   renderCard: (index: number) => ReactNode
   /** 카드 뒷면(원기둥 안쪽에서 보이는 면) */
   renderBack?: (index: number) => ReactNode
-  /** 카드 틀 밖으로 삐져나오게 붙이는 스티커(띠로 잘리지 않음). 없으면 null */
-  renderSticker?: (index: number) => ReactNode
-  /** 스티커 자리: 카드 가운데에서 가로(카드 폭 대비)·세로(카드 높이 대비) 얼마나 떨어졌는지. 기본 = 오른쪽 위 모서리 근처, 위 테두리에 걸침 */
-  stickerAt?: { x: number; y: number }
   contentWidth: number
   contentHeight: number
   cardWidth: number
@@ -86,8 +81,6 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
   count,
   renderCard,
   renderBack,
-  renderSticker,
-  stickerAt = { x: .36, y: -.5 },
   contentWidth,
   contentHeight,
   cardWidth,
@@ -159,16 +152,6 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
       return { index, total, start, end, size: end - start, move: `translate3d(${shift}px, 0px, ${depth}px) rotateY(${turn}deg)` }
     })
   }, [cardW, curveValue, radius])
-
-  // 스티커도 카드와 같은 원기둥 면 위에 붙도록 자리·각도를 계산합니다(띠와 같은 방법).
-  const stickerMove = useMemo(() => {
-    const along = stickerAt.x * cardW
-    const bend = curveValue > 0.001 ? radius / curveValue : 0
-    const alpha = bend ? along / bend : 0
-    const shift = bend ? bend * Math.sin(alpha) : along
-    const depth = (bend ? -bend * (1 - Math.cos(alpha)) : 0) + 2
-    return `translate3d(${shift}px, ${stickerAt.y * cardH}px, ${depth}px) rotateY(${(alpha * 180) / Math.PI}deg) translate(-50%, -50%)`
-  }, [stickerAt.x, stickerAt.y, cardW, cardH, curveValue, radius])
 
   const rootRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -326,9 +309,6 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         card.style.transform = `rotateY(${base}deg) translateZ(${R}px) scale(var(--cc-scale, 1))`
         const liftValue = `${lift.toFixed(2)}px`
         if (card.style.getPropertyValue('--cc-lift') !== liftValue) card.style.setProperty('--cc-lift', liftValue)
-        // 카드가 다 올라온 뒤에만 스티커를 보여 줍니다.
-        const risen = lift > 1 ? '0' : '1'
-        if (card.style.getPropertyValue('--cc-risen') !== risen) card.style.setProperty('--cc-risen', risen)
         const facing = Math.cos(wrap(base + state.angle) * TO_RAD)
         const fade = s.depthFade * Math.pow((1 - facing) / 2, 1.25)
         const depthValue = fade.toFixed(3)
@@ -387,7 +367,6 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         if (!card) continue
         card.style.transform = `rotateY(${index * settingsRef.current.step}deg) translateZ(${settingsRef.current.radius}px) scale(var(--cc-scale, 1))`
         card.style.setProperty('--cc-lift', `${(settingsRef.current.cardH * 1.04).toFixed(2)}px`)
-        card.style.setProperty('--cc-risen', '0')
       }
       camera.style.transform = `translate3d(0, 0, ${-settingsRef.current.radius}px) rotateX(${settingsRef.current.tilt}deg)`
       ring.style.transform = `rotateY(${state.angle}deg)`
@@ -611,10 +590,6 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
               >
                 {tiles.map(tile => renderTile(index, tile, false))}
                 {tiles.map(tile => renderTile(index, tile, true))}
-                {renderSticker && (() => {
-                  const sticker = renderSticker(index)
-                  return sticker ? <div className="circular-carousel__sticker" style={{ transform: stickerMove }} aria-hidden="true">{sticker}</div> : null
-                })()}
               </div>
             ))}
           </div>
