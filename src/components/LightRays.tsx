@@ -14,6 +14,8 @@
  * - 색 입히는 방법을 바꿨습니다. 원본은 어두운 배경에 흰 빛을 얹는 방식이라, 밝은 무대 배경(#fafafa) 위에서는
  *   빛이 배경에 묻혀 보이지 않습니다. 그래서 빛줄기 모양·움직임 계산(rayStrength)은 원본 그대로 두고,
  *   그 세기를 조명 색의 진하기로 씁니다. 배경보다 따뜻한 색이 옅게 깔려서 실제 무대 조명처럼 보입니다.
+ * - intensity를 더했습니다. 원본 계산이 내는 진하기는 최대 0.15 정도라 밝은 배경에서는 눈에 띄지 않아,
+ *   이 값으로 끌어올립니다(작게 하면 옅어지고 크게 하면 진해집니다).
  * - 동작 줄이기 설정에서는 빛줄기를 그리지 않습니다(원본은 그립니다).
  * - 화면에 보일 때만 그립니다. 단 WebGL 준비는 처음 보일 때 한 번만 하고, 화면을 오르내려도 그리기만 멈췄다 이어 갑니다
  *   (매번 새로 만들면 브라우저가 WebGL을 더 안 만들어 주는 경우가 있습니다).
@@ -41,6 +43,7 @@ uniform float raysSpeed;
 uniform float lightSpread;
 uniform float rayLength;
 uniform float saturation;
+uniform float intensity;
 uniform vec2  mousePos;
 uniform float mouseInfluence;
 
@@ -83,6 +86,9 @@ void main() {
   // 빛이 아래로 내려갈수록 옅어집니다(원본의 세로 감쇠 값을 그대로 씁니다).
   float brightness = 1.0 - (coord.y / iResolution.y);
   strength *= 0.3 + brightness * 0.6;
+  // 밝은 배경에서는 셰이더가 내는 진하기(최대 0.15쯤)로는 배경을 이기지 못해 빛이 보이지 않습니다.
+  // intensity로 끌어올린 뒤 1을 넘지 않게 자릅니다.
+  strength = clamp(strength * intensity, 0.0, 1.0);
 
   vec3 tint = raysColor;
   if (saturation != 1.0) {
@@ -140,6 +146,7 @@ export default function LightRays({
   lightSpread = 1,
   rayLength = 2,
   saturation = 1,
+  intensity = 1,
   mouseInfluence = .1,
   className = '',
 }: {
@@ -149,6 +156,8 @@ export default function LightRays({
   lightSpread?: number
   rayLength?: number
   saturation?: number
+  /** 빛을 얼마나 진하게 올릴지. 밝은 배경 위에서는 1로는 보이지 않아 올려서 씁니다. */
+  intensity?: number
   mouseInfluence?: number
   className?: string
 }) {
@@ -197,6 +206,7 @@ export default function LightRays({
       gl.uniform1f(at('lightSpread'), lightSpread)
       gl.uniform1f(at('rayLength'), rayLength)
       gl.uniform1f(at('saturation'), saturation)
+      gl.uniform1f(at('intensity'), intensity)
       gl.uniform1f(at('mouseInfluence'), mouseInfluence)
       gl.uniform2f(mousePos, .5, .5)
       gl.clearColor(0, 0, 0, 0)
@@ -278,7 +288,7 @@ export default function LightRays({
       window.removeEventListener('resize', resize)
       scene?.dispose()
     }
-  }, [reducedMotion, raysOrigin, raysColor, raysSpeed, lightSpread, rayLength, saturation, mouseInfluence])
+  }, [reducedMotion, raysOrigin, raysColor, raysSpeed, lightSpread, rayLength, saturation, intensity, mouseInfluence])
 
   return <div ref={container} className={`light-rays${className ? ` ${className}` : ''}`} aria-hidden="true" />
 }

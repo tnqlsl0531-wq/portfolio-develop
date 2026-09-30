@@ -64,8 +64,8 @@ type RowMotion = {
   drag: null | { id: number; startX: number; startTarget: number; active: boolean }
 }
 
-/** 캔버스에 그릴 사진 한 장의 제자리(줄이 안 움직일 때 기준) */
-type TileSpot = { photo: number; x: number; y: number; w: number; h: number }
+/** 캔버스에 그릴 사진 한 장의 제자리(줄이 안 움직일 때 기준). phase는 물결 시작점입니다. */
+type TileSpot = { photo: number; x: number; y: number; w: number; h: number; phase: number }
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -148,6 +148,8 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
         y: rowTop + button.offsetTop + button.offsetHeight / 2,
         w: button.offsetWidth,
         h: button.offsetHeight,
+        // 사진마다 물결 시작점을 흩어 놓습니다(전부 같은 모양으로 일렁이지 않게).
+        phase: order * 3.7 + index * 11.3,
       }] : [])
       if (hoverAmount.current[index].length !== spots.current[index].length) {
         hoverAmount.current[index] = spots.current[index].map(() => 0)
@@ -205,6 +207,7 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
             w: spot.w * grow, h: spot.h * grow,
             saturate: saturate.current + (1 - saturate.current) * amount,
             speed: moved,
+            phase: spot.phase,
           })
         })
       })

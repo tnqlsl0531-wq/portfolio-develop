@@ -21,7 +21,7 @@
    더 연하게 하려면 opacity를 0에 가깝게, 더 진하게 하려면 1에 가깝게 바꾸세요.
    위아래 끝은 mask로 부드럽게 지워서 네모난 경계가 보이지 않게 합니다. */
 .stage-works__rays {
-  position: absolute; left: 828.5px; top: -28px; width: 876px; height: 728px; opacity: .8;
+  position: absolute; left: 828.5px; top: -28px; width: 876px; height: 728px; opacity: 1;
   -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
   mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
 }

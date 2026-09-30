@@ -33,6 +33,8 @@ export type GalleryTile = {
   saturate: number
   /** 이번 프레임에 줄이 옆으로 움직인 거리(CSS 픽셀). 빠를수록 물결이 커집니다. */
   speed: number
+  /** 물결의 시작점. 사진마다 다른 값을 줘야 다 같은 모양으로 일렁이지 않습니다(원본도 사진마다 다릅니다). */
+  phase: number
 }
 
 export interface CircularGalleryHandle {
@@ -42,11 +44,13 @@ export interface CircularGalleryHandle {
 }
 
 /* 물결 크기: 사진이 제자리에서 최대 몇 %까지 부풀었다 줄었다 하는지입니다.
-   idle = 가만히 있을 때(원본은 이게 너무 커서 많이 줄였습니다), drag = 끌거나 굴릴 때 더해지는 정도,
-   step = 물결이 흐르는 빠르기(원본 0.04). 더 잔잔하게 하려면 idle을, 더 느리게 하려면 step을 줄이세요. */
-const WOBBLE = { idle: .015, step: .018, drag: .9 }
-// 판을 잘게 나눈 격자(이 칸들이 물결칩니다). 원본은 100 × 50이지만 사진이 작아 이 정도면 충분합니다.
-const GRID = { x: 32, y: 24 }
+   idle = 가만히 있을 때, drag = 끌거나 굴릴 때 더해지는 정도, max = 아무리 빨리 끌어도 넘지 않는 한계,
+   step = 물결이 흐르는 빠르기(원본 0.04).
+   ※ max가 없으면 빠르게 끌 때 사진이 몇 배로 부풀어 모양이 무너지고, 그리는 면적이 폭증해 화면이 느려집니다.
+   더 잔잔하게 하려면 idle을, 더 느리게 하려면 step을 줄이세요. */
+const WOBBLE = { idle: .012, step: .018, drag: .35, max: .045 }
+// 판을 잘게 나눈 격자(이 칸들이 물결칩니다). 원본은 100 × 50이지만, 사진이 작고 물결이 완만해 이 정도면 충분합니다.
+const GRID = { x: 16, y: 12 }
 // 원본 카메라(fov 45°, 거리 20)에서 세로로 보이는 범위 — 움직인 거리를 원본과 같은 단위로 바꿀 때 씁니다.
 const VIEW_HEIGHT = 2 * Math.tan(45 * Math.PI / 360) * 20
 
@@ -58,14 +62,17 @@ uniform float uTime;
 uniform float uSpeed;
 uniform float uIdle;
 uniform float uDrag;
+uniform float uMax;
 varying vec2 vUv;
 void main() {
   vUv = aGrid + 0.5;
   // 원본과 같은 물결식(판 안의 자리 -0.5~0.5로 sin·cos을 겹칩니다). 나누기 3은 값을 -1~1로 맞추려는 것입니다.
+  // uTime에 사진마다 다른 시작점이 들어 있어, 옆 사진과 같은 모양으로 움직이지 않습니다.
   float wave = (sin(aGrid.x * 4.0 + uTime) * 1.5 + cos(aGrid.y * 2.0 + uTime) * 1.5) / 3.0;
   // 원본은 화면 한가운데를 기준으로 원근을 주기 때문에, 가장자리 사진일수록 크게 기울어집니다.
   // 여기서는 두 줄이 화면을 가로지르므로 사진마다 제 가운데를 기준으로 부풀렸다 줄여 고르게 일렁이게 합니다.
-  float bulge = wave * (uIdle + abs(uSpeed) * uDrag);
+  // 빠르게 끌어도 uMax를 넘지 않게 막습니다(넘으면 사진 모양이 무너지고 화면이 느려집니다).
+  float bulge = wave * min(uIdle + abs(uSpeed) * uDrag, uMax);
   vec2 screen = uCenter + aGrid * uSize * (1.0 + bulge);
   gl_Position = vec4(screen.x / uCanvas.x * 2.0 - 1.0, 1.0 - screen.y / uCanvas.y * 2.0, 0.0, 1.0);
 }`
@@ -191,7 +198,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
 
     const at = Object.fromEntries(
-      ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag',
+      ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag', 'uMax',
         'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uSaturate']
         .map(name => [name, gl.getUniformLocation(program, name)]),
     )
@@ -252,7 +259,8 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
       if (!box || !current) return
       const { canvas, gl, at, textures, sizes } = current
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      // 화면 배율이 높아도 1.25배까지만 그립니다(2배로 그리면 픽셀 수가 2.5배로 늘어 느려집니다).
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25)
       const width = Math.max(1, Math.round(box.clientWidth * dpr))
       const height = Math.max(1, Math.round(box.clientHeight * dpr))
       if (canvas.width !== width || canvas.height !== height) {
@@ -264,9 +272,9 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
 
       if (advance) current.time += WOBBLE.step
       gl.uniform2f(at.uCanvas, width, height)
-      gl.uniform1f(at.uTime, current.time)
       gl.uniform1f(at.uIdle, WOBBLE.idle)
       gl.uniform1f(at.uDrag, WOBBLE.drag)
+      gl.uniform1f(at.uMax, WOBBLE.max)
       gl.uniform1f(at.uRadius, borderRadius)
       gl.uniform1i(at.uTexture, 0)
       gl.activeTexture(gl.TEXTURE0)
@@ -284,6 +292,8 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
         gl.uniform2f(at.uImageSize, size[0], size[1])
         gl.uniform1f(at.uSaturate, tile.saturate)
         gl.uniform1f(at.uSpeed, tile.speed * speedScale)
+        // 사진마다 물결 시작점을 달리해 옆 사진과 같은 모양으로 움직이지 않게 합니다.
+        gl.uniform1f(at.uTime, current.time + tile.phase)
         gl.drawElements(gl.TRIANGLES, current.indexCount, gl.UNSIGNED_SHORT, 0)
       }
     },

@@ -382,6 +382,7 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
 
 // 맨 아래 흐르는 글자 띠(피그마 342-180, React Bits Curved Loop: speed 2.2, curveAmount 0 = 곧은 줄)
 // 피그마 수정본대로 검정(#0f0f0f) 바탕에 코랄(#f8574f) 글씨입니다(예전에는 코랄 바탕에 회색 그라데이션 글씨).
+// 글자가 48로 작아진 만큼 같은 speed가 두 배로 빨라 보여서, 흐르는 속도도 2.2 → 1.1로 절반으로 낮췄습니다.
 // 띠 높이 138 · 글자 48 · 자간 -1.44는 피그마 값이고, 색·크기는 App.css의 .marquee-band에 있습니다.
 // 마우스로 끌어서 움직일 수 있고, 끈 방향으로 계속 흐릅니다. 한 벌이 끝나면 ' · '로 이어집니다.
 const MARQUEE_TEXT = 'GRAND EXHIBITION · CHOISUBIN DESIGN PORTFOLIO · '
@@ -391,7 +392,7 @@ function MarqueeBand() {
     <section className="marquee-band" aria-label="GRAND EXHIBITION · CHOISUBIN DESIGN PORTFOLIO">
       <CurvedLoop
         marqueeText={MARQUEE_TEXT}
-        speed={2.2}
+        speed={1.1}
         curveAmount={0}
         width={1920}
         height={138}

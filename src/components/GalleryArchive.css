@@ -167,6 +167,8 @@
    커지기·색 돌아오기도 캔버스가 처리하므로 CSS 쪽 확대는 끕니다(키보드 테두리는 그대로 보입니다).
    WebGL을 쓸 수 없는 기기에서는 이 규칙이 켜지지 않아 예전처럼 <img>가 그대로 보입니다. */
 .archive[data-webgl='true'] .archive__photo { background: none; }
-.archive[data-webgl='true'] .archive__photo img { opacity: 0; }
+/* 캔버스가 같은 그림을 그리므로 원래 <img>는 아예 그리지 않습니다(사진 76장을 안 그려서 그만큼 가벼워집니다).
+   버튼 크기는 CSS의 --w · --h로 정해지므로 <img>가 없어도 누르는 자리는 그대로입니다. */
+.archive[data-webgl='true'] .archive__photo img { display: none; }
 .archive[data-webgl='true'] .archive__photo:hover,
 .archive[data-webgl='true'] .archive__photo:focus-visible { transform: none; }

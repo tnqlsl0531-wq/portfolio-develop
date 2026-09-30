@@ -226,11 +226,12 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
         <LightRays
           className="stage-works__rays"
           raysOrigin="top-center"
-          raysColor="#fff0c4"
+          raysColor="#ffd27a"
           raysSpeed={.1}
-          lightSpread={.1}
+          lightSpread={.35}
           rayLength={.8}
           saturation={.8}
+          intensity={2.6}
           mouseInfluence={.2}
         />
         <img className="stage-works__asset stage-works__floor-shadow" src={floorShadow} width={1252} height={132} alt="" />
