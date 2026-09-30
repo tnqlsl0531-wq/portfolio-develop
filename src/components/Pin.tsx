@@ -7,7 +7,10 @@
  *     'start'  = 섹션 맨 위가 화면 맨 위에 닿을 때(제목이 보이기 시작할 때)
  *   화면보다 짧거나 같은 섹션은 어느 쪽이든 섹션 맨 위가 화면 맨 위에 닿으면 멈춥니다.
  * - hold: 이 섹션만 멈춰 있는 거리를 다르게 줄 때(예: '110vh').
+ * - focus: [위, 아래] — 멈춰 있는 동안 꼭 화면에 다 보여야 하는 부분(섹션 높이 대비 0~1). 주면 align 대신 이걸로 멈추는 높이를 정합니다.
+ *   그 부분이 화면에 다 들어가면 화면 세로 가운데에 오게, 안 들어가면 아래쪽(= 아래 끝)이 화면 아래 끝에 맞게 멈춥니다(10/1, Stage Works 무대가 잘려서).
  * - landAt: 목차(프로그램북)로 이 섹션에 올 때, 멈춰 있는 거리 중 어디(0~1)에 내려줄지. 예: 제목 애니메이션이 끝난 자리.
+ * - stop: 휠을 세게 굴려 빠르게 지나가도 이 섹션(landAt 자리)에서 한 번은 꼭 멈춥니다(useSmoothScroll.ts). 한 번 더 굴리면 지나갑니다.
  * - CSS sticky로 만들어서 휠·키보드·스크롤 막대 어떤 방법으로 스크롤해도 똑같이 걸립니다.
  * - 폰·태블릿(700px 이하)과 동작 줄이기 설정에서는 걸지 않습니다(App.css).
  */
@@ -17,11 +20,14 @@ import type { CSSProperties, ReactNode, RefObject } from 'react'
 type Props = {
   children: ReactNode
   align?: 'start' | 'center' | 'end'
+  focus?: [number, number]
   hold?: string
   landAt?: number
+  stop?: boolean
 }
 
-export default function Pin({ children, align = 'end', hold, landAt }: Props) {
+export default function Pin({ children, align = 'end', focus, hold, landAt, stop }: Props) {
+  const [focusTop, focusBottom] = focus ?? [NaN, NaN]
   const ref = useRef<HTMLDivElement>(null)
   const body = useRef<HTMLDivElement>(null)
 
@@ -31,8 +37,16 @@ export default function Pin({ children, align = 'end', hold, landAt }: Props) {
     if (!pin || !content) return
     const measure = () => {
       // 긴 섹션은 멈추는 높이(top)를 음수로 두어, 섹션의 원하는 부분이 화면에 오도록 합니다.
-      const extra = Math.min(0, window.innerHeight - content.offsetHeight)
-      const top = align === 'start' ? 0 : align === 'center' ? extra / 2 : extra
+      const viewport = window.innerHeight
+      const height = content.offsetHeight
+      const extra = Math.min(0, viewport - height)
+      let top = align === 'start' ? 0 : align === 'center' ? extra / 2 : extra
+      if (!Number.isNaN(focusTop)) {
+        // 꼭 보여야 하는 부분(focus)이 화면에 들어가면 가운데로, 안 들어가면 그 아래 끝을 화면 아래 끝에 맞춥니다.
+        const span = (focusBottom - focusTop) * height
+        const wanted = span <= viewport ? viewport / 2 - (focusTop + focusBottom) / 2 * height : viewport - focusBottom * height
+        top = Math.min(0, Math.max(extra, wanted))
+      }
       pin.style.setProperty('--pin-top', `${top}px`)
     }
     measure()
@@ -43,11 +57,11 @@ export default function Pin({ children, align = 'end', hold, landAt }: Props) {
       observer.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [align])
+  }, [align, focusTop, focusBottom])
 
   const style = hold ? ({ '--pin-hold': hold } as CSSProperties) : undefined
   return (
-    <div ref={ref} className="pin" style={style} data-land={landAt}>
+    <div ref={ref} className="pin" style={style} data-land={landAt} data-stop={stop || undefined}>
       <div ref={body} className="pin__body">{children}</div>
     </div>
   )
@@ -83,6 +97,16 @@ export function pinHold(pin: HTMLElement) {
 /** 멈춰 있을 때 묶음 윗선의 화면 위치(px, Pin이 정한 --pin-top). */
 export function pinTop(pin: HTMLElement) {
   return parseFloat(pin.style.getPropertyValue('--pin-top')) || 0
+}
+
+/**
+ * 이 묶음에 '내려앉는' 스크롤 위치(문서 위에서부터 px): 화면에 멈추기 시작하는 자리 + 멈춰 있는 거리 × landAt.
+ * 목차(프로그램북)로 이동할 때, 빠른 휠에서도 꼭 멈출 자리(stop)를 정할 때 씁니다.
+ */
+export function pinLandTop(pin: HTMLElement) {
+  const hold = pinHold(pin)
+  const land = pin.dataset.land && hold > 0 ? Number(pin.dataset.land) * hold : 0
+  return pin.getBoundingClientRect().top + window.scrollY - pinTop(pin) + land
 }
 
 /**

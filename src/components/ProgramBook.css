@@ -55,11 +55,14 @@
   -webkit-backface-visibility: hidden;
 }
 .program-book__leaf .program-book__page--left { transform: rotateY(180deg); }
-/* 뒤를 보고 있는 면은 확실히 숨깁니다(브라우저마다 뒷면 숨기기가 어긋나는 경우 대비). */
-.program-book:not([data-pose='open']) .program-book__leaf .program-book__page--left,
-.program-book[data-pose='open'] .program-book__leaf .program-book__cover { visibility: hidden; }
-/* 움직이는 동안에는 진짜 면을 투명하게 두고 휘는 종이를 보여 줍니다(키보드 포커스는 표지에 그대로 남음). */
-.program-book[data-pose='moving'] .program-book__leaf { opacity: 0; }
+/* 뒤를 보고 있는 면은 확실히 숨깁니다(브라우저마다 뒷면 숨기기가 어긋나는 경우 대비).
+   10/1: 펼치기 시작하면(data-open) 진짜 장을 바로 펼친 자리로 옮겨 두므로, 그때부터 왼쪽 면을 살려 두고 표지를 숨깁니다
+   → 종이가 넘어가는 동안에도 왼쪽 면 항목에 마우스를 올리고 누를 수 있습니다(움직이는 동안 진짜 면은 투명, 그림은 휘는 종이가 보여 줌). */
+.program-book:not([data-open]) .program-book__leaf .program-book__page--left,
+.program-book[data-open] .program-book__leaf .program-book__cover { visibility: hidden; }
+/* 움직이는 동안에는 진짜 면을 투명하게 두고 휘는 종이를 보여 줍니다(키보드 포커스는 표지에 그대로 남음).
+   장(leaf) 전체가 아니라 면마다 투명하게 합니다 — 장에 opacity를 주면 3D가 납작해져서 왼쪽 면이 뒤집힌 채로 숨고, 마우스도 안 닿습니다. */
+.program-book[data-pose='moving'] .program-book__leaf > .program-book__face { opacity: 0; }
 
 /* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
 .program-book__page--right { position: absolute; inset: 0; transform: translateZ(0); }
@@ -175,39 +178,84 @@
 }
 .program-book__brand--strong { top: calc(241 * var(--s)); color: #fc7a73; }
 .program-book__line { display: block; }
+/* '2026' 옆 가는 선(피그마 Vector 1815: x 59.5 · y 32 · 폭 181, 1px #d4d4d4, 끝 둥글게) */
+.program-book__rule {
+  position: absolute; left: calc(59.5 * var(--s)); top: calc(32 * var(--s)); width: calc(181 * var(--s)); height: 1px;
+  border-radius: 1px; background: #d4d4d4; transform: translateY(-50%);
+}
 
-/* ── 속지 ─────────────────────────────────────── */
+/* ── 속지(피그마 392-242 수정본, 10/1) ─────────────────────
+   글자 Lisu Bosa ExtraBold 32 · 줄 간격 1 · #262626, Contact만 Black 40 · 자간 -3% · 면 가운데.
+   아래쪽 연분홍 띠(#fff3f2, 면 위에서 288부터 높이 50)는 아래 .program-book__page 바탕에 그립니다. */
 .program-book__list { margin: 0; padding: 0; list-style: none; }
 .program-book__slot { position: absolute; top: calc(var(--top) * var(--s)); }
 .program-book__slot[data-align='left'] { left: calc(var(--left) * var(--s)); }
 .program-book__slot[data-align='right'] { right: calc(var(--right) * var(--s)); text-align: right; }
+.program-book__slot[data-align='center'] { left: 50%; translate: -50% 0; text-align: center; }
 
 .program-book__item {
+  position: relative;
   display: block;
-  color: #812b27;
-  font: 800 calc(32 * var(--s))/1.04 'Lisu Bosa', Georgia, serif;
+  color: #262626;
+  font: 800 calc(32 * var(--s))/1 'Lisu Bosa', Georgia, serif;
+  white-space: nowrap;
   text-decoration: none;
   transition: color 220ms ease, transform 220ms ease;
 }
 .program-book__item[data-big] {
-  color: #f8574f;
   font-weight: 900;
-  font-size: calc(36 * var(--s));
-  letter-spacing: calc(-1.08 * var(--s));
+  font-size: calc(40 * var(--s));
+  letter-spacing: calc(-1.2 * var(--s));
 }
 .program-book__slot[data-align='right'] .program-book__item { transform-origin: right center; }
 .program-book__slot[data-align='left'] .program-book__item { transform-origin: left center; }
+.program-book__slot[data-align='center'] .program-book__item { transform-origin: center; }
+/* 마우스를 올리면 코랄로 바뀌며 살짝 커집니다. data-hover는 종이가 넘어가는 동안 움직이는 종이 그림에 같은 모습을 보여 주는 표시입니다. */
 .program-book__item:hover,
+.program-book__item[data-hover],
 .program-book__item:focus-visible { transform: scale(1.05); }
-.program-book__item:hover { color: #f8574f; }
-.program-book__item[data-big]:hover { color: #e3463e; }
+.program-book__item:hover,
+.program-book__item[data-hover] { color: #f8574f; }
 
-/* 지금 보고 있는 섹션: CONTACT가 이미 코랄이라 색 대신 밑줄로 표시합니다. */
-.program-book__item[data-current] {
-  text-decoration: underline;
-  text-decoration-color: #f8574f;
-  text-decoration-thickness: calc(2 * var(--s));
-  text-underline-offset: calc(5 * var(--s));
+/* ── 지금 보고 있는 섹션: 항목 위 가운데에 아래를 가리키는 겹꺾쇠(피그마 Vector 1813·1814) ──
+   꺾쇠 묶음 23 × 18(위 작은 꺾쇠 18 × 10은 x 2, 아래 큰 꺾쇠 23 × 12는 y 6), 글자 윗선보다 1 위.
+   등장: 펼칠 때(또는 보고 있는 섹션이 바뀔 때) 아래 큰 꺾쇠 → 위 작은 꺾쇠 순서로 위에서 톡 떨어집니다(here-drop).
+   그다음 펼쳐 둔 동안 아래로 살랑 흔들리고, 위 꺾쇠가 조금 늦게 따라와 '이쪽이에요' 하고 흐르는 느낌을 줍니다(here-bob).
+   transform·opacity만 움직여서 가볍고, 책이 닫혀 있으면 멈춥니다. */
+.program-book__here {
+  position: absolute; left: 50%; bottom: calc(100% + 1 * var(--s));
+  width: calc(23 * var(--s)); height: calc(18 * var(--s));
+  translate: -50% 0; pointer-events: none;
+}
+.program-book__chev { position: absolute; display: block; overflow: visible; }
+.program-book__chev--top { left: calc(2 * var(--s)); top: 0; width: calc(18 * var(--s)); height: calc(10 * var(--s)); }
+.program-book__chev--bottom { left: 0; top: calc(6 * var(--s)); width: calc(23 * var(--s)); height: calc(12 * var(--s)); }
+.program-book__leaf .program-book__chev,
+.program-book__page--right > .program-book__list .program-book__chev {
+  animation: here-drop 460ms cubic-bezier(.34, 1.56, .64, 1) both, here-bob 1.8s ease-in-out 700ms infinite;
+}
+.program-book__leaf .program-book__chev--top,
+.program-book__page--right > .program-book__list .program-book__chev--top {
+  animation-delay: 90ms, 820ms;
+}
+.program-book:not([data-open]) .program-book__chev { animation-play-state: paused; }
+@keyframes here-drop {
+  from { opacity: 0; transform: translateY(calc(-9 * var(--s))); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes here-bob {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(calc(3.5 * var(--s))); }
+  70% { transform: translateY(calc(-.5 * var(--s))); }
+}
+
+/* 속지 바탕(피그마 10/1): 흰 종이(#fffefe) + 아래 연분홍 띠(면 위에서 288부터 끝까지 = 높이 50, #fff3f2) + 종이 결 */
+.program-book__page {
+  background-color: #fffefe;
+  background-image: var(--grain), linear-gradient(#fff3f2, #fff3f2);
+  background-repeat: repeat, no-repeat;
+  background-position: 0 0, 0 calc(288 * var(--s));
+  background-size: auto, 100% calc(50 * var(--s));
 }
 
 /* 펼친 두 면: 등(가운데)으로 갈수록 종이가 말려 들어가 그늘이 지고, 바깥 모서리는 살짝 떠올라 밝습니다. */
@@ -251,4 +299,5 @@
 /* 동작 줄이기 설정: 넘어가는 움직임 없이 바로 펼쳐집니다(ProgramBook.tsx에서 처리). */
 @media (prefers-reduced-motion: reduce) {
   .program-book__item { transition: none; }
+  .program-book .program-book__chev { animation: none !important; }
 }

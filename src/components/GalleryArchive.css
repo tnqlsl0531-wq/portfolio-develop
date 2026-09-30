@@ -88,10 +88,11 @@
   cursor: pointer;
   transition: transform 400ms cubic-bezier(.22, .61, .36, 1);
 }
-/* 채도(1 = 원본, 0 = 흑백): 평소에는 --archive-saturate(50%)로 낮추고, 위에서 내려오는 조명 안에 들어온 부분만
-   --archive-saturate-lit(75%, 예전 평소 채도)로 살립니다(캔버스 셰이더). 마우스를 올린 사진은 원래 색으로 돌아옵니다.
-   (WebGL이 안 되는 기기의 원래 <img>는 조명 계산 없이 --archive-saturate만 씁니다.) */
-.archive { --archive-saturate: .5; --archive-saturate-lit: .75; }
+/* 채도(1 = 원본, 0 = 흑백): 평소에는 --archive-saturate로 확 낮추고, 위에서 내려오는 조명 안에 들어온 부분만
+   --archive-saturate-lit로 살립니다(캔버스 셰이더). 마우스를 올린 사진은 원래 색으로 돌아옵니다.
+   10/1: 조명 안팎 차이가 거의 안 보인다는 피드백으로 조명 밖 50% → 15%(메인 Artist Gallery의 22%보다도 조금 더 낮게),
+   조명 안 75% → 90%로 벌렸습니다. (WebGL이 안 되는 기기의 원래 <img>는 조명 계산 없이 --archive-saturate만 씁니다.) */
+.archive { --archive-saturate: .15; --archive-saturate-lit: .9; }
 .archive__photo img {
   display: block; width: 100%; height: 100%; object-fit: cover;
   filter: saturate(var(--archive-saturate));

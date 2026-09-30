@@ -425,23 +425,30 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
     return () => window.clearTimeout(timer)
   }, [toast])
 
-  // 3D 목걸이 파일(코드·모델·그림)을 첫 화면이 다 뜬 뒤 한가할 때 미리 받아 둡니다.
+  // 3D 목걸이 파일(코드·모델·그림)을 첫 화면이 다 뜬 뒤 한가할 때 미리 받아 두고, 다 받은 뒤 다시 한가할 때 3D 무대도 미리 만들어 둡니다.
   // 예전에는 Contact 근처(800px)에 와서야 받기 시작해서, 스크롤하는 도중에는 목걸이 자리에 닿아도 늦게 떨어졌습니다.
+  // 10/1: 3D 무대 만들기(그래픽 준비·셰이더 준비)도 스크롤 도중(Contact 두 화면 앞)이 아니라 한가할 때 미리 해서, Director’s Note 근처에서 멈칫하지 않게 했습니다.
   useEffect(() => {
     if (!enabled) return
-    let idle = 0
-    let timer = 0
-    const start = () => {
-      const run = () => { loadLanyard().catch(() => {}) }
-      if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(run, { timeout: 3000 })
-      else timer = window.setTimeout(run, 1200)
+    let alive = true
+    const idles: number[] = []
+    const timers: number[] = []
+    const whenIdle = (run: () => void, timeout: number) => {
+      if (typeof window.requestIdleCallback === 'function') idles.push(window.requestIdleCallback(run, { timeout }))
+      else timers.push(window.setTimeout(run, 1200))
     }
+    const start = () => whenIdle(() => {
+      loadLanyard()
+        .then(() => whenIdle(() => { if (alive) setNear(true) }, 8000))
+        .catch(() => {})
+    }, 3000)
     if (document.readyState === 'complete') start()
     else window.addEventListener('load', start, { once: true })
     return () => {
+      alive = false
       window.removeEventListener('load', start)
-      if (idle) window.cancelIdleCallback(idle)
-      window.clearTimeout(timer)
+      idles.forEach(id => window.cancelIdleCallback(id))
+      timers.forEach(id => window.clearTimeout(id))
     }
   }, [enabled])
 
@@ -449,7 +456,8 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
     const element = area.current
     if (!element) return
     const section = element.closest('section') ?? element
-    // 3D 무대는 Contact가 화면 2장 거리 안에 오면 미리 만들어 두고(떨어지기 전 한 장면을 그려 준비까지 끝냄), 목걸이 자리에 닿는 순간 바로 떨어뜨립니다.
+    // 3D 무대는 보통 한가할 때 미리 만들어 둡니다(위). 그 전에 Contact가 화면 2장 거리 안에 오면 그때 바로 만듭니다(떨어지기 전 한 장면을 그려 준비까지 끝냄).
+    // 목걸이 자리에 닿는 순간 바로 떨어뜨립니다.
     const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '200% 0px' })
     // 섹션이 화면에 1px이라도 보이면 목걸이 물리 계산을 켭니다 → 화면을 많이 내리거나 올린 상태에서도 목걸이를 끌며 놀 수 있어요.
     const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting))
@@ -521,17 +529,12 @@ function MarqueeBand() {
         height={138}
         lineY={69}
         className="marquee-band__text"
-        defs={
-          // 피그마 342-180 수정본(9/30 밤): 글자 색 = 연한 분홍(#FF9D97)과 코랄(#FC7A73) 그라데이션.
-          // 피그마에서 글자 두 벌이 서로 반대 방향 그라데이션이라, 띠 전체로 보면 양 끝이 연하고 가운데(x 966)가 진합니다.
-          // 흐르는 글자가 화면 자리에 따라 색이 바뀌도록 띠(1920 기준 좌표)에 고정해 둡니다(피그마 글자 상자 -468 ~ 2388).
-          <linearGradient id="marquee-band-fill" gradientUnits="userSpaceOnUse" x1={-468} y1={0} x2={2388} y2={0}>
-            <stop offset="0" stopColor="#FF9D97" />
-            <stop offset="0.502" stopColor="#FC7A73" />
-            <stop offset="1" stopColor="#FF9D97" />
-          </linearGradient>
-        }
       />
+      {/* 글자 색(피그마 342-180 수정본, 9/30 밤): 연한 분홍(#FF9D97)과 코랄(#FC7A73) 그라데이션.
+          피그마에서 글자 두 벌이 서로 반대 방향 그라데이션이라, 띠 전체로 보면 양 끝이 연하고 가운데(x 966)가 진합니다.
+          흐르는 글자가 화면 자리에 따라 색이 바뀌도록 띠에 고정해 둔 층을 흰 글자 위에 덮어 색을 입힙니다(App.css .marquee-band__tint).
+          10/1: 글자를 가볍게 흘리려고(CurvedLoop StraightLoop) SVG 그라데이션 대신 이 방식으로 바꿨습니다. 보이는 색은 같습니다. */}
+      <span className="marquee-band__tint" aria-hidden="true" />
     </section>
   )
 }
@@ -775,14 +778,16 @@ function Portfolio() {
         {/* 히어로: 처음 들어온 화면(맨 위) 그대로 멈추고, 멈춘 동안 스크롤하면 오른쪽 위 빨간 글자(CHOI-SUBIN PRESENTS)가 그려진 뒤 풀립니다.
             아래 물결은 멈추지 않고, 멈춤이 풀린 뒤 화면에 들어오면서 휩니다(HeroCurve). */}
         <Pin align="start" hold="110vh"><Hero /></Pin>
-        {/* Stage Works: 섹션 맨 위가 화면 맨 위에 닿을 때 멈춤(제목이 잘리지 않게) */}
-        <Pin align="start"><StageWorks onSelect={setSelectedProject} /></Pin>
+        {/* Stage Works: 제목(섹션 위 14%)부터 무대 아래 끝(88%)까지가 화면에 다 보이는 자리에서 멈춤(focus).
+            예전에는 섹션 맨 위가 화면 맨 위에 닿을 때 멈춰서, 화면이 낮으면 무대 아래가 잘렸습니다(10/1). */}
+        <Pin align="start" focus={[.14, .88]}><StageWorks onSelect={setSelectedProject} /></Pin>
         {/* Artist Gallery: 섹션 가운데가 화면 가운데에 올 때 멈춤(글자가 너무 위에 붙지 않게).
             멈추는 순간부터 제목 글자가 접혔다 펴지며 부제·버튼과 함께 등장하고, 버튼까지 다 뜬 뒤에도 한동안 더 멈춰 있습니다(130vh). */}
         <Pin align="center" hold="130vh" landAt={.6}><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
         {/* Director’s Note: 앞 섹션이 빠지며 흰 화면이 차오르는 동안 제목 글자가 떠오르기 시작하고, 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈춰
             제목을 마저 띄운 뒤 사진·글이 아래에서 올라오고(DIRECTOR_PIN), 그다음 다시 흘러감 */}
-        <Pin align="start" hold="80vh" landAt={.62}><DirectorsNote /></Pin>
+        {/* stop: 휠을 세게 굴려도 Director’s Note에서 한 번은 꼭 멈춥니다(10/1, 빠르게 스크롤하면 흰 화면으로 통째로 지나가서) */}
+        <Pin align="start" hold="80vh" landAt={.62} stop><DirectorsNote /></Pin>
         <Contact />
         <MarqueeBand />
       </main>

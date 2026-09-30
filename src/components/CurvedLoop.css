@@ -14,3 +14,8 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* 곧은 줄(StraightLoop, 10/1 가볍게): 글자 줄(.curved-loop-track)을 transform으로 옆으로 밉니다.
+   줄 폭 = 띠 폭 × (이어 붙인 길이 / viewBox 폭) × --loop-zoom(폰에서 글자를 키울 때 2). */
+.curved-loop-jacket--straight { justify-content: flex-start; overflow: hidden; }
+.curved-loop-track { flex: none; width: calc(var(--loop-track, 100%) * var(--loop-zoom, 1)); will-change: transform; }

@@ -332,3 +332,29 @@ https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/
   띠 좌표로 합쳐 x -468(#FF9D97) · 966(#FC7A73) · 2388(#FF9D97) SVG linearGradient(userSpaceOnUse)로 적용.
 - Artist Gallery 아카이브(피그마 334-2 수정본): 조명 SVG를 피그마 'Spotlight · Grayscale'(334-43, 978×653, 흐림 7.5, #FFFFFD → #FFFDE8 72% → #FAFAFA 0%)로 교체,
   top -15 · 가운데, 사진 캔버스보다 뒤(z-index). 채도: 조명 밖 0.75 → 0.5, 조명 안 0.75(셰이더에서 사다리꼴 마스크, 가장자리 28 · 아래 140 부드럽게), 마우스 올리면 1.
+
+렉 줄이기 · Stage Works 멈춤 자리 · 프로그램북 수정본 · 아카이브 채도 · Director’s Note 꼭 멈춤 (2026-10-01)
+- 렉(발표 때 Zoom 공유로 더 느려짐) — 외부 라이브러리 추가 없음:
+  · 커서 물감(SplashCursor): 마지막 물감 1.4초 뒤 계산 완전히 멈춤 + 레이어 숨김(마우스 움직이면 다시 켜짐), 그리는 해상도 화면의 0.5배,
+    DYE_RESOLUTION 1440 → 540, CURL 0일 때 curl·vorticity 단계 건너뜀(결과 같음), 잘라 내는 clip-path는 바뀔 때만 다시 씀.
+  · 3D 목걸이(Lanyard): frameloop 'demand' 고정 — 물리 몸체가 깨어 있을 때만 그림(@react-three/rapier가 깨어 있는 몸체마다 invalidate).
+    거의 멈추면(속도 0.05 · 목표 각도 0.02 안 · 0.25초) 몸체를 바로 재우고, 다음 뒤집기(SHOWCASE) 때 setTimeout으로 깨움.
+    dpr = min(2, 화면 배율 × 1.5), antialias(MSAA) 끔. 3D 무대 마운트는 Contact 두 화면 앞 → 파일을 받은 뒤 한가할 때(requestIdleCallback, 늦어도 8초).
+  · 글자 띠(CurvedLoop): 곧은 줄이면 textPath startOffset을 매 프레임 바꾸는 대신 Web Animations transform(translate3d)로 한 벌 길이만큼 반복(StraightLoop).
+    끌기는 애니메이션을 멈추고 currentTime으로 옮긴 뒤, 끈 방향으로 새 애니메이션을 만듦. 글자 흰색 + 띠에 고정된 CSS linear-gradient 층
+    (90deg, #FF9D97 -24.375% · #FC7A73 50.3% · #FF9D97 124.375% = 예전 SVG 그라데이션과 같은 좌표)을 mix-blend-mode: darken으로 덮음.
+  · Director’s Note 소개 글(ScrollReveal): 또렷해지는 정도를 12단계로 나눠 바뀔 때만 opacity·filter를 다시 씀.
+  · 헤드리스 Chromium(SwiftShader, 소프트웨어 합성) 측정: Director’s Note에서 가만히 있을 때 CPU 약 2.3코어 → 0.14코어(초당 2 → 60프레임),
+    휠로 Director’s Note → Contact 내려가기 약 89초 → 10초(느린 가상 GPU라 절대값보다 비교용).
+- Stage Works 멈춤 자리: Pin에 focus 추가 — 섹션 위 14% ~ 88%(제목 ~ 무대 아래 끝)가 화면에 다 들어가면 화면 가운데, 안 들어가면 아래 끝을 화면 아래 끝에 맞춤.
+  목차 이동은 멈추기 시작하는 자리(pinLandTop = 묶음 윗선 - --pin-top + landAt × 멈춤 거리).
+- Stage Works 드래그 안내: 알약 테두리·바탕 제거, 글자만. 화살표 ← → → 꺾쇠 SVG(10 × 16, 선 2.2, 끝 둥글게, #ffc7c3, 글자 크기 em 비율), 흔들림 애니메이션 그대로.
+- 프로그램북(피그마 392-242 수정본, node 387:213 표지 · 392:217/392:220 속지): 표지 Vector 1815(x 59.5, y 32, 폭 181, 1px #D4D4D4, round cap),
+  속지 #FFFEFE + 아래 띠 #FFF3F2(y 288, 높이 50), 글자 Lisu Bosa ExtraBold 32 · 줄 간격 100% · #262626,
+  Grand Exhibition(25, 66) · Stage Works 한 줄(오른쪽 맞춤, 오른쪽 끝 235 → 오른쪽 24, 위 211) · Artist Gallery(22, 42) · Director’s Note(오른쪽 끝 231 → 오른쪽 28, 위 152)
+  · Contact(Lisu Bosa Black 40 · 자간 -3% · 가운데, 위 264). 지금 위치 표시: Vector 1814(18 × 10, 선 2, #9A9A9A) · Vector 1813(23 × 12, 선 2, #707070)을
+  23 × 18 묶음으로 항목 위 가운데(글자 윗선 1 위)에 둠. SVG 경로는 피그마 플러그인 API(exportAsync SVG_STRING)로 받은 값 그대로.
+  넘김 MOTION follow .14 → .05 · stiffness 48 → 140 · damping .74 → .8 · bounce .24 → .18 · lag .075 → .045 · maxBend 52 → 46, 멈춤 판정 0.0008 → 0.004.
+  스크롤 따라오기 FOLLOW drag .32 → .25 · max 56 → 44 · damping .3 → .42 · tilt 5 → 3.2 · squash .06 → .04.
+- Artist Gallery: 부제 0.55초 → 버튼 0.7초, 위(-22px)에서 내려옴, cubic-bezier(.34, 1.45, .64, 1). 아카이브 채도: 조명 밖 .5 → .15, 조명 안 .75 → .9.
+- Director’s Note: 사진·글 등장 1초 → 1.4초 뒤. <Pin stop> + useSmoothScroll STOP(gap 240ms): 휠 target이 멈출 자리(pinLandTop, landAt .62)를 넘으려 하면 그 자리로 붙잡음.

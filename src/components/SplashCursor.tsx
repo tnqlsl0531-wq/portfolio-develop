@@ -18,6 +18,10 @@
  * - 효과가 안 보일 때(히어로만 보이거나 Contact에 다 들어왔을 때)는 계산을 멈춰 컴퓨터를 덜 씁니다.
  * - 작품 선택 창·BACKSTAGE·아카이브처럼 창(dialog)이 열려 있을 때는 물감을 만들지 않습니다.
  * - 화면에서 사라질 때 이벤트·애니메이션·WebGL을 정리합니다(원본은 정리하지 않음).
+ * - 가볍게(10/1, 발표 때 Zoom으로 공유하면 더 느려져서): 마우스가 멈추고 물감이 다 사라지면(QUALITY.idleMs) 계산을 완전히 멈추고
+ *   레이어도 숨깁니다(원본은 가만히 있어도 매 프레임 전체 화면을 계산). 마우스가 다시 움직이면 바로 이어서 나옵니다.
+ *   물감이 원래 뿌옇게 번지는 효과라 절반 해상도로 계산·그려도 눈으로는 거의 같아서 해상도를 낮췄고(QUALITY.renderScale, DYE_RESOLUTION),
+ *   CURL 0이라 아무 일도 안 하는 소용돌이 계산 두 단계는 건너뜁니다.
  * - 마우스(정밀 포인터)가 있는 기기에서만 켭니다(App.tsx). 터치 기기·동작 줄이기 설정에서는 나오지 않습니다.
  */
 import { useEffect, useRef } from 'react'
@@ -25,7 +29,8 @@ import './SplashCursor.css'
 
 const SPLASH = {
   SIM_RESOLUTION: 128,
-  DYE_RESOLUTION: 1440,
+  // 물감 해상도(세로 칸 수). 원본 1440 → 540(10/1 가볍게). 물감이 부드럽게 번지는 효과라 차이가 거의 안 보입니다.
+  DYE_RESOLUTION: 540,
   DENSITY_DISSIPATION: 8.5,
   VELOCITY_DISSIPATION: 4,
   PRESSURE: 0,
@@ -50,6 +55,11 @@ const FADE_IN = { start: 1, end: 0.45 }
 // 물감 전체 불투명도(0~1). 마우스를 한곳에서 오래 움직여 물감이 짙게 쌓여도 뒤 내용이 비쳐 보이도록 낮췄습니다(원래 1).
 // 더 옅게 하려면 숫자를 줄이고, 더 진하게 하려면 늘리세요.
 const OPACITY = 0.5
+
+/* 가볍게(10/1)
+   renderScale: 화면 크기 대비 그리는 해상도(0.5 = 가로세로 절반 → 픽셀 수 1/4). 물감 가장자리가 원래 뿌옇기 때문에 티가 안 납니다.
+   idleMs     : 마지막으로 물감을 만든 뒤 이만큼(ms) 지나면 계산을 완전히 멈춥니다(그때쯤이면 물감이 다 사라져 있음). */
+const QUALITY = { renderScale: 0.5, idleMs: 1400 }
 
 type ColorRGB = { r: number; g: number; b: number }
 type Pointer = {
@@ -629,10 +639,11 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       pressure = createDoubleFBO(simRes.width, simRes.height, r.internalFormat, r.format, texType, gl.NEAREST)
     }
 
-    const scaleByPixelRatio = (input: number) => Math.floor(input * (window.devicePixelRatio || 1))
+    // 그리는 해상도: 화면(CSS px)의 QUALITY.renderScale배(화면 배율과 상관없이). 화면에는 늘여서 보여 줍니다.
+    const scaleToRender = (input: number) => Math.max(1, Math.floor(input * QUALITY.renderScale))
     function resizeCanvas() {
-      const width = scaleByPixelRatio(canvas!.clientWidth)
-      const height = scaleByPixelRatio(canvas!.clientHeight)
+      const width = scaleToRender(canvas!.clientWidth)
+      const height = scaleToRender(canvas!.clientHeight)
       if (canvas!.width === width && canvas!.height === height) return false
       canvas!.width = width
       canvas!.height = height
@@ -653,19 +664,22 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     function step(dt: number) {
       gl.disable(gl.BLEND)
 
-      curlProgram.bind()
-      gl.uniform2f(curlProgram.uniforms.texelSize ?? null, velocity.texelSizeX, velocity.texelSizeY)
-      gl.uniform1i(curlProgram.uniforms.uVelocity ?? null, velocity.read.attach(0))
-      blit(curl)
+      // 소용돌이(CURL)가 0이면 이 두 단계는 속도를 그대로 베끼기만 하므로 건너뜁니다(결과는 같고 계산만 줄어듦).
+      if (config.CURL !== 0) {
+        curlProgram.bind()
+        gl.uniform2f(curlProgram.uniforms.texelSize ?? null, velocity.texelSizeX, velocity.texelSizeY)
+        gl.uniform1i(curlProgram.uniforms.uVelocity ?? null, velocity.read.attach(0))
+        blit(curl)
 
-      vorticityProgram.bind()
-      gl.uniform2f(vorticityProgram.uniforms.texelSize ?? null, velocity.texelSizeX, velocity.texelSizeY)
-      gl.uniform1i(vorticityProgram.uniforms.uVelocity ?? null, velocity.read.attach(0))
-      gl.uniform1i(vorticityProgram.uniforms.uCurl ?? null, curl.attach(1))
-      gl.uniform1f(vorticityProgram.uniforms.curl ?? null, config.CURL)
-      gl.uniform1f(vorticityProgram.uniforms.dt ?? null, dt)
-      blit(velocity.write)
-      velocity.swap()
+        vorticityProgram.bind()
+        gl.uniform2f(vorticityProgram.uniforms.texelSize ?? null, velocity.texelSizeX, velocity.texelSizeY)
+        gl.uniform1i(vorticityProgram.uniforms.uVelocity ?? null, velocity.read.attach(0))
+        gl.uniform1i(vorticityProgram.uniforms.uCurl ?? null, curl.attach(1))
+        gl.uniform1f(vorticityProgram.uniforms.curl ?? null, config.CURL)
+        gl.uniform1f(vorticityProgram.uniforms.dt ?? null, dt)
+        blit(velocity.write)
+        velocity.swap()
+      }
 
       divergenceProgram.bind()
       gl.uniform2f(divergenceProgram.uniforms.texelSize ?? null, velocity.texelSizeX, velocity.texelSizeY)
@@ -762,8 +776,8 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     function movePointer(clientX: number, clientY: number) {
       pointer.prevTexcoordX = pointer.texcoordX
       pointer.prevTexcoordY = pointer.texcoordY
-      pointer.texcoordX = scaleByPixelRatio(clientX) / canvas!.width
-      pointer.texcoordY = 1 - scaleByPixelRatio(clientY) / canvas!.height
+      pointer.texcoordX = clientX / Math.max(1, canvas!.clientWidth)
+      pointer.texcoordY = 1 - clientY / Math.max(1, canvas!.clientHeight)
       pointer.deltaX = correctDeltaX(pointer.texcoordX - pointer.prevTexcoordX)
       pointer.deltaY = correctDeltaY(pointer.texcoordY - pointer.prevTexcoordY)
     }
@@ -775,6 +789,8 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     const EDGE_STEPS = 48
     // box: 시작 요소(물결)의 화면 위치, top: 경계선 중 가장 높은 곳(화면 기준)
     const region = { box: new DOMRect(0, 0, window.innerWidth, 0), top: 0, bottom: window.innerHeight, fade: 1 }
+    let appliedClip = ''
+    let appliedOpacity = ''
     const quiet = (target: EventTarget | null) => target instanceof Element && !!target.closest('[data-cursor-quiet]')
     const edgeY = (clientX: number) => {
       const box = region.box
@@ -802,40 +818,74 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       }
       region.top = top
       const floor = Math.max(height, lowest) + 1
-      overlay!.style.clipPath = `polygon(${points.join(', ')}, ${box.right.toFixed(1)}px ${floor}px, ${box.left.toFixed(1)}px ${floor}px)`
+      // 경계선이 화면 위로 완전히 올라가 있으면 자를 곳이 없으니 자르지 않습니다(스크롤할 때마다 모양을 다시 만들지 않게).
+      const clip = lowest <= 0 ? 'none'
+        : `polygon(${points.join(', ')}, ${box.right.toFixed(1)}px ${floor}px, ${box.left.toFixed(1)}px ${floor}px)`
+      if (clip !== appliedClip) {
+        appliedClip = clip
+        overlay!.style.clipPath = clip
+      }
       // 전체 불투명도(OPACITY) × Stage Works가 끝나 갈수록 나타나게(FADE_IN) × Contact가 들어올수록 투명하게(FADE)
-      overlay!.style.opacity = String(region.fade * OPACITY)
+      const opacity = String(region.fade * OPACITY)
+      if (opacity !== appliedOpacity) {
+        appliedOpacity = opacity
+        overlay!.style.opacity = opacity
+      }
     }
     // 물감을 만들어도 되는 자리인지: 경계선(물결의 흰 부분) 아래, Contact 위, 창(dialog)이 열려 있지 않을 때
     const canPaint = (clientX: number, clientY: number) =>
       region.fade > 0 && clientY >= edgeY(clientX) && clientY < region.bottom && !document.querySelector('dialog[open]')
 
-    function onMouseMove(event: MouseEvent) {
-      movePointer(event.clientX, event.clientY)
-      pointer.moved = !quiet(event.target) && canPaint(event.clientX, event.clientY) && (Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0)
-    }
-    function onMouseDown(event: MouseEvent) {
-      movePointer(event.clientX, event.clientY)
-      pointer.deltaX = 0
-      pointer.deltaY = 0
-      pointer.color = generateColor()
-      if (!quiet(event.target) && canPaint(event.clientX, event.clientY)) clickSplat()
-    }
-
+    // ── 계산 켜고 끄기(10/1 가볍게) ──
+    // 마우스를 움직여 물감을 만들 때만 계산을 돌리고, 마지막 물감 뒤 QUALITY.idleMs가 지나면(물감이 다 사라짐) 깨끗이 지우고 멈춥니다.
+    // 멈춰 있는 동안에는 레이어도 숨겨서 화면 합성에서도 빠집니다.
     let frame = 0
-    let lastTime = performance.now()
+    let lastTime = 0
+    let lastPaint = -Infinity
+    let dirty = false // 지워야 할 물감이 남아 있는지
     let regionDirty = true
     const markDirty = () => { regionDirty = true }
-    function update(now: number) {
-      frame = requestAnimationFrame(update)
-      const dt = Math.min((now - lastTime) / 1000, 0.016666)
-      lastTime = now
-      if (regionDirty) {
-        regionDirty = false
-        measureRegion()
+    const refreshRegion = () => {
+      if (!regionDirty) return
+      regionDirty = false
+      measureRegion()
+    }
+    function clearAll() {
+      gl.disable(gl.BLEND)
+      gl.clearColor(0, 0, 0, 0)
+      for (const target of [dye.read, dye.write, velocity.read, velocity.write, pressure.read, pressure.write]) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo)
+        gl.viewport(0, 0, target.width, target.height)
+        gl.clear(gl.COLOR_BUFFER_BIT)
       }
-      // 효과가 보이지 않을 때(히어로만 보이거나 Contact에 다 들어왔을 때)는 계산을 쉽니다.
-      if (region.fade <= 0 || region.top >= window.innerHeight) return
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.clearColor(0, 0, 0, 1)
+      dirty = false
+      showLayer(false)
+    }
+    let layerShown = true
+    const showLayer = (show: boolean) => {
+      if (show === layerShown) return
+      layerShown = show
+      overlay!.style.visibility = show ? '' : 'hidden'
+    }
+    function wake() {
+      if (frame) return
+      lastTime = 0
+      frame = requestAnimationFrame(update)
+    }
+    function update(now: number) {
+      frame = 0
+      const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.016666) : 0.016666
+      lastTime = now
+      refreshRegion()
+      // 효과가 보이지 않을 때(히어로만 보이거나 Contact에 다 들어왔을 때)는 지우고 멈춥니다.
+      if (region.fade <= 0 || region.top >= window.innerHeight) {
+        if (dirty) clearAll()
+        return
+      }
       if (resizeCanvas()) initFramebuffers()
       colorUpdateTimer += dt * config.COLOR_UPDATE_SPEED
       if (colorUpdateTimer >= 1) {
@@ -845,27 +895,61 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       if (pointer.moved) {
         pointer.moved = false
         splatPointer()
+        lastPaint = now
+        dirty = true
       }
+      // 마지막 물감 뒤 한참 지나면 물감이 다 사라진 것이므로 깨끗이 지우고 멈춥니다(다음 마우스 움직임에 다시 켜짐).
+      if (now - lastPaint > QUALITY.idleMs) {
+        if (dirty) clearAll()
+        return
+      }
+      showLayer(true)
       step(dt)
       render()
+      frame = requestAnimationFrame(update)
+    }
+
+    function onMouseMove(event: MouseEvent) {
+      refreshRegion()
+      movePointer(event.clientX, event.clientY)
+      pointer.moved = !quiet(event.target) && canPaint(event.clientX, event.clientY) && (Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0)
+      if (pointer.moved) wake()
+    }
+    function onMouseDown(event: MouseEvent) {
+      refreshRegion()
+      movePointer(event.clientX, event.clientY)
+      pointer.deltaX = 0
+      pointer.deltaY = 0
+      pointer.color = generateColor()
+      if (quiet(event.target) || !canPaint(event.clientX, event.clientY)) return
+      if (resizeCanvas()) initFramebuffers()
+      clickSplat()
+      lastPaint = performance.now()
+      dirty = true
+      wake()
+    }
+    // 물감이 남아 있는 동안 스크롤하면 잘라 내는 선·투명도를 다시 맞춰야 하므로 계산을 이어 갑니다.
+    const onScroll = () => {
+      regionDirty = true
+      if (dirty) wake()
     }
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mousedown', onMouseDown)
-    window.addEventListener('scroll', markDirty, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', markDirty)
     // 히어로 아래 물결이 스크롤에 따라 휘면(HeroCurve) 경계선을 다시 잽니다.
     window.addEventListener('hero-curve-change', markDirty)
     // 사진·글꼴이 늦게 불러와져 위치가 바뀌는 경우도 잡습니다.
     const layoutObserver = new ResizeObserver(markDirty)
     layoutObserver.observe(document.body)
-    frame = requestAnimationFrame(update)
+    showLayer(false)
 
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mousedown', onMouseDown)
-      window.removeEventListener('scroll', markDirty)
+      window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', markDirty)
       window.removeEventListener('hero-curve-change', markDirty)
       layoutObserver.disconnect()

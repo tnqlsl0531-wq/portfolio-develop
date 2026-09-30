@@ -110,6 +110,15 @@ function StageCard({ item }: { item: StageItem }) {
   )
 }
 
+/** 드래그 안내 양옆 꺾쇠(‹ ›). 글자 크기(em)에 맞춰 커지고, 선 굵기는 글자 획(Min Sans 500)과 비슷하게 맞췄습니다. */
+function DragChevron({ side }: { side: 'left' | 'right' }) {
+  return (
+    <svg className={`stage-works__drag-arrow stage-works__drag-arrow--${side}`} viewBox="0 0 10 16" fill="none" aria-hidden="true" focusable="false">
+      <path d={side === 'left' ? 'M7.5 2 2 8l5.5 6' : 'M2.5 2 8 8l-5.5 6'} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function StageWorks({ onSelect }: { onSelect: (project: Project) => void }) {
   const [active, setActive] = useState(START_SLOT % stageItems.length)
   const [viewportWidth, setViewportWidth] = useState(() => typeof window === 'undefined' ? 1920 : window.innerWidth)
@@ -270,11 +279,12 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
         <p className="stage-works__notice" data-visible={notice ? 'true' : 'false'} aria-hidden="true"><span>{notice || REHEARSAL_NOTICE}</span></p>
         <img className="stage-works__asset stage-works__footlights" src={footlights} width={1000} height={76} alt="" />
         {/* 무대 앞면(검은 원통)에 붙은 안내 — 처음 보는 사람이 카드를 끌어 돌릴 수 있다는 걸 알 수 있게(선생님 피드백, 9/30 밤).
-            화살표가 좌우로 살짝 흔들리고, 카드를 한 번 끌면 스르륵 사라집니다(StageWorks.css .stage-works__drag-hint). */}
+            10/1: 동그란 테두리 없이 글자만, 화살표는 글자 굵기에 맞춘 꺾쇠(‹ ›) 아이콘으로. 꺾쇠가 좌우로 살짝 흔들리고,
+            카드를 한 번 끌면 스르륵 사라집니다(StageWorks.css .stage-works__drag-hint). */}
         <p className="stage-works__drag-hint" data-hidden={!dragHint || undefined} aria-hidden="true">
-          <span className="stage-works__drag-arrow stage-works__drag-arrow--left">←</span>
+          <DragChevron side="left" />
           옆으로 드래그해보세요!
-          <span className="stage-works__drag-arrow stage-works__drag-arrow--right">→</span>
+          <DragChevron side="right" />
         </p>
         <p className="sr-only" aria-live="polite">현재 작품: {stageItems[active].label}, {stageItems[active].orderStatus}</p>
         <p className="sr-only" aria-live="polite">{notice}</p>

@@ -29,6 +29,9 @@ import './ScrollReveal.css'
    band        : 줄이 화면 아래 끝에서 화면 높이의 이만큼 올라오면 다 또렷해집니다(0~1). 클수록 천천히, 작을수록 빨리.
    sweep       : 한 줄의 오른쪽 끝 단어가 왼쪽 끝보다 늦게 시작하는 정도(band 대비). 0이면 한 줄이 한꺼번에. */
 export const REVEAL = { baseOpacity: .1, blurStrength: 4, baseRotation: 0, band: .25, sweep: .5 }
+/* 가볍게(10/1): 단어마다 진하기·흐림을 매 프레임 조금씩 바꾸면 흐림(filter)을 매번 다시 그려야 해서 무거웠습니다(Contact 앞에서 렉).
+   또렷해지는 정도를 STEPS단계로 나눠, 단계가 바뀔 때만 다시 그립니다(흐림 약 0.3px씩 → 눈으로는 부드럽게 보임). 클수록 부드럽고 무거워짐. */
+const STEPS = 12
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
@@ -84,8 +87,8 @@ export function ScrollReveal({ children, className = '', as: Tag = 'p' }: {
       const band = Math.max(1, REVEAL.band * viewport)
       for (let index = 0; index < words.length; index++) {
         const raw = (viewport - (top + layout.tops[index])) / band
-        const amount = clamp01(raw * (1 + REVEAL.sweep) - REVEAL.sweep * layout.xs[index])
-        if (Math.abs(amount - shown[index]) < .004) continue
+        const amount = Math.round(clamp01(raw * (1 + REVEAL.sweep) - REVEAL.sweep * layout.xs[index]) * STEPS) / STEPS
+        if (amount === shown[index]) continue
         shown[index] = amount
         const style = words[index].style
         style.opacity = String(REVEAL.baseOpacity + (1 - REVEAL.baseOpacity) * amount)

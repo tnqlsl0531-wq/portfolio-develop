@@ -373,13 +373,17 @@
 .gallery__heading { display: flex; flex-direction: column; align-items: flex-start; gap: calc(28 * var(--u)); }
 .gallery__title { font-size: calc(136 * var(--u)); line-height: 1; }
 .gallery__heading p { font-size: calc(24 * var(--u)); color: #525252; line-height: 1.45; }
-/* 화면이 멈추면(Pin) 제목 글자가 펴지고, 제목이 거의 다 펴질 무렵(0.55초 뒤) 부제·버튼이 아래에서 올라옵니다(App.tsx usePinTrigger).
+/* 화면이 멈추면(Pin) 제목 글자가 펴지고, 제목이 거의 다 펴질 무렵 부제 → '자세히 보러가기'가 시간차로 '따다닥' 위에서 톡 내려옵니다(App.tsx usePinTrigger).
+   10/1: 예전에는 둘이 같이(0.55초 뒤) 아래에서 올라왔습니다. 이제 부제 0.55초 → 버튼 0.7초(바로 이어서), 끝에서 살짝 튀며 자리 잡습니다.
+   시간차는 --drop-delay, 내려오는 거리는 아래 translate(-22px), 튀는 정도는 cubic-bezier의 두 번째 숫자(1.45)로 조절합니다.
    멈추기 전(data-wait)에는 숨어 있고, 화면 고정이 없는 기기에서는 늘 보입니다. */
+.gallery__heading > p { --drop-delay: 550ms; }
+.gallery__link { --drop-delay: 700ms; }
 .gallery__heading > p, .gallery__link {
-  transition: opacity 600ms ease 550ms, translate 800ms cubic-bezier(.22, .61, .36, 1) 550ms;
+  transition: opacity 360ms ease var(--drop-delay), translate 560ms cubic-bezier(.34, 1.45, .64, 1) var(--drop-delay);
 }
 .gallery__intro[data-wait] .gallery__heading > p, .gallery__intro[data-wait] .gallery__link {
-  opacity: 0; translate: 0 28px; transition-duration: 200ms; transition-delay: 0s;
+  opacity: 0; translate: 0 -22px; transition-duration: 200ms; transition-delay: 0s;
 }
 .gallery__intro[data-wait] .gallery__link { visibility: hidden; }
 /* 자세히 보러가기: 피그마 기준 글자 22px일 때 폭 195. 화살표 크기는 글자 크기(em)에 맞춰 함께 커지고 작아집니다. */
@@ -396,9 +400,9 @@
 .director__title { font-size: calc(104 * var(--u)); line-height: calc(125 * var(--u)); text-align: center; }
 /* 피그마 1920 기준: 사진 x 388 · 폭 404, 글 x 972 · 폭 648 → 전체 폭 1232 */
 .director__body { display: grid; grid-template-columns: 32.792% 52.597%; column-gap: 14.610%; width: 64.167%; margin-left: 20.208%; margin-top: calc(340 * var(--u)); align-items: start; }
-/* 제목이 떠오를 때까지는 사진·글을 숨기고(흰 화면), 제목이 거의 다 뜰 무렵(1초 뒤) 아래에서 올라옵니다(App.tsx usePinTrigger).
-   재생 전(data-wait)에만 숨기고, 화면 고정이 없는 기기에서는 늘 보입니다. */
-.director__body { transition: opacity 800ms ease 1s, translate 1000ms cubic-bezier(.22, .61, .36, 1) 1s; }
+/* 제목이 떠오를 때까지는 사진·글을 숨기고(흰 화면), 제목이 다 뜬 뒤(1.4초 뒤) 아래에서 올라옵니다(App.tsx usePinTrigger).
+   10/1: 1초 → 1.4초(0.4초 더 기다렸다가). 재생 전(data-wait)에만 숨기고, 화면 고정이 없는 기기에서는 늘 보입니다. */
+.director__body { transition: opacity 800ms ease 1.4s, translate 1000ms cubic-bezier(.22, .61, .36, 1) 1.4s; }
 .director[data-wait] .director__body { opacity: 0; translate: 0 80px; transition-duration: 200ms; transition-delay: 0s; }
 .director__portrait-sticky { position: sticky; top: max(24px, calc(50svh - var(--portrait-half-height, 0px))); align-self: start; }
 .director__portrait { width: 100%; aspect-ratio: 404 / 634; object-fit: cover; }
@@ -427,7 +431,15 @@
    1920 × 138, Special Gothic Expanded One 48 · 자간 -1.44(-3%)
    글자 크기는 SVG 좌표(1920 기준)라 화면 폭에 맞춰 함께 커지고 작아집니다. */
 .marquee-band { position: relative; z-index: 2; overflow: hidden; background: var(--neutral-black); }
-.marquee-band__text { fill: url(#marquee-band-fill) var(--primary-500); font-family: 'Special Gothic Expanded One', sans-serif; font-size: 48px; font-weight: 400; letter-spacing: -1.44px; dominant-baseline: central; }
+/* 글자는 흰색으로 그리고(흐르는 줄), 위에 띠에 고정된 그라데이션 층(.marquee-band__tint)을 '어둡게(darken)' 섞어 덮습니다.
+   흰 글자 위 = 그라데이션 색, 검정 바탕 위 = 검정 그대로 → 피그마처럼 글자에만 그라데이션이 입혀집니다(10/1 가볍게 바꾼 방식).
+   그라데이션: 피그마 글자 상자 -468 ~ 2388(1920 기준)에 #FF9D97 → #FC7A73(50.2%) → #FF9D97 = 띠 폭 기준 -24.375% · 50.3% · 124.375%. */
+.marquee-band__text { fill: #fff; font-family: 'Special Gothic Expanded One', sans-serif; font-size: 48px; font-weight: 400; letter-spacing: -1.44px; dominant-baseline: central; }
+.marquee-band__tint {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, #FF9D97 -24.375%, #FC7A73 50.3%, #FF9D97 124.375%);
+  mix-blend-mode: darken;
+}
 
 /* CONTACT */
 .contact {
@@ -719,7 +731,7 @@
   .project-select__notice { top: calc(100% + 16px); font-size: 14px; }
   .contact { grid-template-columns: minmax(0, 1fr); gap: 64px; margin: 0; padding: 80px 7% 70px; }
   /* 폰·태블릿: 글자 띠를 2배로 키우고 양옆은 잘라서 글자가 너무 작아지지 않게 합니다. */
-  .marquee-band .curved-loop-svg { flex-shrink: 0; width: 200%; }
+  .marquee-band { --loop-zoom: 2; }
   .contact__pass-area { width: 360px; max-width: 100%; margin-inline: auto; padding-top: 80px; }
   .contact__strap { top: -80px; left: calc(50% - 16px); width: 32px; height: 415px; border-radius: 10px; font-size: 17.143px; }
   .contact__title { font-size: 96px; text-align: center; margin: 0; line-height: 1.2; }

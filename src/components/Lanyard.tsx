@@ -19,6 +19,11 @@
  *   그래서 스크롤하는 도중에 목걸이 자리에 닿아도 기다리지 않고 바로 떨어집니다.
  * - 카드 앞면의 이메일 글자를 누르면(끌지 않고 짧게 클릭) 알려줌(onEmailClick) — Contact에서 이메일을 복사하고 '복사되었습니다'를 띄움.
  *   이메일 위에 마우스를 올리면 손가락 커서가 됩니다. 누른 자리는 카드 그림의 좌표(uv)로 확인합니다(EMAIL_UV).
+ * - 가볍게(10/1, 발표 때 Zoom 공유로 더 느려져서):
+ *   · 움직일 때만 그림: 예전에는 화면에 보이는 동안 가만히 매달려 있어도 1초에 60번씩 계속 그렸습니다. 이제는 카드·줄이 움직이는 동안만 그리고
+ *     (물리 몸체가 멈춰 잠들면 그리기도 멈춤), 다음 뒤집기(SHOWCASE) 때가 되면 스스로 깨어납니다. 끌거나 떨어질 때는 예전과 똑같이 움직입니다.
+ *   · 계단 없애기를 '2배로 그려서 줄이기' 하나로만: 예전에는 2배로 그리면서 MSAA(4배 겹쳐 그리기)까지 켜서 그래픽 메모리·계산이 크게 들었습니다.
+ *     이제 MSAA는 끄고, 화면 배율 × 1.5배(최대 2배)로 그려 줄입니다(RENDER_DPR). 글자 선명도(EMISSIVE_SHARPEN)는 그대로.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
@@ -76,17 +81,18 @@ export default function Lanyard({
 }: LanyardProps) {
   return (
     <div className="lanyard">
+      {/* frameloop 'demand': 움직이는 동안만 그립니다. 물리 계산(Physics)이 깨어 있는 몸체가 있으면 다음 장면을 요청하고, 다 잠들면 멈춥니다. */}
       <Canvas
         camera={{ position: [0, 0, cameraDistance], fov }}
-        dpr={RENDER_DPR}
+        dpr={renderDpr()}
         flat
-        frameloop={active ? 'always' : 'demand'}
-        gl={{ alpha: true }}
+        frameloop="demand"
+        gl={{ alpha: true, antialias: false }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
       >
         <ambientLight intensity={1} />
         <Physics gravity={gravity} timeStep={1 / 60} paused={!active}>
-          <Band anchorY={anchorY} anchorLeft={anchorLeft} lanyardWidth={lanyardWidth} onReady={onReady} onLanded={onLanded} onEmailClick={onEmailClick} />
+          <Band active={active} anchorY={anchorY} anchorLeft={anchorLeft} lanyardWidth={lanyardWidth} onReady={onReady} onLanded={onLanded} onEmailClick={onEmailClick} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -105,9 +111,10 @@ type LerpedBody = RapierRigidBody & { lerped?: THREE.Vector3 }
 // 카드를 잡고 끄는 동안은 멈추고, 놓으면 앞면부터 다시 셉니다. stiffness가 클수록 빨리 돕니다.
 const SHOWCASE = { firstBack: 1.8, front: 6, back: 3.5, stiffness: 10 }
 
-// 선명도: 캔버스를 이 배율로 그립니다(보통 모니터 1배에서도 2배로 그려 화면에 맞춰 줄임 → 글자·가장자리가 매끈).
-// 캔버스 대부분이 빈 칸이라 2배로 그려도 무겁지 않습니다. 느린 기기에서 버벅이면 1.5로 낮추세요.
-const RENDER_DPR = 2
+// 선명도: 캔버스를 '화면 배율 × scale'로 그려 화면에 맞춰 줄입니다(→ 글자·가장자리가 매끈). 최대 max배.
+// 10/1: 2배 + MSAA → 1.5배(MSAA 끔)로 가볍게. 더 가볍게 하려면 scale을 1.25로, 더 선명하게 하려면 2로 올리세요.
+const RENDER_DPR = { scale: 1.5, max: 2 }
+const renderDpr = () => Math.min(RENDER_DPR.max, (window.devicePixelRatio || 1) * RENDER_DPR.scale)
 // 카드 그림을 고를 때 한 단계 선명한 쪽으로 치우치게 합니다(0 = 기본, 음수일수록 선명, -1보다 작으면 글자가 자글자글해짐).
 const EMISSIVE_SHARPEN = -0.6
 
@@ -121,6 +128,7 @@ useTexture.preload([cardTexture, cardCutout, strapTexture])
 const LANDING = { fallen: 4, speed: 1.5, hold: 0.15 }
 
 interface BandProps {
+  active: boolean
   anchorY: number
   anchorLeft: number
   lanyardWidth: number
@@ -199,7 +207,13 @@ interface CardGLTF {
   materials: Record<'base' | 'metal', THREE.MeshStandardMaterial>
 }
 
-function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady, onLanded, onEmailClick }: BandProps) {
+// 움직이는 동안만 그리기(10/1)
+// angle·spin: 카드가 목표 각도에서 이만큼(라디안) 안이고 도는 속도(라디안/초)도 작으면 더 돌리지 않고 가만히 둡니다.
+// speed·close·hold: 카드·줄 마디가 모두 speed(월드 단위/초, 1 ≈ 화면 260px)보다 느리고 줄 모양도 다 따라왔으면(close),
+//   hold초 뒤 바로 재웁니다. 물리 엔진은 2초 동안 느리게 움직여야 스스로 잠드는데, 그동안 눈에 안 보이는 움직임까지 계속 그리게 돼서요.
+const SETTLE = { angle: 0.02, spin: 0.05, speed: 0.05, close: 0.003, hold: 0.25 }
+
+function Band({ active, anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady, onLanded, onEmailClick }: BandProps) {
   const band = useRef<THREE.Mesh<MeshLineGeometry, MeshLineMaterial>>(null!)
   const fixed = useRef<RapierRigidBody>(null!)
   const j1 = useRef<LerpedBody>(null!)
@@ -294,6 +308,26 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
   const invalidate = useThree(state => state.invalidate)
   useEffect(() => { invalidate() }, [invalidate])
 
+  // 움직일 때만 그리기(10/1): 켜질 때(화면에 보이거나 떨어질 때) 몸체를 깨워 다시 움직이게 합니다.
+  // 잠든 동안에는 장면을 안 그려서 시계가 멈추므로, 다음 뒤집기 때가 되면 wakeTimer가 깨웁니다(sleptAt부터 흐른 시간을 시계에 더함).
+  const wakeTimer = useRef(0)
+  const lastFrameAt = useRef(0)
+  // 알람으로 깨어난 첫 장면: 잠든 시간은 알람이 이미 더했으므로 이 장면의 시간 간격은 시계에 더하지 않습니다.
+  const woke = useRef(false)
+  // 거의 멈춰 있던 시간(초) — SETTLE.hold를 넘으면 몸체를 재웁니다.
+  const calm = useRef(0)
+  const wakeAll = () => { [card, j1, j2, j3].forEach(ref => ref.current?.wakeUp()) }
+  useEffect(() => {
+    if (!active) {
+      window.clearTimeout(wakeTimer.current)
+      return
+    }
+    wakeAll()
+    invalidate()
+    return () => window.clearTimeout(wakeTimer.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, invalidate])
+
   useEffect(() => {
     if (!hovered) return
     document.body.style.cursor = dragged ? 'grabbing' : overEmail ? 'pointer' : 'grab'
@@ -315,6 +349,7 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
       ;[card, j1, j2, j3, fixed].forEach(ref => ref.current?.wakeUp())
       card.current?.setNextKinematicTranslation({ x: vec.x - dragged.x, y: vec.y - dragged.y, z: vec.z - dragged.z })
     }
+    lastFrameAt.current = performance.now()
     if (!fixed.current || !j1.current || !j2.current || !j3.current || !card.current) return
     ;[j1, j2].forEach(ref => {
       const lerped = getLerped(ref.current)
@@ -344,16 +379,46 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
     // 시계는 실제 흐른 시간으로 셉니다(느린 컴퓨터에서도 같은 박자). 화면 밖에서 멈췄다 돌아올 때 튀지 않게 한 번에 0.25초까지만.
     // 이메일 위에 마우스를 올려 두면 누르기 전에 뒤집히지 않도록 앞면에서 기다립니다.
     if (dragged || overEmail) showcase.current = 0
-    else showcase.current += Math.min(rawDelta, 0.25)
+    else if (!woke.current) showcase.current += Math.min(rawDelta, 0.25)
+    woke.current = false
     const cycle = SHOWCASE.front + SHOWCASE.back
-    const target = showcase.current % cycle < SHOWCASE.front ? 0 : Math.PI
+    const phase = showcase.current % cycle
+    const target = phase < SHOWCASE.front ? 0 : Math.PI
     ang.copy(card.current.angvel())
     const r = card.current.rotation()
     euler.setFromQuaternion(quat.set(r.x, r.y, r.z, r.w), 'YXZ')
     let error = target - euler.y
     error = Math.atan2(Math.sin(error), Math.cos(error)) // -180° ~ 180° 사이로
     if (target === Math.PI && Math.abs(Math.abs(error) - Math.PI) < 0.05) error = Math.PI // 정면에서 시작할 때는 늘 같은 방향으로 돔
-    card.current.setAngvel({ x: ang.x, y: ang.y + error * SHOWCASE.stiffness * Math.min(rawDelta, 0.1), z: ang.z }, true)
+    // 목표 각도에 거의 닿아 있으면 건드리지 않습니다(계속 밀면 몸체가 잠들지 못해 쉬지 않고 그리게 됨).
+    if (dragged || Math.abs(error) > SETTLE.angle || Math.abs(ang.y) > SETTLE.spin) {
+      card.current.setAngvel({ x: ang.x, y: ang.y + error * SHOWCASE.stiffness * Math.min(rawDelta, 0.1), z: ang.z }, true)
+    }
+    // 거의 멈췄으면 바로 재웁니다(→ 더 그리지 않음). 떨어져서 자리를 잡은 뒤에만, 끄는 중이 아닐 때만.
+    const slow = (body: RapierRigidBody) => {
+      const v = body.linvel()
+      const w = body.angvel()
+      return Math.hypot(v.x, v.y, v.z) < SETTLE.speed && Math.hypot(w.x, w.y, w.z) < SETTLE.spin
+    }
+    const settled = !dragged && landing.current.done && Math.abs(error) < SETTLE.angle
+      && [card, j1, j2, j3].every(ref => ref.current && slow(ref.current))
+      && [j1, j2].every(ref => getLerped(ref.current).distanceTo(ref.current.translation()) < SETTLE.close)
+    calm.current = settled ? calm.current + Math.min(rawDelta, 0.1) : 0
+    if (calm.current >= SETTLE.hold && !card.current.isSleeping()) {
+      [card, j1, j2, j3].forEach(ref => ref.current?.sleep())
+    }
+    // 다음 뒤집기 알람: 매 장면마다 다시 맞춰 두므로, 몸체가 잠들어 장면이 멈췄을 때만 울립니다.
+    window.clearTimeout(wakeTimer.current)
+    if (active && !dragged) {
+      const untilFlip = (phase < SHOWCASE.front ? SHOWCASE.front - phase : cycle - phase) + 0.05
+      wakeTimer.current = window.setTimeout(() => {
+        // 잠든 동안 흐른 시간만큼 시계를 앞으로(그리지 않은 시간). 한 번에 뒤집기 한 번 길이까지만.
+        showcase.current += Math.min(cycle, (performance.now() - lastFrameAt.current) / 1000)
+        woke.current = true
+        wakeAll()
+        invalidate()
+      }, untilFlip * 1000)
+    }
   })
 
   return (
@@ -374,6 +439,8 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
             onPointerUp={(event: ThreeEvent<PointerEvent>) => {
               ;(event.target as Element).releasePointerCapture(event.pointerId)
               drag(false)
+              wakeAll()
+              invalidate()
               const start = press.current
               press.current = null
               if (start?.email && Math.hypot(event.nativeEvent.clientX - start.x, event.nativeEvent.clientY - start.y) < CLICK_SLOP) {
@@ -384,6 +451,8 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
               ;(event.target as Element).setPointerCapture(event.pointerId)
               press.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY, email: hitsEmail(event) }
               drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())))
+              wakeAll()
+              invalidate()
             }}
           >
             <mesh ref={cardMesh} geometry={cardGeometry} material={cardMaterial} />

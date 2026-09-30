@@ -6,14 +6,31 @@
  * - 키보드·스크롤 막대·다른 코드로 움직인 스크롤은 건드리지 않고 그 자리에 맞춰 둡니다.
  * - 폰·태블릿(터치), 동작 줄이기 설정, 창(작품 선택·아카이브)·BACKSTAGE가 열려 있을 때는 원래 스크롤 그대로입니다.
  * - 목차(프로그램북)에서 섹션으로 갈 때도 같은 움직임(smoothScrollTo)을 씁니다.
+ * - 꼭 멈추는 자리(10/1): <Pin stop>이 붙은 섹션(Director’s Note)은 휠을 세게 굴려 빠르게 내려가도 그 섹션에 내려앉는 자리(pinLandTop)에서 멈춥니다.
+ *   같은 손짓(휠이 STOP.gap보다 짧게 쉬며 이어지는 동안)은 그 자리에 붙잡아 두고, 잠깐 쉬었다가 다시 굴리면 지나갑니다. 위로 올라갈 때는 멈추지 않습니다.
  */
 import { useEffect } from 'react'
+import { pinLandTop } from '../components/Pin'
 
 /* lerp  : 한 프레임(1/60초)에 남은 거리의 몇 %를 따라갈지(0~1). 작을수록 더 미끄러지듯 느리게, 클수록 빠르게 멈춥니다. Lenis 기본 0.1.
    wheel : 휠 한 번에 움직이는 거리 배율(1 = 브라우저 기본). */
 const SMOOTH = { lerp: .1, wheel: 1 }
 
 const state = { target: 0, current: 0, raf: 0, last: 0, running: false, enabled: false }
+
+/* gap: 휠이 이만큼(ms) 쉬었다가 다시 굴리면 새 손짓으로 봅니다(멈춘 자리를 지나갈 수 있음). 트랙패드 관성 스크롤은 쉬지 않고 이어져서 같은 손짓으로 봅니다. */
+const STOP = { gap: 240 }
+const gesture = { last: 0, held: false }
+
+// from(지금 가려던 자리)과 to(새로 가려는 자리) 사이에 있는 첫 '꼭 멈추는 자리'(없으면 null)
+function stopBetween(from: number, to: number) {
+  let found: number | null = null
+  document.querySelectorAll<HTMLElement>('.pin[data-stop]').forEach(pin => {
+    const at = pinLandTop(pin)
+    if (from < at - 1 && to > at && (found === null || at < found)) found = at
+  })
+  return found
+}
 
 const maxScroll = () => document.documentElement.scrollHeight - window.innerHeight
 const clamp = (value: number) => Math.min(maxScroll(), Math.max(0, value))
@@ -95,7 +112,21 @@ export function useSmoothScroll(enabled = true) {
       if (scrollsInside(event.target, Math.sign(dy))) return
       event.preventDefault()
       if (!state.running) state.current = state.target = window.scrollY
-      state.target = clamp(state.target + dy * SMOOTH.wheel)
+      let next = clamp(state.target + dy * SMOOTH.wheel)
+      // 꼭 멈추는 자리: 내려가다가 그 자리를 넘으려 하면 그 자리에서 멈추고, 같은 손짓이 이어지는 동안은 붙잡아 둡니다.
+      const now = performance.now()
+      if (now - gesture.last > STOP.gap) gesture.held = false
+      gesture.last = now
+      if (dy < 0) gesture.held = false
+      else if (gesture.held) next = state.target
+      else {
+        const stop = stopBetween(state.target, next)
+        if (stop !== null) {
+          next = stop
+          gesture.held = true
+        }
+      }
+      state.target = next
       start()
     }
 

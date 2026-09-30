@@ -2,6 +2,8 @@
  * 프로그램북 목차 — 화면 오른쪽 아래에 늘 떠 있는 목차입니다.
  * 마우스를 올리면 표지가 왼쪽 모서리(책등)를 축으로 넘어가며 두 면이 펼쳐지고, 항목을 누르면 그 섹션으로 이동합니다.
  * 디자인: 피그마 392-242 (한 면 261 × 338, 테두리 1px #d4d4d4, 모서리 5px)
+ *   10/1 수정본: 표지 '2026' 옆 가는 선, 속지 글자 #262626, 아래 연분홍 띠(#fff3f2, 높이 50), Stage Works 한 줄, Contact(40, Black) 가운데,
+ *   지금 보고 있는 섹션 위에 아래를 가리키는 겹꺾쇠(피그마 Vector 1813·1814) — 밑줄 대신. 꺾쇠는 펼칠 때 위에서 톡 떨어지고, 펼쳐 둔 동안 아래로 살랑살랑 흔들립니다.
  *
  * 넘어가는 원리 — 진짜 종이 한 장처럼
  * 1) 한 장(표지 = 앞면, 왼쪽 면 = 뒷면)을 세로 띠 STRIPS장으로 잘라 책등부터 차례로 이어 붙였습니다.
@@ -10,13 +12,15 @@
  *    넘기는 도중에 마우스가 나가도 그 자리에서 자연스럽게 되돌아갑니다(뚝 끊기거나 튀지 않음).
  * 3) 빨리 넘어갈수록 종이 끝이 늦게 따라와 더 휘고(lag), 기울어진 만큼 그늘이 지며, 들린 종이 그림자가 아래 면에 드리웁니다.
  * 4) 멈춰 있을 때는 잘리지 않은 진짜 면(누를 수 있는 버튼·링크)을 보여 주고, 움직이는 동안에만 띠로 된 종이를 보여 줍니다.
+ *    10/1: 펼치기 시작하면 진짜 면(투명)을 바로 펼친 자리에 옮겨 두어서, 종이가 다 내려앉기 전에도 왼쪽 면 항목에 마우스를 올리고 누를 수 있습니다
+ *    (올린 항목은 움직이는 종이 그림에도 똑같이 색이 바뀌어 보입니다).
  *
  * 화면에 들어가는 크기는 ProgramBook.css의 --s 하나로 정합니다(피그마 1px을 화면 몇 px로 볼지).
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { smoothScrollTo } from '../hooks/useSmoothScroll'
-import { pinHold, pinTop } from './Pin'
+import { pinLandTop } from './Pin'
 import './ProgramBook.css'
 
 /* 항목 자리는 피그마 좌표 그대로입니다(한 면 261 × 338 기준).
@@ -30,15 +34,18 @@ type Chapter = {
   left?: number
   /** 오른쪽 맞춤일 때 면의 오른쪽 끝에서 떨어진 거리 */
   right?: number
-  /** CONTACT처럼 크게 쓰는 항목 */
+  /** 면 가운데 맞춤 */
+  center?: boolean
+  /** Contact처럼 크게 쓰는 항목 */
   big?: boolean
 }
+// 피그마 392-242 수정본(10/1) 좌표. 오른쪽 맞춤은 면 안쪽 폭(259) 기준 오른쪽 끝에서 떨어진 거리입니다.
 const CHAPTERS: Chapter[] = [
   { id: 'exhibition', label: ['Grand', 'Exhibition'], page: 0, left: 25, top: 66 },
-  { id: 'lineup', label: ['Stage', 'Works'], page: 0, right: 46, top: 210 },
+  { id: 'lineup', label: ['Stage Works'], page: 0, right: 24, top: 211 },
   { id: 'gallery', label: ['Artist', 'Gallery'], page: 1, left: 22, top: 42 },
-  { id: 'director', label: ['Director’s', 'Note'], page: 1, right: 30, top: 149 },
-  { id: 'contact', label: ['CONTACT'], page: 1, left: 58, top: 270, big: true },
+  { id: 'director', label: ['Director’s', 'Note'], page: 1, right: 28, top: 152 },
+  { id: 'contact', label: ['Contact'], page: 1, center: true, top: 264, big: true },
 ]
 
 // 지금 보고 있는 섹션으로 치는 기준선: 화면 높이의 35% 지점
@@ -58,18 +65,21 @@ const STRIPS = 12
    shade   : 종이가 기울 때 생기는 그늘 진하기(0~1).
    reverse : 넘기는 도중 방향이 바뀔 때 남기는 속도(0~1). 작을수록 그 자리에서 바로 돌아섭니다.
    closeDelay: 마우스가 책에서 나간 뒤 닫히기 시작할 때까지(ms). 가장자리를 스칠 때 깜빡이지 않게 합니다. */
+// 10/1: 펼치는 속도가 느리다는 피드백으로 약 2배 빠르게(다 펼쳐지는 데 약 0.4초, 예전 0.7초 · 완전히 멈추는 데 0.6초, 예전 1.5초).
 const MOTION = {
-  follow: .14,
-  stiffness: 48,
-  damping: .74,
-  bounce: .24,
-  lag: .075,
-  maxBend: 52,
+  follow: .05,
+  stiffness: 140,
+  damping: .8,
+  bounce: .18,
+  lag: .045,
+  maxBend: 46,
   curl: 9,
   shade: .34,
   reverse: .45,
   closeDelay: 160,
 }
+// 이만큼 가까워지면 다 넘어간 것으로 보고 진짜 면으로 바꿉니다(각도 약 0.7도 · 눈으로는 차이 없음). 작을수록 늦게 바뀝니다.
+const SETTLE = { p: .004, v: .06, bend: .4 }
 
 /* 스크롤할 때 책이 화면에 딱 붙어 있지 않고, 페이지에 살짝 끌려갔다가 '통' 하고 튕기며 제자리로 돌아옵니다(9/30 밤: 더 귀엽게).
    drag     : 스크롤한 거리 중 책이 같이 끌려가는 몫(0~1). 클수록 많이 끌려감.
@@ -78,9 +88,27 @@ const MOTION = {
    damping  : 1이면 튕김 없이 멈추고, 작을수록 제자리를 지나쳤다 돌아오는 '통통' 튕김이 커짐.
    tilt     : 움직이는 빠르기에 따라 좌우로 갸우뚱하는 정도(최대 각도, 도). 아래 가운데를 축으로 흔들립니다.
    squash   : 빠르게 움직일 때 세로로 살짝 늘어나는(가로는 그만큼 좁아지는) 정도(최대 비율). */
-const FOLLOW = { drag: .32, max: 56, stiffness: 150, damping: .3, tilt: 5, squash: .06 }
+// 10/1: '조금만 덜 촐싹거리게' — 끌려가는 몫·거리, 튕김, 갸우뚱, 늘어남을 조금씩 줄였습니다(예전 drag .32 · max 56 · damping .3 · tilt 5 · squash .06).
+const FOLLOW = { drag: .25, max: 44, stiffness: 150, damping: .42, tilt: 3.2, squash: .04 }
 
 type Pose = 'closed' | 'open' | 'moving'
+
+/**
+ * 지금 보고 있는 섹션 위에 붙는 겹꺾쇠(피그마 Vector 1813 아래 큰 꺾쇠 #707070 · 1814 위 작은 꺾쇠 #9A9A9A, 선 2).
+ * 두 꺾쇠를 따로 두어 하나씩 떨어지고, 따로 흔들립니다(ProgramBook.css .program-book__here).
+ */
+function HereMark() {
+  return (
+    <span className="program-book__here" aria-hidden="true">
+      <svg className="program-book__chev program-book__chev--top" viewBox="0 0 18 10" fill="none" focusable="false">
+        <path d="M1 1L9.22077 9L17 1" stroke="#9A9A9A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <svg className="program-book__chev program-book__chev--bottom" viewBox="0 0 23 12" fill="none" focusable="false">
+        <path d="M1 1L11.7898 11L22 1" stroke="#707070" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  )
+}
 
 export default function ProgramBook() {
   const root = useRef<HTMLElement>(null)
@@ -100,6 +128,8 @@ export default function ProgramBook() {
   const [open, setOpen] = useState(false)
   const [pose, setPose] = useState<Pose>('closed')
   const [active, setActive] = useState<string>(CHAPTERS[0].id)
+  // 마우스를 올린 항목 — 종이가 넘어가는 동안(진짜 면은 투명)에도 움직이는 종이 그림에 같은 색을 보여 주려고 기억합니다.
+  const [hovered, setHovered] = useState<string | null>(null)
 
   const setBook = useCallback((next: boolean) => {
     window.clearTimeout(closeTimer.current)
@@ -109,6 +139,7 @@ export default function ProgramBook() {
     else focusAfter.current = null
     goalRef.current = next ? 1 : 0
     setOpen(next)
+    if (!next) setHovered(null)
     wakeRef.current()
   }, [])
 
@@ -206,7 +237,7 @@ export default function ProgramBook() {
         state.bend += (target - state.bend) * (1 - Math.exp(-h / .05))
         remaining -= h
       }
-      if (Math.abs(state.p - goal) < .0008 && Math.abs(state.v) < .01 && Math.abs(state.q - goal) < .0008 && Math.abs(state.bend) < .05) {
+      if (Math.abs(state.p - goal) < SETTLE.p && Math.abs(state.v) < SETTLE.v && Math.abs(state.q - goal) < SETTLE.p && Math.abs(state.bend) < SETTLE.bend) {
         settle(goal)
         return
       }
@@ -231,6 +262,8 @@ export default function ProgramBook() {
         state.moving = true
         setPose('moving')
       }
+      // 진짜 면(투명)은 바로 도착할 자리에 옮겨 둡니다 → 종이가 다 내려앉기 전에도 왼쪽 면 항목을 누를 수 있음(10/1).
+      if (leaf.current) leaf.current.style.transform = `translateZ(.5px) rotateY(${goal ? -180 : 0}deg)`
       if (!state.raf) state.raf = requestAnimationFrame(frame)
     }
 
@@ -342,14 +375,11 @@ export default function ProgramBook() {
     const element = document.getElementById(id)
     if (!element) return
     event.preventDefault()
-    // 휠 스크롤과 같은 부드러운 움직임으로 이동합니다(useSmoothScroll.ts). 화면 고정(Pin) 중인 섹션은 고정이 시작되기 전 자리(묶음 맨 위)로 갑니다.
+    // 휠 스크롤과 같은 부드러운 움직임으로 이동합니다(useSmoothScroll.ts). 화면 고정(Pin) 중인 섹션은 화면에 멈추기 시작하는 자리로 갑니다
+    // (가운데·끝 맞춤이나 focus가 있는 섹션은 묶음 맨 위보다 --pin-top만큼 아래 = Stage Works는 무대가 다 보이는 자리).
     // landAt이 있는 섹션(Artist Gallery·Director’s Note)은 제목 애니메이션이 끝난 자리로 내려줍니다.
-    // (가운데·끝 맞춤 섹션은 멈추기 시작하는 자리가 묶음 맨 위보다 --pin-top만큼 아래라서 그만큼 더 내려갑니다.)
     const pin = element.closest<HTMLElement>('.pin')
-    const place = pin ?? element
-    const hold = pin ? pinHold(pin) : 0
-    const land = pin?.dataset.land && hold > 0 ? Number(pin.dataset.land) * hold - pinTop(pin) : 0
-    smoothScrollTo(place.getBoundingClientRect().top + window.scrollY + land)
+    smoothScrollTo(pin ? pinLandTop(pin) : element.getBoundingClientRect().top + window.scrollY)
     setBook(false)
   }, [setBook])
 
@@ -358,12 +388,16 @@ export default function ProgramBook() {
     const spot: Record<string, number> = { '--top': chapter.top }
     if (chapter.left !== undefined) spot['--left'] = chapter.left
     else if (chapter.right !== undefined) spot['--right'] = chapter.right
+    const align = chapter.center ? 'center' : chapter.right !== undefined ? 'right' : 'left'
     const lines = chapter.label.map((line, index) => <span key={index} className="program-book__line">{line}</span>)
     const current = chapter.id === active || undefined
+    // 지금 보고 있는 섹션 표시(겹꺾쇠). 진짜 면에서는 펼칠 때마다 새로 붙여서 떨어지는 등장 애니메이션이 다시 나오고,
+    // 넘어가는 종이 그림(copy)에는 움직임 없이 그려 둡니다.
+    const here = current && (copy || open) ? <HereMark /> : null
     return (
-      <li key={chapter.id} className="program-book__slot" style={spot as CSSProperties} data-align={chapter.right !== undefined ? 'right' : 'left'}>
+      <li key={chapter.id} className="program-book__slot" style={spot as CSSProperties} data-align={align}>
         {copy ? (
-          <span className="program-book__item" data-big={chapter.big || undefined} data-current={current}>{lines}</span>
+          <span className="program-book__item" data-big={chapter.big || undefined} data-current={current} data-hover={hovered === chapter.id || undefined}>{here}{lines}</span>
         ) : (
           <a
             href={`#${chapter.id}`}
@@ -372,8 +406,10 @@ export default function ProgramBook() {
             data-current={current}
             aria-current={current ? 'true' : undefined}
             onClick={event => go(event, chapter.id)}
+            onPointerEnter={() => setHovered(chapter.id)}
+            onPointerLeave={() => setHovered(previous => (previous === chapter.id ? null : previous))}
           >
-            {lines}
+            {here}{lines}
           </a>
         )}
       </li>
@@ -383,6 +419,8 @@ export default function ProgramBook() {
   const coverArt = (
     <>
       <span className="program-book__year">2026</span>
+      {/* 피그마 Vector 1815: '2026' 옆 가는 선(폭 181, #d4d4d4) */}
+      <span className="program-book__rule" aria-hidden="true" />
       <span className="program-book__brand">
         <span className="program-book__line">CHOI-</span>
         <span className="program-book__line">SUBIN</span>

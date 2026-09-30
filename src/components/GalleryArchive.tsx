@@ -14,8 +14,8 @@ import './GalleryArchive.css'
      모서리가 둥글며, 줄을 끌거나 휠을 굴리면 목표 위치를 부드럽게 따라옵니다(scrollEase 0.04).
      여기 있는 버튼은 그대로 위에 겹쳐 두어, 누르면 원본 크게 보기·키보드 이동·화면 읽기가 예전처럼 동작합니다.
      WebGL을 쓸 수 없는 기기에서는 캔버스 없이 원래 <img>가 그대로 보입니다(물결만 없습니다).
-   - 사진은 평소에 채도를 낮춰(50%) 보여주고, 위에서 내려오는 조명(피그마 334-2 'Spotlight · Grayscale', 사진 뒤에 깔림) 안에
-     들어온 부분만 예전 채도(75%)로 살아납니다(사진이 조명 아래로 흘러 들어가면 들어간 만큼만). 마우스를 올리면 그 줄만 멈추고
+   - 사진은 평소에 채도를 확 낮춰(15%, 10/1 — 예전 50%) 보여주고, 위에서 내려오는 조명(피그마 334-2 'Spotlight · Grayscale', 사진 뒤에 깔림) 안에
+     들어온 부분만 채도가 살아납니다(90%, 예전 75% · 사진이 조명 아래로 흘러 들어가면 들어간 만큼만). 마우스를 올리면 그 줄만 멈추고
      사진이 살짝(4%) 커지며 원래 색으로 돌아옵니다. 채도 숫자는 GalleryArchive.css의 --archive-saturate / --archive-saturate-lit.
    - 사진을 누르면 뒤 화면이 흐려지고(6px) 어두워지며(#171717 58%) 가운데에 자르지 않은 원본 사진이 크게 뜹니다.
    - Esc, 뒤 배경 클릭으로 닫습니다. 아카이브 화면은 왼쪽 위 '돌아가기' 버튼으로도 닫습니다. */
@@ -110,7 +110,7 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
   const hoverIndex = useRef<number[]>(rows.map(() => -1))
   // 조명 모양(화면 좌표)과 채도 — 창 크기가 바뀔 때마다 다시 잽니다(measureRows).
   const spotlightRef = useRef<HTMLImageElement>(null)
-  const light = useRef<GalleryLight>({ top: 0, topLeft: 0, topRight: 0, bottom: 0, bottomLeft: 0, bottomRight: 0, feather: 1, fade: 1, base: .5, lit: .75 })
+  const light = useRef<GalleryLight>({ top: 0, topLeft: 0, topRight: 0, bottom: 0, bottomLeft: 0, bottomRight: 0, feather: 1, fade: 1, base: .15, lit: .9 })
   const gallery = useRef<CircularGalleryHandle>(null)
   const [webglReady, setWebglReady] = useState(false)
   const suppressClick = useRef(false)
@@ -139,7 +139,7 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
         top: y(SPOT.top), topLeft: x(SPOT.topLeft), topRight: x(SPOT.topRight),
         bottom: y(SPOT.bottom), bottomLeft: x(SPOT.bottomLeft), bottomRight: x(SPOT.bottomRight),
         feather: SPOT.feather * scale, fade: SPOT.fade * scale,
-        base: number('--archive-saturate', .5), lit: number('--archive-saturate-lit', .75),
+        base: number('--archive-saturate', .15), lit: number('--archive-saturate-lit', .9),
       }
     }
     rows.forEach((row, index) => {
