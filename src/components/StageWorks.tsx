@@ -5,6 +5,8 @@ import type { MotionValue } from 'motion/react'
 import { FACE_WIDTH, FACE_HEIGHT, FACE_STEP, PRISM_RADIUS, REST_YAW, faceAngle, activeFace, nearestFaceAngle, snapAngle } from './stagePrismGeometry'
 import { projects } from '../portfolio'
 import type { Project } from '../portfolio'
+import { useLineProximity } from '../hooks/useLineProximity'
+import LightRays from './LightRays'
 import kooksoondangLogo from '../assets/design/kooksoondang-logo.svg'
 import kooksoondangDot from '../assets/design/kooksoondang-dot.svg'
 import jaduLogo from '../assets/design/jadu-logo.svg'
@@ -23,6 +25,9 @@ import sideShadowLeft from '../assets/stage/side-shadow-left.svg'
 import sideShadowRight from '../assets/stage/side-shadow-right.svg'
 import footlights from '../assets/stage/footlights.svg'
 import './StageWorks.css'
+
+// 아직 무대에 오르지 않은 작품(어린이대공원)을 눌렀을 때 뜨는 안내입니다.
+const REHEARSAL_NOTICE = '현재 리허설 중이에요. 곧 무대에서 만나요!'
 
 type StageItem = {
   key: 'jadu' | 'kooksoondang' | 'future'
@@ -105,6 +110,7 @@ function PrismFace({ item, index, active, rotation, onActivate }: {
 
 export default function StageWorks({ onSelect }: { onSelect: (project: Project) => void }) {
   const [active, setActive] = useState(1)
+  const [notice, setNotice] = useState('')
   const [viewportWidth, setViewportWidth] = useState(() => typeof window === 'undefined' ? 1920 : window.innerWidth)
   const dragged = useRef(false)
   const rotation = useMotionValue(REST_YAW)
@@ -114,8 +120,16 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
     id: number; x: number; y: number; angle: number; lastX: number; time: number; velocity: number; moved: boolean
   } | null>(null)
   const [dragging, setDragging] = useState(false)
+  const orderList = useLineProximity<HTMLOListElement>(75)
 
   useEffect(() => () => animation.current?.stop(), [])
+
+  // 안내 문구는 잠깐 보였다가 사라집니다(백스테이지 안내와 같은 2.6초).
+  useEffect(() => {
+    if (!notice) return
+    const timer = window.setTimeout(() => setNotice(''), 2600)
+    return () => window.clearTimeout(timer)
+  }, [notice])
 
   useEffect(() => {
     const resize = () => setViewportWidth(window.innerWidth)
@@ -205,6 +219,20 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
       <div className="stage-works__canvas" style={canvasStyle}>
         <img className="stage-works__asset stage-works__air" src={airGlow} width={1554} height={1000} alt="" />
         <img className="stage-works__asset stage-works__spotlight" src={spotlight} width={876} height={728} alt="" />
+        {/* 빛기둥(spotlight.svg)과 같은 자리에 겹치는 빛줄기입니다.
+            색은 아래 raysColor, 진하기는 StageWorks.css의 .stage-works__rays opacity로 바꿉니다.
+            rayLength는 '빛이 닿는 거리 ÷ 영역의 가로 길이'입니다. 리액트비츠 예시(0.5)는 화면 전체처럼 옆으로 넓은 영역 기준이라,
+            세로로 긴 우리 빛기둥(876×728)에 그대로 쓰면 위쪽 40%에서 빛이 끊깁니다. 같은 비율로 보이도록 0.8로 환산했습니다. */}
+        <LightRays
+          className="stage-works__rays"
+          raysOrigin="top-center"
+          raysColor="#fff0c4"
+          raysSpeed={.1}
+          lightSpread={.1}
+          rayLength={.8}
+          saturation={.8}
+          mouseInfluence={.2}
+        />
         <img className="stage-works__asset stage-works__floor-shadow" src={floorShadow} width={1252} height={132} alt="" />
         <img className="stage-works__asset stage-works__side" src={stageSide} width={1079} height={266} alt="" />
         <img className="stage-works__asset stage-works__folds" src={stageFolds} width={1074} height={254} alt="" />
@@ -223,10 +251,15 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
 
         <nav className="stage-works__order" aria-label="오늘의 공연 순서">
           <p>오늘의 공연 순서</p>
-          <ol>
+          <ol ref={orderList}>
             {stageItems.map((item, index) => (
               <li key={item.key} data-active={index === active || undefined}>
-                <button type="button" onClick={() => select(index)} aria-current={index === active ? 'true' : undefined}>
+                <button type="button" aria-current={index === active ? 'true' : undefined}
+                  onClick={() => {
+                    select(index)
+                    // 이미 고른 작품을 다시 눌렀는데 볼 것이 없으면 아무 반응이 없어 보이므로 안내를 띄웁니다.
+                    if (index === active && !item.project) setNotice(REHEARSAL_NOTICE)
+                  }}>
                   <span className="stage-works__dot" aria-hidden="true" />
                   <span className="stage-works__number">0{index + 1}</span>
                   <strong>{item.label}</strong>
@@ -270,15 +303,19 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
                   onActivate={() => {
                     if (index !== active) select(index)
                     else if (item.project) onSelect(item.project)
+                    // 프로젝트도 기획서도 아직 없는 작품은 안내 문구를 띄웁니다.
+                    else setNotice(REHEARSAL_NOTICE)
                   }} />
               ))}
             </motion.div>
           </div>
         </div>
 
+        <p className="stage-works__notice" data-visible={notice ? 'true' : 'false'} aria-hidden="true"><span>{notice || REHEARSAL_NOTICE}</span></p>
         <img className="stage-works__asset stage-works__footlights" src={footlights} width={1000} height={76} alt="" />
         <p className="stage-works__drag-hint" aria-hidden="true">DRAG ↔</p>
         <p className="sr-only" aria-live="polite">현재 작품: {stageItems[active].label}, {stageItems[active].orderStatus}</p>
+        <p className="sr-only" aria-live="polite">{notice}</p>
       </div>
     </section>
   )

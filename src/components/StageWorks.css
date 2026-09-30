@@ -17,6 +17,14 @@
 .stage-works__asset { position: absolute; max-width: none; pointer-events: none; user-select: none; }
 .stage-works__air { left: 366.5px; top: 180px; }
 .stage-works__spotlight { left: 828.5px; top: -28px; }
+/* 빛줄기(React Bits Light Rays): 빛기둥(spotlight.svg)과 같은 자리·크기입니다.
+   더 연하게 하려면 opacity를 0에 가깝게, 더 진하게 하려면 1에 가깝게 바꾸세요.
+   위아래 끝은 mask로 부드럽게 지워서 네모난 경계가 보이지 않게 합니다. */
+.stage-works__rays {
+  position: absolute; left: 828.5px; top: -28px; width: 876px; height: 728px; opacity: .8;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
+}
 .stage-works__floor-shadow { left: 640.5px; top: 942px; }
 .stage-works__side { left: 727px; top: 742px; }
 .stage-works__folds { left: 729.955px; top: 754.198px; }
@@ -44,6 +52,26 @@
 .stage-works__order li[data-active] .stage-works__number { color: #f8574f; font-weight: 700; }
 .stage-works__order li[data-active] strong { font-weight: 700; }
 .stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 2px; }
+/* 커서 근접 효과(React Bits Line Sidebar): --effect(0~1)는 useLineProximity가 각 항목(li)에 넣어 줍니다.
+   0이면 원래 모습 그대로이고, 커서가 가까워질수록 글자가 진해지며 오른쪽으로 밀려납니다.
+   현재 고른 작품의 색(#171717 글자 · #f8574f 점·번호)은 아래 li[data-active] 규칙이 그대로 이깁니다. */
+.stage-works__order li button {
+  color: color-mix(in srgb, #171717 calc(var(--effect, 0) * 100%), #a3a3a3);
+  transform: translateX(calc(var(--effect, 0) * 30px));
+}
+.stage-works__order li .stage-works__dot { background: color-mix(in srgb, #737373 calc(var(--effect, 0) * 100%), #d4d4d4); }
+
+/* 아직 무대에 오르지 않은 작품 안내. 카드 위에 잠깐 떠올랐다가 사라집니다. */
+.stage-works__notice {
+  position: absolute; z-index: 7; left: 727px; top: 398px; width: 1079px; margin: 0;
+  display: flex; justify-content: center; pointer-events: none;
+  opacity: 0; transform: translateY(10px); transition: opacity 220ms ease, transform 220ms ease;
+}
+.stage-works__notice > span {
+  padding: 13px 26px; border-radius: 999px; background: rgb(23 23 23 / 88%); color: #fafafa;
+  font: 500 21px/1.4 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; white-space: nowrap;
+}
+.stage-works__notice[data-visible='true'] { opacity: 1; transform: translateY(0); }
 
 .stage-carousel {
   position: absolute; z-index: 5; left: 727px; top: 474px;
@@ -135,6 +163,8 @@
   .stage-works__order strong { font-size: 21px; }
   .stage-works__number, .stage-works__order button > span:last-child { font-size: 17px; }
   .stage-works__order button > span:last-child { display: none; }
+  /* 가로로 누운 목록에서는 옆으로 밀면 줄이 흐트러지므로 위로 살짝 떠오릅니다. */
+  .stage-works__order li button { transform: translateY(calc(var(--effect, 0) * -8px)); }
   .stage-works__dot { width: 7px; height: 7px; }
   .stage-works__drag-hint { left: 1219px; top: 850px; }
 }

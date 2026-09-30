@@ -18,6 +18,18 @@ Min Sans는 npm install 시 scripts/install-fonts.mjs가 동일한 원본을 받
 원본 경로: web/fonts/variable/MinSansVF.woff2
 SHA-256: 0218401d2d9b651c30d217501d4389f7f5003ef92f91b55b6c1555595cf1f00a
 
+Stage Works 조명 빛줄기 참고 / 적용:
+https://reactbits.dev/backgrounds/light-rays
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Backgrounds/LightRays
+React Bits Light Rays의 빛줄기 계산(rayStrength 셰이더)을 그대로 쓰고, ogl 패키지 대신 브라우저 WebGL로 옮겼습니다.
+밝은 무대 배경에서는 흰 빛이 보이지 않아, 빛의 세기를 조명 색(#fff0c4)의 진하기로 쓰도록 색 입히는 단계만 바꿨습니다.
+
+오늘의 공연 순서 커서 효과 참고 / 적용:
+https://reactbits.dev/components/line-sidebar
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Components/LineSidebar
+React Bits Line Sidebar의 커서 거리 계산(smooth falloff, rAF 보간)을 훅으로 옮겨 기존 목록에 씌웠습니다.
+색과 글꼴은 원래 쓰던 값 그대로이고, 가로로 누운 목록도 다루도록 거리 재는 방향을 더했습니다.
+
 히어로 테두리 애니메이션 참고 / 적용:
 https://reactbits.dev/text-animations/stroke-text
 https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/StrokeText

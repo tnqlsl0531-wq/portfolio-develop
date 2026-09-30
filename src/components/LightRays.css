@@ -1,0 +1,3 @@
+/* 빛줄기는 장식이므로 마우스를 가리지 않습니다. 놓을 자리·크기·진하기는 이 효과를 쓰는 쪽에서 정합니다. */
+.light-rays { position: relative; overflow: hidden; pointer-events: none; }
+.light-rays canvas { display: block; width: 100%; height: 100%; }
