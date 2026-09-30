@@ -1,27 +1,32 @@
-/* 프로그램북 목차 — 화면 오른쪽 아래 고정.
-   크기는 --page-w · --page-h 하나만 바꾸면 전체가 같이 줄고 늘어납니다. */
+/* 프로그램북 목차 — 화면 오른쪽 아래 고정. 디자인은 피그마 392-242 그대로입니다.
+   크기는 --s 하나로 정합니다: 피그마에서 1px인 것을 화면에서 몇 px로 볼지(.72 = 72%).
+   피그마 원래 크기로 보려면 --s: 1px 로 바꾸면 됩니다. */
 .program-book {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 40;
-  --page-w: 170px;
-  --page-h: 210px;
-  /* 종이 넘기는 시간과 곡선. 판자처럼 등속으로 돌지 않도록 천천히 들렸다가 빨라지고 부드럽게 안착합니다. */
-  --flip: 820ms;
-  --paper: cubic-bezier(.48, .04, .22, 1);
+  --s: .72px;
+  --page-w: calc(261 * var(--s));
+  --page-h: calc(338 * var(--s));
+  /* 넘기는 시간과 곡선. 종이는 판자보다 느리고, 천천히 들렸다가 부드럽게 내려앉습니다. */
+  --flip: 1100ms;
+  --paper: cubic-bezier(.46, .03, .24, 1);
+  /* 종이 결(아주 고운 노이즈). 값을 키우면 거칠어집니다. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E");
 }
 
-/* perspective가 있어야 판이 '넘어가는' 것처럼 보입니다(없으면 그냥 납작하게 줄어듭니다). */
 .program-book__book {
   position: relative;
   width: var(--page-w);
   height: var(--page-h);
   /* 값이 작을수록 원근이 세져서 넘어가는 느낌이 살아납니다. */
-  perspective: 900px;
+  perspective: 1100px;
+  /* 이게 없으면 브라우저가 3D를 납작하게 눌러서 표지와 속지가 겹쳐 보입니다. */
+  transform-style: preserve-3d;
 }
 
-/* 넘어가는 판. 왼쪽 모서리를 축으로 돕니다. translateZ는 도는 동안 뒤 페이지보다 앞에 있게 합니다. */
+/* ── 넘어가는 판 ────────────────────────────────── */
 .program-book__flip {
   position: absolute;
   inset: 0;
@@ -40,21 +45,43 @@
 .program-book[data-ever][data-open] .program-book__flip { animation-name: book-open; }
 .program-book[data-ever]:not([data-open]) .program-book__flip { animation-name: book-close; }
 
-/* 넘어가는 동안 종이가 살짝 휘었다 펴집니다(rotateX). 이게 없으면 나무판자처럼 뻣뻣합니다. */
+/* 넘어가는 동안 종이가 휘었다 펴지고, 끝에서 살짝 넘쳤다가 제자리에 눕습니다.
+   이 흔들림이 없으면 나무판자처럼 뻣뻣해 보입니다. */
 @keyframes book-open {
   0%   { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
-  30%  { transform: translateZ(1px) rotateY(-50deg)  rotateX(2deg); }
-  62%  { transform: translateZ(1px) rotateY(-112deg) rotateX(2.4deg); }
-  88%  { transform: translateZ(1px) rotateY(-170deg) rotateX(.7deg); }
+  22%  { transform: translateZ(1px) rotateY(-32deg)  rotateX(2.6deg); }
+  55%  { transform: translateZ(1px) rotateY(-100deg) rotateX(4deg); }
+  80%  { transform: translateZ(1px) rotateY(-156deg) rotateX(2.4deg); }
+  93%  { transform: translateZ(1px) rotateY(-183deg) rotateX(.6deg); }
   100% { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
 }
 @keyframes book-close {
   0%   { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
-  30%  { transform: translateZ(1px) rotateY(-130deg) rotateX(2deg); }
-  62%  { transform: translateZ(1px) rotateY(-68deg)  rotateX(2.4deg); }
-  88%  { transform: translateZ(1px) rotateY(-10deg)  rotateX(.7deg); }
+  22%  { transform: translateZ(1px) rotateY(-148deg) rotateX(2.6deg); }
+  55%  { transform: translateZ(1px) rotateY(-80deg)  rotateX(4deg); }
+  80%  { transform: translateZ(1px) rotateY(-24deg)  rotateX(2.4deg); }
+  93%  { transform: translateZ(1px) rotateY(3deg)    rotateX(.6deg); }
   100% { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
 }
+
+/* 판의 앞뒤 두 면 */
+.program-book__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.program-book__page--left { transform: rotateY(180deg); }
+/* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
+.program-book__page--right { position: absolute; inset: 0; }
+
+/* 안전장치: 뒤를 보고 있는 면을 숨기는 기능이 브라우저에 따라 어긋나면 표지와 속지가 겹쳐 보입니다.
+   판이 옆을 보는 절반 지점에서 확실히 바꿔 줍니다. */
+.program-book__cover,
+.program-book__page--left { transition: visibility 0s linear calc(var(--flip) * .5); }
+.program-book[data-open] .program-book__cover { visibility: hidden; }
+.program-book__page--left { visibility: hidden; }
+.program-book[data-open] .program-book__page--left { visibility: visible; }
 
 /* 넘어가는 동안 빛이 변합니다 — 표지는 돌아가며 그늘이 지고, 왼쪽 면은 다가오며 그늘이 걷힙니다.
    모양이 휘는 것보다 이 빛 변화가 '종이 같다'는 느낌을 가장 크게 만듭니다. */
@@ -68,66 +95,91 @@
 }
 .program-book__cover::after {
   opacity: 0;
-  background: linear-gradient(90deg, rgb(15 15 15 / 40%), rgb(15 15 15 / 8%) 58%, transparent);
+  background: linear-gradient(90deg, rgb(70 40 38 / 30%), rgb(70 40 38 / 6%) 58%, transparent);
 }
 .program-book[data-open] .program-book__cover::after { opacity: 1; }
 .program-book__page--left::after {
   opacity: 1;
-  background: linear-gradient(270deg, rgb(15 15 15 / 36%), rgb(15 15 15 / 6%) 58%, transparent);
+  background: linear-gradient(270deg, rgb(70 40 38 / 28%), rgb(70 40 38 / 5%) 58%, transparent);
 }
 .program-book[data-open] .program-book__page--left::after { opacity: 0; }
 
-/* 판의 앞뒤 두 면. 뒤를 보고 있는 면은 비칩니다. */
-.program-book__face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+/* ── 세 면 공통(피그마: 흰 바탕, 1px #d4d4d4 테두리, 모서리 5px) ── */
+.program-book__cover,
+.program-book__page {
+  overflow: hidden;
+  border: 1px solid #d4d4d4;
+  border-radius: calc(5 * var(--s));
+  background-color: #fff;
+  background-image: var(--grain);
+  /* 떠 있는 물건이라 그림자는 아주 옅게만 */
+  box-shadow: 0 4px 14px rgb(23 23 23 / 7%), 0 1px 3px rgb(23 23 23 / 5%);
 }
-.program-book__page--left { transform: rotateY(180deg); }
-/* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
-.program-book__page--right { position: absolute; inset: 0; }
-/* 글자는 그늘 그라데이션 위로 올라오게 합니다. */
-.program-book__slug, .program-book__list { position: relative; z-index: 1; }
 
-/* ── 표지 ─────────────────────────────────────────── */
+/* ── 표지 ─────────────────────────────────────── */
 .program-book__cover {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: block;
   margin: 0;
-  padding: 16px 14px 14px;
-  border: 1.5px solid var(--neutral-black);
-  border-radius: 3px;
-  background: var(--neutral-white);
-  box-shadow: 0 10px 22px rgb(0 0 0 / 16%);
+  padding: 0;
   text-align: left;
   cursor: pointer;
+  font-family: 'Bebas Neue', 'Special Gothic Expanded One', sans-serif;
+  font-weight: 400;
 }
-.program-book__title {
-  font: 400 13px/16px 'Special Gothic Expanded One', sans-serif;
-  color: var(--primary-500);
-}
+.program-book__year,
+.program-book__brand { position: absolute; left: calc(22 * var(--s)); }
 .program-book__year {
-  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
-  letter-spacing: 1.4px;
-  color: #a3a3a3;
+  top: calc(24 * var(--s));
+  font-size: calc(16 * var(--s));
+  line-height: 1;
+  letter-spacing: calc(-.48 * var(--s));
+  color: #d4d4d4;
+}
+.program-book__brand {
+  top: calc(113 * var(--s));
+  font-size: calc(64 * var(--s));
+  line-height: 1;
+  letter-spacing: calc(-1.92 * var(--s));
+  color: #ffc7c3;
+}
+.program-book__brand--strong { top: calc(241 * var(--s)); color: #fc7a73; }
+.program-book__line { display: block; }
+
+/* ── 속지 ─────────────────────────────────────── */
+.program-book__list { margin: 0; padding: 0; list-style: none; }
+.program-book__slot { position: absolute; top: calc(var(--top) * var(--s)); }
+.program-book__slot[data-align='left'] { left: calc(var(--left) * var(--s)); }
+.program-book__slot[data-align='right'] { right: calc(var(--right) * var(--s)); text-align: right; }
+
+.program-book__item {
+  display: block;
+  color: #812b27;
+  font: 800 calc(32 * var(--s))/1.04 'Lisu Bosa', Georgia, serif;
+  text-decoration: none;
+  transition: color 220ms ease, transform 220ms ease;
+}
+.program-book__item[data-big] {
+  color: #f8574f;
+  font-weight: 900;
+  font-size: calc(36 * var(--s));
+  letter-spacing: calc(-1.08 * var(--s));
+}
+.program-book__slot[data-align='right'] .program-book__item { transform-origin: right center; }
+.program-book__slot[data-align='left'] .program-book__item { transform-origin: left center; }
+.program-book__item:hover,
+.program-book__item:focus-visible { transform: scale(1.05); }
+.program-book__item:hover { color: #f8574f; }
+.program-book__item[data-big]:hover { color: #e3463e; }
+
+/* 지금 보고 있는 섹션: CONTACT가 이미 코랄이라 색 대신 밑줄로 표시합니다. */
+.program-book__item[data-current] {
+  text-decoration: underline;
+  text-decoration-color: #f8574f;
+  text-decoration-thickness: calc(2 * var(--s));
+  text-underline-offset: calc(5 * var(--s));
 }
 
-/* ── 속지 ─────────────────────────────────────────── */
-/* position은 위쪽 .program-book__face / --right 규칙이 정합니다(여기서 다시 쓰면 그 값을 덮어써서
-   두 면이 내용 높이로 줄어듭니다). */
-.program-book__page {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px 10px 14px;
-  border: 1.5px solid var(--neutral-black);
-  background: #fff;
-}
-/* 진짜 책처럼 가운데(등)로 갈수록 종이가 말려 들어가 그늘이 지고, 바깥 모서리 쪽은 살짝 떠올라 밝습니다.
-   그늘 세기는 아래 두 그라데이션의 % 값으로 조절합니다. */
+/* 펼친 두 면: 등(가운데)으로 갈수록 종이가 말려 들어가 그늘이 지고, 바깥 모서리는 살짝 떠올라 밝습니다. */
 .program-book__page::before {
   content: '';
   position: absolute;
@@ -135,67 +187,40 @@
   border-radius: inherit;
   pointer-events: none;
 }
-/* 등(spine) 쪽 테두리는 뺍니다 — 두 면의 검은 선이 겹치면 가운데가 띠처럼 진해집니다. */
+/* 등 쪽 테두리는 뺍니다 — 두 면의 선이 겹치면 가운데가 띠처럼 진해집니다. */
 .program-book__page--left {
   border-right: 0;
-  border-radius: 5px 0 0 5px;
-  box-shadow: -7px 9px 20px rgb(0 0 0 / 14%);
+  border-radius: calc(5 * var(--s)) 0 0 calc(5 * var(--s));
+  box-shadow: -5px 5px 14px rgb(23 23 23 / 7%);
 }
 .program-book__page--left::before {
   background:
-    linear-gradient(90deg, transparent 46%, rgb(15 15 15 / 3%) 72%, rgb(15 15 15 / 9%) 92%, rgb(15 15 15 / 13%) 100%),
-    linear-gradient(90deg, rgb(255 255 255 / 80%) 0%, transparent 30%);
+    linear-gradient(90deg, transparent 48%, rgb(70 40 38 / 3%) 76%, rgb(70 40 38 / 8%) 94%, rgb(70 40 38 / 11%) 100%),
+    linear-gradient(90deg, rgb(255 255 255 / 70%) 0%, transparent 28%);
 }
 .program-book__page--right {
   border-left: 0;
-  border-radius: 0 5px 5px 0;
-  box-shadow: 7px 9px 20px rgb(0 0 0 / 14%);
+  border-radius: 0 calc(5 * var(--s)) calc(5 * var(--s)) 0;
+  box-shadow: 5px 5px 14px rgb(23 23 23 / 7%);
 }
 .program-book__page--right::before {
   background:
-    linear-gradient(270deg, transparent 46%, rgb(15 15 15 / 3%) 72%, rgb(15 15 15 / 9%) 92%, rgb(15 15 15 / 13%) 100%),
-    linear-gradient(270deg, rgb(255 255 255 / 80%) 0%, transparent 30%);
+    linear-gradient(270deg, transparent 48%, rgb(70 40 38 / 3%) 76%, rgb(70 40 38 / 8%) 94%, rgb(70 40 38 / 11%) 100%),
+    linear-gradient(270deg, rgb(255 255 255 / 70%) 0%, transparent 28%);
 }
-.program-book__slug {
-  margin: 0;
-  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
-  letter-spacing: 2px;
-  color: #a3a3a3;
-}
-.program-book__list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+/* 글자는 그늘 그라데이션 위로 올라오게 합니다. */
+.program-book__list { position: relative; z-index: 1; }
 
-.program-book__item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 6px;
-  border-radius: 4px;
-  color: #171717;
-  text-decoration: none;
-  transition: background-color 180ms ease, color 180ms ease;
-}
-.program-book__no {
-  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
-  letter-spacing: .5px;
-  color: #a3a3a3;
-}
-.program-book__label { font: 600 12.5px/1.2 'Lisu Bosa', Georgia, serif; white-space: nowrap; }
-
-.program-book__item:hover,
-.program-book__item:focus-visible { background: rgb(255 227 225 / 70%); }
-/* 지금 보고 있는 섹션 */
-.program-book__item[data-current] { background: rgb(255 227 225 / 85%); color: var(--primary-500); }
-.program-book__item[data-current] .program-book__no { color: var(--primary-500); }
+.program-book__cover:focus-visible,
+.program-book__item:focus-visible { outline: 2px solid #f8574f; outline-offset: 2px; }
 
 /* 폰·좁은 화면에서는 조금 작게 */
-@media (max-width: 700px) {
-  .program-book { right: 14px; bottom: 14px; --page-w: 148px; --page-h: 184px; }
-  .program-book__label { font-size: 11px; }
-}
+@media (max-width: 700px) { .program-book { right: 14px; bottom: 14px; --s: .56px; } }
 
 /* 동작 줄이기 설정: 넘어가는 애니메이션 없이 바로 펼쳐집니다. */
 @media (prefers-reduced-motion: reduce) {
   .program-book[data-ever] .program-book__flip { animation: none; }
-  .program-book__face::after { transition: none; }
+  .program-book__face::after,
   .program-book__item { transition: none; }
+  .program-book__cover, .program-book__page--left { transition: none; }
 }

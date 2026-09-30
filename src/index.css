@@ -13,6 +13,23 @@
   src: url('./assets/fonts/LisuBosa-Bold.ttf') format('truetype');
   font-style: normal; font-weight: 700; font-display: swap;
 }
+/* 프로그램북 속지에 쓰는 굵기(피그마 392-242: ExtraBold 800 · Black 900) */
+@font-face {
+  font-family: 'Lisu Bosa';
+  src: url('./assets/fonts/LisuBosa-ExtraBold.ttf') format('truetype');
+  font-style: normal; font-weight: 800; font-display: swap;
+}
+@font-face {
+  font-family: 'Lisu Bosa';
+  src: url('./assets/fonts/LisuBosa-Black.ttf') format('truetype');
+  font-style: normal; font-weight: 900; font-display: swap;
+}
+/* 프로그램북 표지 글씨(피그마 392-242) */
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('./assets/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-style: normal; font-weight: 400; font-display: swap;
+}
 @font-face {
   font-family: 'Syncopate';
   src: url('./assets/fonts/Syncopate-Bold.ttf') format('truetype');

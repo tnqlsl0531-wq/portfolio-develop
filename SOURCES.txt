@@ -8,8 +8,10 @@ SVG: 해당 Figma 파일의 곡선, 국순당·자두야 로고, 아이콘 원�
 종이클립 SVG에는 피그마의 회전이 포함되어 있습니다.
 
 Min Sans VF: https://github.com/poposnail61/min-sans
-Special Gothic Expanded One / Lisu Bosa / Noto Sans KR / Syncopate:
+Special Gothic Expanded One / Lisu Bosa / Noto Sans KR / Syncopate / Bebas Neue:
 https://github.com/google/fonts
+프로그램북 목차(피그마 392-242)에 쓰려고 Bebas Neue Regular(ofl/bebasneue)와
+Lisu Bosa ExtraBold·Black(ofl/lisubosa)을 더 받았습니다. 둘 다 SIL Open Font License입니다.
 각 글꼴의 라이선스는 src/assets/fonts에 동봉했습니다.
 Noto Sans KR은 @fontsource-variable/noto-sans-kr 5.3.0의 웹용 WOFF2 파일을 사용합니다.
 
