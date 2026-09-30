@@ -12,7 +12,6 @@ import kooksoondangDot from '../assets/design/kooksoondang-dot.svg'
 import jaduLogo from '../assets/design/jadu-logo.svg'
 import futurePreview from '../assets/stage/future-preview.png'
 import airGlow from '../assets/stage/air-glow.svg'
-import spotlight from '../assets/stage/spotlight.svg'
 import floorShadow from '../assets/stage/floor-shadow.svg'
 import stageSide from '../assets/stage/stage-side.svg'
 import stageFolds from '../assets/stage/stage-folds.svg'
@@ -25,6 +24,10 @@ import sideShadowLeft from '../assets/stage/side-shadow-left.svg'
 import sideShadowRight from '../assets/stage/side-shadow-right.svg'
 import footlights from '../assets/stage/footlights.svg'
 import './StageWorks.css'
+
+// 무대 조명이 모이는 자리. .stage-works__rays 영역 안의 비율(가로 가운데, 위에서 6% 지점)입니다.
+// 화면 맨 위 바깥이 아니라 카드 위 공중에서 빛이 시작되도록 영역 안쪽 값을 씁니다.
+const RAYS_ORIGIN = { x: .5, y: .06 }
 
 // 아직 무대에 오르지 않은 작품(어린이대공원)을 눌렀을 때 뜨는 안내입니다.
 const REHEARSAL_NOTICE = '현재 리허설 중이에요. 곧 무대에서 만나요!'
@@ -218,18 +221,17 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
     <section id="lineup" className="stage-works" aria-labelledby="lineup-title" style={{ height: compact ? Math.max(640, 1206 * scale) : 1206 * scale }}>
       <div className="stage-works__canvas" style={canvasStyle}>
         <img className="stage-works__asset stage-works__air" src={airGlow} width={1554} height={1000} alt="" />
-        <img className="stage-works__asset stage-works__spotlight" src={spotlight} width={876} height={728} alt="" />
-        {/* 빛기둥(spotlight.svg)과 같은 자리에 겹치는 빛줄기입니다.
-            색은 아래 raysColor, 진하기는 StageWorks.css의 .stage-works__rays opacity로 바꿉니다.
-            rayLength는 '빛이 닿는 거리 ÷ 영역의 가로 길이'입니다. 리액트비츠 예시(0.5)는 화면 전체처럼 옆으로 넓은 영역 기준이라,
-            세로로 긴 우리 빛기둥(876×728)에 그대로 쓰면 위쪽 40%에서 빛이 끊깁니다. 같은 비율로 보이도록 0.8로 환산했습니다. */}
+        {/* 무대 조명. 예전의 분홍 빛기둥(spotlight.svg)을 걷어내고 이 빛만 씁니다.
+            originPoint = 빛이 모이는 자리(이 영역 안의 가로·세로 비율). 카드 위 공중에서 시작해 아래로 퍼집니다.
+            색은 raysColor, 진하기는 intensity, 퍼지는 너비는 lightSpread로 조절합니다.
+            rayLength는 '빛이 닿는 거리 ÷ 영역의 가로 길이'입니다. */}
         <LightRays
           className="stage-works__rays"
-          raysOrigin="top-center"
+          originPoint={RAYS_ORIGIN}
           raysColor="#ffd27a"
           raysSpeed={.1}
-          lightSpread={.35}
-          rayLength={.8}
+          lightSpread={.42}
+          rayLength={.95}
           saturation={.8}
           intensity={2.6}
           mouseInfluence={.2}

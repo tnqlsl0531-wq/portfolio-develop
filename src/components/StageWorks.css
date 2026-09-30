@@ -16,14 +16,14 @@
 }
 .stage-works__asset { position: absolute; max-width: none; pointer-events: none; user-select: none; }
 .stage-works__air { left: 366.5px; top: 180px; }
-.stage-works__spotlight { left: 828.5px; top: -28px; }
-/* 빛줄기(React Bits Light Rays): 빛기둥(spotlight.svg)과 같은 자리·크기입니다.
-   더 연하게 하려면 opacity를 0에 가깝게, 더 진하게 하려면 1에 가깝게 바꾸세요.
-   위아래 끝은 mask로 부드럽게 지워서 네모난 경계가 보이지 않게 합니다. */
+/* 무대 조명(React Bits Light Rays). 카드(left 727 · width 1079) 가운데 위 공중에서 빛이 시작해
+   무대 쪽으로 퍼집니다. 예전 분홍 빛기둥(spotlight.svg)은 걷어냈습니다.
+   빛이 모이는 자리는 StageWorks.tsx의 RAYS_ORIGIN, 진하기는 같은 파일의 intensity로 조절합니다.
+   mask: 빛이 모이는 점을 중심으로 사방으로 서서히 사라지게 해서, 네모난 영역 경계가 보이지 않게 합니다. */
 .stage-works__rays {
-  position: absolute; left: 828.5px; top: -28px; width: 876px; height: 728px; opacity: 1;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
-  mask-image: linear-gradient(to bottom, #000 0, #000 45%, transparent 92%);
+  position: absolute; left: 706px; top: 96px; width: 1120px; height: 640px; opacity: 1;
+  -webkit-mask-image: radial-gradient(118% 122% at 50% 6%, #000 32%, rgb(0 0 0 / 46%) 66%, transparent 100%);
+  mask-image: radial-gradient(118% 122% at 50% 6%, #000 32%, rgb(0 0 0 / 46%) 66%, transparent 100%);
 }
 .stage-works__floor-shadow { left: 640.5px; top: 942px; }
 .stage-works__side { left: 727px; top: 742px; }

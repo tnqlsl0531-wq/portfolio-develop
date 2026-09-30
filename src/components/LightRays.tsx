@@ -105,8 +105,11 @@ function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(parsed[1], 16) / 255, parseInt(parsed[2], 16) / 255, parseInt(parsed[3], 16) / 255]
 }
 
-// 빛이 시작하는 자리(anchor)와 나아가는 방향(dir). 화면 밖에서 시작해야 빛기둥 꼭대기가 잘리지 않습니다.
-function anchorAndDir(origin: RaysOrigin, width: number, height: number) {
+// 빛이 시작하는 자리(anchor)와 나아가는 방향(dir).
+// originPoint를 주면 그 자리(가로·세로 비율, 0~1)에서 아래로 퍼집니다. 0.05처럼 안쪽 값을 주면
+// 빛이 모이는 점이 화면 안에 보여서, 공중에 조명이 매달린 것처럼 됩니다.
+function anchorAndDir(origin: RaysOrigin, width: number, height: number, point?: { x: number; y: number }) {
+  if (point) return { anchor: [point.x * width, point.y * height], dir: [0, 1] }
   const outside = .2
   switch (origin) {
     case 'top-left': return { anchor: [0, -outside * height], dir: [0, 1] }
@@ -148,9 +151,12 @@ export default function LightRays({
   saturation = 1,
   intensity = 1,
   mouseInfluence = .1,
+  originPoint,
   className = '',
 }: {
   raysOrigin?: RaysOrigin
+  /** 빛이 모이는 자리를 직접 정합니다(가로·세로 비율 0~1). 주면 raysOrigin 대신 이 자리를 씁니다. */
+  originPoint?: { x: number; y: number }
   raysColor?: string
   raysSpeed?: number
   lightSpread?: number
@@ -219,7 +225,7 @@ export default function LightRays({
         canvas.height = height
         gl.viewport(0, 0, width, height)
         gl.uniform2f(iResolution, width, height)
-        const { anchor, dir } = anchorAndDir(raysOrigin, width, height)
+        const { anchor, dir } = anchorAndDir(raysOrigin, width, height, originPoint)
         gl.uniform2f(rayPos, anchor[0], anchor[1])
         gl.uniform2f(rayDir, dir[0], dir[1])
       }
@@ -288,7 +294,9 @@ export default function LightRays({
       window.removeEventListener('resize', resize)
       scene?.dispose()
     }
-  }, [reducedMotion, raysOrigin, raysColor, raysSpeed, lightSpread, rayLength, saturation, intensity, mouseInfluence])
+    // originPoint는 객체라 매번 새로 만들어지므로, 값만 꺼내 비교합니다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reducedMotion, raysOrigin, raysColor, raysSpeed, lightSpread, rayLength, saturation, intensity, mouseInfluence, originPoint?.x, originPoint?.y])
 
   return <div ref={container} className={`light-rays${className ? ` ${className}` : ''}`} aria-hidden="true" />
 }
