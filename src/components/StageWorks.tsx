@@ -81,24 +81,45 @@ function StageArtwork({ item }: { item: StageItem }) {
   )
 }
 
+/* 가운데 카드에만 뜨는 '눌러서 볼 수 있어요' 표시.
+   끌 수 있다는 건 커서(손바닥)로 알 수 있는데 누를 수 있다는 건 알 길이 없어서 카드 안에 직접 넣었습니다.
+   보이고 숨기는 것과 마우스를 올렸을 때 색이 차는 건 CSS(.circular-carousel__card[data-active])가 맡습니다.
+   아직 무대에 오르지 않은 작품은 열어 볼 게 없으므로 '리허설 중'을 흐린 색으로 보여 줍니다. */
+function StageCue({ item }: { item: StageItem }) {
+  return (
+    <span className="stage-card__cue" data-quiet={item.project ? undefined : 'true'} aria-hidden="true">
+      {item.project ? '자세히 보기' : '리허설 중'}
+      {item.project && <span className="stage-card__cue-arrow">↗</span>}
+    </span>
+  )
+}
+
 function StageCard({ item }: { item: StageItem }) {
   if (!item.project) {
-    return <div className="stage-card__inner stage-card__inner--future"><StageArtwork item={item} /><p>COMING<br />SOON</p></div>
+    return (
+      <>
+        <div className="stage-card__inner stage-card__inner--future"><StageArtwork item={item} /><p>COMING<br />SOON</p></div>
+        <StageCue item={item} />
+      </>
+    )
   }
   return (
-    <div className="stage-card__inner">
-      <StageArtwork item={item} />
-      <div className="stage-card__info">
-        <div className="stage-card__details">
-          <h3>{item.project.title}</h3>
-          <dl>
-            <div><dt>기관:</dt><dd>{item.project.organization}</dd></div>
-            <div><dt>유형:</dt><dd>{item.project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'}</dd></div>
-          </dl>
+    <>
+      <div className="stage-card__inner">
+        <StageArtwork item={item} />
+        <div className="stage-card__info">
+          <div className="stage-card__details">
+            <h3>{item.project.title}</h3>
+            <dl>
+              <div><dt>기관:</dt><dd>{item.project.organization}</dd></div>
+              <div><dt>유형:</dt><dd>{item.project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'}</dd></div>
+            </dl>
+          </div>
+          <p className="stage-card__period">{item.project.period}</p>
         </div>
-        <p className="stage-card__period">{item.project.period}</p>
       </div>
-    </div>
+      <StageCue item={item} />
+    </>
   )
 }
 
