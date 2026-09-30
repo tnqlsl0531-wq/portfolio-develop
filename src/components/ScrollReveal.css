@@ -3,7 +3,7 @@
    아래는 계산이 붙기 전(처음 그려질 때)의 모습입니다. */
 .scroll-reveal {
   transform-origin: 0% 50%;
-  transform: rotate(var(--reveal-rotate, 3deg));
+  transform: rotate(var(--reveal-rotate, 0deg));
 }
 
 .scroll-reveal__word {

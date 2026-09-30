@@ -110,7 +110,7 @@ function Hero() {
 // Artist Gallery가 화면에 멈춰 있는 동안(Pin, App 아래 hold) 스크롤한 비율로 정하는 순서:
 // title  = 제목 글자가 다 펴지는 지점(React Bits Fold Text, 멈추는 순간 시작)
 // intro  = 부제·'자세히 보러가기'가 아래에서 올라오는 구간 [시작, 끝] — 제목 끝부분과 겹치게 함께 등장
-const GALLERY_PIN = { title: .6, intro: [.35, .65] }
+const GALLERY_PIN = { title: .46, intro: [.3, .52] }
 
 function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
@@ -204,10 +204,11 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
   )
 }
 
-// Director’s Note가 화면에 멈춰 있는 동안(Pin, hold 130vh) 스크롤한 비율로 정하는 순서:
-// title = 제목 글자가 다 떠오르는 지점. 그때까지는 사진·글 없이 흰 화면에 제목만 보입니다.
+// Director’s Note가 화면에 멈춰 있는 동안(Pin, hold 80vh) 스크롤한 비율로 정하는 순서:
+// lead  = 멈추기 이만큼(화면 높이 대비) 전, 앞 섹션이 빠지고 흰 화면이 차오를 때부터 제목 글자가 떠오르기 시작합니다.
+// title = 제목 글자가 다 떠오르는 지점(멈춘 거리 대비). 그때까지는 사진·글 없이 흰 화면에 제목만 보입니다.
 // body  = 사진·이름·Profile·소개 글이 아래에서 올라오며 나타나는 구간 [시작, 끝]. 끝난 뒤 조금 더 멈췄다가 스크롤이 흘러갑니다.
-const DIRECTOR_PIN = { title: .55, body: [.6, .9], rise: 80 }
+const DIRECTOR_PIN = { lead: .55, title: .22, body: [.28, .62], rise: 80 }
 
 function DirectorsNote() {
   const body = useRef<HTMLDivElement>(null)
@@ -265,7 +266,7 @@ function DirectorsNote() {
   return (
     <section id="director" className="director" aria-labelledby="director-title">
       {/* 제목(피그마 351-185): 화면이 멈춘 동안 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
-      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven pinShare={DIRECTOR_PIN.title} />
+      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven pinShare={DIRECTOR_PIN.title} pinLead={DIRECTOR_PIN.lead} />
       <div ref={body} className="director__body" style={{ '--director-rise': `${DIRECTOR_PIN.rise}px` } as CSSProperties}>
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
@@ -774,14 +775,17 @@ function Portfolio() {
       {/* 섹션마다 화면을 꽉 채우면 잠깐 멈춰 서 있다가 다시 흘러갑니다(Pin, 멈추는 거리는 App.css의 --pin-hold).
           맨 끝(Contact·글자 띠)은 뒤에 이어질 게 없어서 걸지 않습니다. */}
       <main className="portfolio">
-        <Pin><Hero /></Pin>
-        <Pin><StageWorks onSelect={setSelectedProject} /></Pin>
+        {/* 히어로: 처음 들어온 화면(맨 위) 그대로 멈추고, 멈춘 동안 스크롤하면 오른쪽 위 빨간 글자(CHOI-SUBIN PRESENTS)가 그려진 뒤 풀립니다.
+            아래 물결은 멈추지 않고, 멈춤이 풀린 뒤 화면에 들어오면서 휩니다(HeroCurve). */}
+        <Pin align="start" hold="110vh"><Hero /></Pin>
+        {/* Stage Works: 섹션 맨 위가 화면 맨 위에 닿을 때 멈춤(제목이 잘리지 않게) */}
+        <Pin align="start"><StageWorks onSelect={setSelectedProject} /></Pin>
         {/* Artist Gallery: 섹션 가운데가 화면 가운데에 올 때 멈춤(글자가 너무 위에 붙지 않게).
-            멈추는 순간부터 제목 글자가 접혔다 펴지며 부제·버튼과 함께 등장하고, 그동안 화면 높이만큼(100vh) 멈춰 있습니다. */}
-        <Pin align="center" hold="100vh" landAt={.7}><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
-        {/* Director’s Note: 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈추고, 멈춰 있는 동안 스크롤하는 만큼 제목 글자가 떠오른 뒤
-            사진·글이 아래에서 올라오고(DIRECTOR_PIN), 그다음 다시 흘러감 */}
-        <Pin align="start" hold="130vh" landAt={.92}><DirectorsNote /></Pin>
+            멈추는 순간부터 제목 글자가 접혔다 펴지며 부제·버튼과 함께 등장하고, 버튼까지 다 뜬 뒤에도 한동안 더 멈춰 있습니다(130vh). */}
+        <Pin align="center" hold="130vh" landAt={.6}><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
+        {/* Director’s Note: 앞 섹션이 빠지며 흰 화면이 차오르는 동안 제목 글자가 떠오르기 시작하고, 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈춰
+            제목을 마저 띄운 뒤 사진·글이 아래에서 올라오고(DIRECTOR_PIN), 그다음 다시 흘러감 */}
+        <Pin align="start" hold="80vh" landAt={.62}><DirectorsNote /></Pin>
         <Contact />
         <MarqueeBand />
       </main>

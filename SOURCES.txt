@@ -306,3 +306,15 @@ https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/
 - Contact 이메일 복사: navigator.clipboard.writeText(안 되면 textarea + execCommand('copy')), 말풍선 1.8초.
   그림 카드: 링크(mailto) → 버튼. 3D 카드: 클릭한 자리의 카드 그림 좌표(uv)가 이메일 줄(2048px 그림 기준 x 70~785, y 962~1060)이면 복사, 6px 넘게 움직이면 끌기로 봄.
   staff-pass-card.png: 이메일 줄(y 950~1100, x 40~1000)만 새로 그려 붙임(↗ 삭제, 밑줄 1.5px 35% 검정, 복사 아이콘 19px #737373). 나머지 픽셀은 그대로.
+
+히어로 빨간 글자 고정 · 고정 자리 조정 · 디렉터 제목 앞당김 · 기울기 끔 · 프로그램북 통통 (2026-09-30 밤 3)
+- 히어로: Pin align start + hold 110vh. StrokePresenter(React Bits Stroke Text)를 멈춘 동안 스크롤한 만큼 그리게(멈춘 거리의 80%에서 완성, sine.inOut·stagger 0.05 그대로).
+  처음에는 안 보임. 화면 고정 없는 기기는 예전처럼 보이면 한 번 재생.
+- 히어로 물결(HeroCurve): 거리 기준을 '멈춤이 풀린 뒤 물결이 화면 아래로 들어오는 순간 ~ 화면 높이 50% 더'로 바꿈(물결에서 멈추던 것 해결).
+- Stage Works: Pin align end → start(제목이 잘린 자리에서 멈추던 것 해결).
+- Artist Gallery: 멈춤 100vh → 130vh, 제목 완성 60% → 46%, 부제·버튼 35~65% → 30~52%, landAt 0.6.
+- Director’s Note: 멈춤 130vh → 80vh, 제목(ScrollFloat)을 멈추기 화면 높이 55% 전부터 시작(pinLead, 새 옵션) → 멈춘 거리 22%에서 완성, 사진·글 28~62%, landAt 0.62.
+  Pin.tsx에 pinTravel(멈추기 전 남은 거리까지 px로) 추가.
+- 소개 문단(ScrollReveal): 묶음 기울기 3도 → 0도(삐딱해 보인다는 피드백).
+- 프로그램북 스크롤 따라오기: 지수 감쇠(lag 0.22초) → 용수철(stiffness 150, damping 0.3, 끌려가는 몫 0.32, 최대 56px)로 제자리를 살짝 지나쳤다 튕기며 돌아옴,
+  빠르기에 따라 최대 5도 갸우뚱(아래 가운데 축) + 최대 6% 세로로 늘어남. 외부 라이브러리 없음.

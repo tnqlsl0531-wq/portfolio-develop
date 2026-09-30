@@ -4,7 +4,7 @@
  *       https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/ScrollReveal
  * 라이선스: MIT + Commons Clause (src/licenses/React-Bits-LICENSE.md)
  *
- * 값: 원본 기본값 그대로 — 글자 처음 투명도 0.1(baseOpacity), 흐림 4px(blurStrength), 묶음 기울기 3도(baseRotation, 왼쪽 가운데 기준).
+ * 값: 원본 기본값 — 글자 처음 투명도 0.1(baseOpacity), 흐림 4px(blurStrength). 묶음 기울기(baseRotation, 원본 3도)는 0으로 꺼 둠(글이 삐딱해 보인다는 피드백).
  *
  * 움직임(9/30 밤, 원본처럼 스크롤한 만큼 진행 = GSAP scrub과 같은 방식으로 되돌림)
  * - 단어마다 '자기 줄이 화면 아래에서 얼마나 올라왔는지'로 또렷해지는 정도가 정해집니다.
@@ -12,7 +12,7 @@
  *   한 줄 안에서는 왼쪽 단어가 먼저, 오른쪽 단어가 조금 늦게(sweep) 또렷해져서 읽는 방향으로 번져 나갑니다.
  *   → 천천히 스크롤하면 천천히, 멈추면 그 자리에서 멈추고, 되돌리면 다시 흐려집니다.
  *   (그전에는 묶음이 보이자마자 전체가 1초 안에 와르르 재생돼서, 천천히 스크롤하면 이미 끝나 있었다는 피드백)
- * - 기울기는 묶음 전체에 한 번 겁니다: 묶음 윗선이 화면 아래 끝에 닿을 때 3도 → 묶음 아래 끝이 화면 아래 끝에 닿을 때 0도(원본과 같은 구간).
+ * - 기울기(쓰는 경우)는 묶음 전체에 한 번 겁니다: 묶음 윗선이 화면 아래 끝에 닿을 때 baseRotation → 묶음 아래 끝이 화면 아래 끝에 닿을 때 0도(원본과 같은 구간).
  * - 문단 하나하나가 아니라 묶음(Director’s note 문단 전체) 하나에 겁니다(as="div"로 묶음 요소를 그대로 씀).
  * - GSAP 없이 스크롤 위치로 직접 계산합니다(추가 패키지 없음).
  * - 글을 단어로 나누는 건 revealWords로 하고, 굵은 글씨(strong) 같은 원래 꾸밈은 그대로 둡니다.
@@ -25,10 +25,10 @@ import './ScrollReveal.css'
 
 /* baseOpacity : 나타나기 전 글자 진하기(0~1)
    blurStrength: 나타나기 전 흐림(px)
-   baseRotation: 나타나기 전 묶음 기울기(도)
+   baseRotation: 나타나기 전 묶음 기울기(도). 원본 기본값은 3도지만, 다 읽을 수 있을 때까지 글이 삐딱해 보여서 0으로 끔(9/30 밤 피드백).
    band        : 줄이 화면 아래 끝에서 화면 높이의 이만큼 올라오면 다 또렷해집니다(0~1). 클수록 천천히, 작을수록 빨리.
    sweep       : 한 줄의 오른쪽 끝 단어가 왼쪽 끝보다 늦게 시작하는 정도(band 대비). 0이면 한 줄이 한꺼번에. */
-export const REVEAL = { baseOpacity: .1, blurStrength: 4, baseRotation: 3, band: .25, sweep: .5 }
+export const REVEAL = { baseOpacity: .1, blurStrength: 4, baseRotation: 0, band: .25, sweep: .5 }
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 

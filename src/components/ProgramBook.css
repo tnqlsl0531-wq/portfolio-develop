@@ -7,6 +7,8 @@
   bottom: 24px;
   /* 커서 물감(SplashCursor, z-index 50)보다 위: 목차 위에는 물감이 번지지 않습니다. */
   z-index: 60;
+  /* 스크롤할 때 통통 튀며 갸우뚱하는 축(ProgramBook.tsx FOLLOW): 아래 가운데 */
+  transform-origin: 50% 100%;
   --s: .72px;
   --page-w: calc(261 * var(--s));
   --page-h: calc(338 * var(--s));

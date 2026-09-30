@@ -58,12 +58,21 @@ export default function Pin({ children, align = 'end', hold, landAt }: Props) {
  * 화면 고정을 안 하는 경우(폰·태블릿·동작 줄이기, 또는 Pin 밖)에는 null을 돌려줍니다 → 쓰는 쪽은 원래 방식으로 움직이면 됩니다.
  */
 export function pinProgress(element: Element): number | null {
+  const travel = pinTravel(element)
+  return travel && Math.min(1, Math.max(0, travel.scrolled / travel.hold))
+}
+
+/**
+ * pinProgress의 px 버전: scrolled = 멈추기 시작한 뒤 스크롤한 거리(px, 멈추기 전이면 음수 = 멈출 때까지 남은 거리), hold = 멈춰 있는 거리.
+ * 멈추기 조금 전부터 움직임을 시작하고 싶을 때 씁니다. 화면 고정을 안 하면 null.
+ */
+export function pinTravel(element: Element): { scrolled: number; hold: number } | null {
   const pin = element.closest<HTMLElement>('.pin')
   if (!pin) return null
   const hold = pinHold(pin)
   if (hold <= 0) return null
   // 멈추기 시작하는 순간 = 묶음 윗선이 --pin-top(가운데·끝 맞춤이면 음수)에 닿을 때
-  return Math.min(1, Math.max(0, (pinTop(pin) - pin.getBoundingClientRect().top) / hold))
+  return { scrolled: pinTop(pin) - pin.getBoundingClientRect().top, hold }
 }
 
 /** 멈춰 있는 거리(px). 화면 고정을 안 하면 0. */

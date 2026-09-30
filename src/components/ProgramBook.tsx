@@ -71,10 +71,14 @@ const MOTION = {
   closeDelay: 160,
 }
 
-/* 스크롤할 때 책이 화면에 딱 붙어 있지 않고 살짝 늦게 따라옵니다.
-   lag: 늦게 따라오는 정도(초, 0.1~0.5 사이 권장). 클수록 더 늦게 제자리로 돌아옵니다.
-   max: 가장 많이 밀려나는 거리(px). */
-const FOLLOW = { lag: .22, max: 48 }
+/* 스크롤할 때 책이 화면에 딱 붙어 있지 않고, 페이지에 살짝 끌려갔다가 '통' 하고 튕기며 제자리로 돌아옵니다(9/30 밤: 더 귀엽게).
+   drag     : 스크롤한 거리 중 책이 같이 끌려가는 몫(0~1). 클수록 많이 끌려감.
+   max      : 가장 많이 밀려나는 거리(px).
+   stiffness: 제자리로 돌아오는 용수철 힘. 클수록 빨리 돌아옴(돌아오는 데 약 0.4~0.6초).
+   damping  : 1이면 튕김 없이 멈추고, 작을수록 제자리를 지나쳤다 돌아오는 '통통' 튕김이 커짐.
+   tilt     : 움직이는 빠르기에 따라 좌우로 갸우뚱하는 정도(최대 각도, 도). 아래 가운데를 축으로 흔들립니다.
+   squash   : 빠르게 움직일 때 세로로 살짝 늘어나는(가로는 그만큼 좁아지는) 정도(최대 비율). */
+const FOLLOW = { drag: .32, max: 56, stiffness: 150, damping: .3, tilt: 5, squash: .06 }
 
 type Pose = 'closed' | 'open' | 'moving'
 
@@ -278,33 +282,50 @@ export default function ProgramBook() {
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), [])
 
-  // ── 스크롤할 때 살짝 늦게 따라오기 ──────────────────
-  // 페이지가 움직이면 책도 페이지와 같이 조금 끌려갔다가(최대 FOLLOW.max) 제자리로 부드럽게 돌아옵니다.
+  // ── 스크롤할 때 살짝 늦게 따라오기(통통 튀는 용수철) ──────────────────
+  // 페이지가 움직이면 책도 그만큼 조금 끌려갔다가(최대 FOLLOW.max), 용수철처럼 제자리를 살짝 지나쳤다 돌아오며 멈춥니다.
+  // 그동안 빠르기에 따라 좌우로 갸우뚱하고(tilt), 늘어났다 납작해집니다(squash).
   useEffect(() => {
     const element = root.current
     if (!element) return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const state = { y: window.scrollY, raf: 0, last: 0 }
+    const omega = Math.sqrt(FOLLOW.stiffness)
+    const friction = 2 * FOLLOW.damping * omega
+    const state = { x: 0, v: 0, scroll: window.scrollY, raf: 0, last: 0 }
+    const clampTo = (value: number, limit: number) => Math.max(-limit, Math.min(limit, value))
     const frame = (now: number) => {
       state.raf = 0
       const dt = state.last ? Math.min((now - state.last) / 1000, 1 / 30) : 1 / 60
       state.last = now
-      const target = window.scrollY
-      state.y += (target - state.y) * (1 - Math.exp(-dt / FOLLOW.lag))
-      const gap = state.y - target
-      if (Math.abs(gap) < .2) {
-        state.y = target
+      // 지난 프레임 뒤로 페이지가 움직인 만큼 책도 같이 끌려갑니다(내리면 위로, 올리면 아래로).
+      const scroll = window.scrollY
+      state.x = clampTo(state.x - (scroll - state.scroll) * FOLLOW.drag, FOLLOW.max * 1.4)
+      state.scroll = scroll
+      let remaining = dt
+      while (remaining > 0) {
+        const h = Math.min(remaining, 1 / 240)
+        state.v += (-FOLLOW.stiffness * state.x - friction * state.v) * h
+        state.x += state.v * h
+        remaining -= h
+      }
+      if (Math.abs(state.x) < .15 && Math.abs(state.v) < 2) {
+        state.x = 0
+        state.v = 0
         state.last = 0
         element.style.transform = ''
         return
       }
-      const offset = FOLLOW.max * Math.tanh(gap / FOLLOW.max)
-      element.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`
+      const offset = FOLLOW.max * Math.tanh(state.x / FOLLOW.max)
+      // 빠르기(px/초)를 -1~1로 줄여 갸우뚱·늘어남에 씁니다.
+      const speed = Math.tanh(state.v / 900)
+      const tilt = FOLLOW.tilt * speed
+      const stretch = 1 + FOLLOW.squash * Math.abs(speed)
+      element.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0) rotate(${tilt.toFixed(2)}deg) scale(${(2 - stretch).toFixed(4)}, ${stretch.toFixed(4)})`
       state.raf = requestAnimationFrame(frame)
     }
     const onScroll = () => {
       if (reduced.matches) {
-        state.y = window.scrollY
+        state.scroll = window.scrollY
         return
       }
       if (!state.raf) state.raf = requestAnimationFrame(frame)

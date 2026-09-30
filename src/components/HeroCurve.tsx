@@ -1,18 +1,20 @@
 /*
  * 히어로 아래 물결(피그마 346-296 / 150-1626) — 스크롤할수록 휘는 경계선
  * - 맨 위(스크롤 0)에서는 곧은 1자이고, 스크롤을 내릴수록 피그마 물결 모양으로 휩니다. 다시 올리면 펴집니다.
- *   히어로가 화면에 멈춰 있는 동안(Pin) 물결이 화면 아래에 보이면서 휘도록 거리를 맞췄습니다.
+ *   히어로는 맨 위에서 화면에 멈춰 있고(Pin, 그동안 빨간 글자가 그려짐) 물결은 그때 화면 아래 밖에 있습니다.
+ *   멈춤이 풀린 뒤 물결이 화면 아래로 들어오는 순간부터 휘기 시작해서, 화면 높이의 range만큼 올라오면 다 휩니다(물결 자체는 멈추지 않음).
  * - 휘는 정도는 스크롤 위치를 바로 쓰지 않고 용수철처럼 따라가서, 멈출 때 고무줄처럼 살짝 출렁입니다(CURVE).
  * - 기본은 검정, 커서 주변 원 안에서는 히어로 배경이 끝나는 와인색(#502421, 커서 효과 색 레이어).
  * - 경계선 모양은 heroCurveEdge.ts에 있고, 커서 물감 효과(SplashCursor)도 같은 경계선을 따라갑니다.
  */
 import { useEffect, useRef } from 'react'
 import { HERO_CURVE_VIEW, heroCurvePath, setHeroCurveMorph } from '../heroCurveEdge'
+import { pinHold } from './Pin'
 
-/* reach    : 히어로가 화면에 멈춰 있는 거리(--pin-hold) 중 어디까지 가면 다 휠지(0~1). 작을수록 빨리 휩니다.
+/* range    : 물결이 화면 아래로 들어온 뒤 화면 높이의 이만큼(0~1) 올라오면 다 휩니다. 작을수록 빨리 휩니다.
    stiffness: 스크롤을 따라가는 힘. 클수록 바로바로 따라갑니다.
    damping  : 1이면 출렁임 없이 멈추고, 작을수록 멈출 때 더 출렁입니다. */
-const CURVE = { reach: .8, stiffness: 90, damping: .42 }
+const CURVE = { range: .5, stiffness: 90, damping: .42 }
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 3)
 
@@ -29,14 +31,14 @@ export default function HeroCurve() {
     const state = { m: 0, v: 0, target: 0, raf: 0, last: 0, drawn: NaN }
 
     const measure = () => {
-      // 1자 → 물결: 스크롤해서 물결이 화면에 들어온 뒤, 히어로가 화면에 멈춰 있는 동안(Pin) 휩니다.
-      // 거리 = 물결이 화면 안으로 다 들어오기까지(히어로 묶음 높이 - 화면 높이) + 멈춰 있는 거리(--pin-hold)의 reach만큼.
+      // 1자 → 물결: 히어로 멈춤(hold)이 풀리고, 물결 윗선이 화면 아래 끝에 닿는 순간(start)부터 화면 높이 × range 동안 휩니다.
       const stage = element.parentElement
-      const pin = element.closest('.pin')
-      const hold = pin ? parseFloat(getComputedStyle(pin, '::after').height) || 0 : 0
+      const pin = element.closest<HTMLElement>('.pin')
+      const hold = pin ? pinHold(pin) : 0
       const height = stage?.offsetHeight ?? window.innerHeight
-      const distance = Math.max(height * .35, height - window.innerHeight + hold * CURVE.reach)
-      state.target = ease(Math.min(1, Math.max(0, window.scrollY / Math.max(1, distance))))
+      const start = hold + Math.max(0, height - element.offsetHeight - window.innerHeight)
+      const distance = Math.max(1, window.innerHeight * CURVE.range)
+      state.target = ease(Math.min(1, Math.max(0, (window.scrollY - start) / distance)))
     }
 
     const draw = () => {
