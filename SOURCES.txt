@@ -358,3 +358,14 @@ https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/
   스크롤 따라오기 FOLLOW drag .32 → .25 · max 56 → 44 · damping .3 → .42 · tilt 5 → 3.2 · squash .06 → .04.
 - Artist Gallery: 부제 0.55초 → 버튼 0.7초, 위(-22px)에서 내려옴, cubic-bezier(.34, 1.45, .64, 1). 아카이브 채도: 조명 밖 .5 → .15, 조명 안 .75 → .9.
 - Director’s Note: 사진·글 등장 1초 → 1.4초 뒤. <Pin stop> + useSmoothScroll STOP(gap 240ms): 휠 target이 멈출 자리(pinLandTop, landAt .62)를 넘으려 하면 그 자리로 붙잡음.
+
+BACKSTAGE 큐시트 구조로 교체 (2026-10-01, 피그마 426-190 · 447-394)
+- src/assets/backstage/cue01-team.webp: 피그마 IMG_4855(447:354) 팀 사진, 피그마 색감(채도 .6 · 대비 .97)에 맞춰 1022×1022 WebP.
+- cue02-capture-1.webp / cue02-capture-2.webp: 피그마 '카드교체'(447:395)의 리디자인 전 국순당 웹사이트 캡처 두 장(595 폭).
+- cue03-backdrop.webp / cue06-backdrop.webp: 피그마 배경사진2(426:348)·배경사진3(426:478), 원형 그라데이션·어둡게 40%를 배경색(#272625)에 구워 넣음.
+- award-trophy.svg: 피그마 트로피 벡터(435:1250) 그대로(그라데이션 #CEDD0E → #A2AD14).
+- cue05-final-main.webp: 최종 국순당 메인 화면(https://jin0484.github.io/kooksoondang/main/main.html, 팀 저장소 jin0484/kooksoondang 8ce67ae)을
+  1920×1080 화면으로 구간별 캡처해 이어 붙인 긴 그림(1920×10378). 폰트는 사이트와 같은 Pretendard·Albert Sans·ROEHOE-CHAN 사용,
+  스크롤로 움직이는 구간(병 모양 변신·이벤트)은 완성된 장면으로 골라 이음. 오른쪽 MENU·고정 머리글(첫 화면 제외)은 숨김, 물방울 구간 빈 여백 500px 줄임.
+- src/assets/fonts/GothicA1-*.subset.woff2: Gothic A1(SIL OFL 1.1, GothicA1-OFL.txt)을 백스테이지에 쓰는 글자만 남겨 WOFF2로 줄임.
+- 3D 커튼 색을 짙은 와인 → 주황빛 갈색(#4a2314)으로 바꾸고, 먼저 뜨던 CSS 커튼은 지움(3D 커튼 하나만).

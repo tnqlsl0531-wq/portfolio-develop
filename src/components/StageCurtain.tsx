@@ -15,8 +15,8 @@ function supportsWebGL() {
 
 /* 마지막 단체 사진을 덮고 있는 무대 커튼(늘 닫혀 있음)
    - data-reveal: 커서 주변 원 안에서만 커튼이 투명해져 뒤의 사진이 보입니다(useColorReveal + Backstage.css).
-   - 3D 커튼(Curtain3D)이 준비되기 전, WebGL이 안 되는 기기, '동작 줄이기' 설정에서는
-     같은 색의 CSS 커튼(봉 + 두 폭 + 위쪽 가림막)이 대신 보입니다.
+   - 커튼은 3D 커튼(Curtain3D) 하나만 씁니다(10/1: 먼저 뜨던 CSS 커튼은 지움 — 커튼이 두 번 뜨던 문제).
+     WebGL이 안 되는 기기나 '동작 줄이기' 설정에서는 커튼 없이 단체 사진이 그대로 보입니다(data-fallback, Backstage.css).
    - hover가 true면 커튼이 아주 살짝 찰랑거립니다. */
 export default function StageCurtain({ hover, scroller }: { hover: boolean; scroller: RefObject<HTMLElement | null> }) {
   const layer = useRef<HTMLDivElement>(null)
@@ -40,11 +40,8 @@ export default function StageCurtain({ hover, scroller }: { hover: boolean; scro
   }, [scroller, use3D])
 
   return (
-    <div ref={layer} className="backstage__curtain" data-hover={hover} data-ready={ready} data-reveal="" aria-hidden="true">
-      <div className="backstage__rod" />
-      <div className="backstage__drape backstage__drape--left" />
-      <div className="backstage__drape backstage__drape--right" />
-      <div className="backstage__valance" />
+    <div ref={layer} className="backstage__curtain" data-hover={hover} data-ready={ready} data-fallback={!use3D || undefined}
+      data-reveal="" aria-hidden="true">
       {use3D && near && (
         <Suspense fallback={null}>
           <Curtain3D hover={hover} active={visible} onReady={() => setReady(true)} />
