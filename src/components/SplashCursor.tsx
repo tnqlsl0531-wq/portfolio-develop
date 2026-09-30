@@ -844,6 +844,8 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     window.addEventListener('mousedown', onMouseDown)
     window.addEventListener('scroll', markDirty, { passive: true })
     window.addEventListener('resize', markDirty)
+    // 히어로 아래 물결이 스크롤에 따라 휘면(HeroCurve) 경계선을 다시 잽니다.
+    window.addEventListener('hero-curve-change', markDirty)
     // 사진·글꼴이 늦게 불러와져 위치가 바뀌는 경우도 잡습니다.
     const layoutObserver = new ResizeObserver(markDirty)
     layoutObserver.observe(document.body)
@@ -855,6 +857,7 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       window.removeEventListener('mousedown', onMouseDown)
       window.removeEventListener('scroll', markDirty)
       window.removeEventListener('resize', markDirty)
+      window.removeEventListener('hero-curve-change', markDirty)
       layoutObserver.disconnect()
     }
   }, [startBelow, startEdge, fadeInto])

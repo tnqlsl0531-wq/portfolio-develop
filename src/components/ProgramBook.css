@@ -9,9 +9,7 @@
   --s: .72px;
   --page-w: calc(261 * var(--s));
   --page-h: calc(338 * var(--s));
-  /* 넘기는 시간과 곡선. 종이는 판자보다 느리고, 천천히 들렸다가 부드럽게 내려앉습니다. */
-  --flip: 1100ms;
-  --paper: cubic-bezier(.46, .03, .24, 1);
+  /* 넘기는 빠르기·휘는 정도는 ProgramBook.tsx의 MOTION 숫자로 조절합니다. */
   /* 종이 결(아주 고운 노이즈). 값을 키우면 거칠어집니다. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E");
 }
@@ -20,89 +18,119 @@
   position: relative;
   width: var(--page-w);
   height: var(--page-h);
-  /* 값이 작을수록 원근이 세져서 넘어가는 느낌이 살아납니다. */
-  perspective: 1100px;
+  /* 값이 작을수록 원근이 세져서, 들린 종이가 앞으로 다가오는 느낌이 커집니다. 책등(왼쪽 모서리)에서 바라봅니다. */
+  perspective: 720px;
+  perspective-origin: 0% 50%;
   /* 이게 없으면 브라우저가 3D를 납작하게 눌러서 표지와 속지가 겹쳐 보입니다. */
   transform-style: preserve-3d;
 }
 
-/* ── 넘어가는 판 ────────────────────────────────── */
-.program-book__flip {
+/* 펼치는 동안·펼친 뒤 왼쪽 빈자리까지 마우스가 머물 자리로 칩니다(눈에는 안 보임). */
+.program-book__hit {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: var(--page-w);
+  height: 100%;
+  transform: translateZ(-1px);
+  pointer-events: none;
+}
+.program-book[data-open] .program-book__hit { pointer-events: auto; }
+
+/* ── 넘어가는 장: 멈춰 있을 때 보이는 진짜 면(누를 수 있음) ── */
+.program-book__leaf {
   position: absolute;
   inset: 0;
   transform-origin: left center;
   transform-style: preserve-3d;
-  transform: translateZ(1px) rotateY(0deg);
+  transform: translateZ(.5px);
 }
-.program-book[data-open] .program-book__flip { transform: translateZ(1px) rotateY(-180deg); }
-
-/* 한 번이라도 펼친 뒤부터 애니메이션을 씁니다(페이지를 처음 열었을 때 닫히는 동작이 보이지 않게). */
-.program-book[data-ever] .program-book__flip {
-  animation-duration: var(--flip);
-  animation-timing-function: var(--paper);
-  animation-fill-mode: forwards;
-}
-.program-book[data-ever][data-open] .program-book__flip { animation-name: book-open; }
-.program-book[data-ever]:not([data-open]) .program-book__flip { animation-name: book-close; }
-
-/* 넘어가는 동안 종이가 휘었다 펴지고, 끝에서 살짝 넘쳤다가 제자리에 눕습니다.
-   이 흔들림이 없으면 나무판자처럼 뻣뻣해 보입니다. */
-@keyframes book-open {
-  0%   { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
-  22%  { transform: translateZ(1px) rotateY(-32deg)  rotateX(2.6deg); }
-  55%  { transform: translateZ(1px) rotateY(-100deg) rotateX(4deg); }
-  80%  { transform: translateZ(1px) rotateY(-156deg) rotateX(2.4deg); }
-  93%  { transform: translateZ(1px) rotateY(-183deg) rotateX(.6deg); }
-  100% { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
-}
-@keyframes book-close {
-  0%   { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
-  22%  { transform: translateZ(1px) rotateY(-148deg) rotateX(2.6deg); }
-  55%  { transform: translateZ(1px) rotateY(-80deg)  rotateX(4deg); }
-  80%  { transform: translateZ(1px) rotateY(-24deg)  rotateX(2.4deg); }
-  93%  { transform: translateZ(1px) rotateY(3deg)    rotateX(.6deg); }
-  100% { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
-}
-
-/* 판의 앞뒤 두 면 */
 .program-book__face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-.program-book__page--left { transform: rotateY(180deg); }
+.program-book__leaf .program-book__page--left { transform: rotateY(180deg); }
+/* 뒤를 보고 있는 면은 확실히 숨깁니다(브라우저마다 뒷면 숨기기가 어긋나는 경우 대비). */
+.program-book:not([data-pose='open']) .program-book__leaf .program-book__page--left,
+.program-book[data-pose='open'] .program-book__leaf .program-book__cover { visibility: hidden; }
+/* 움직이는 동안에는 진짜 면을 투명하게 두고 휘는 종이를 보여 줍니다(키보드 포커스는 표지에 그대로 남음). */
+.program-book[data-pose='moving'] .program-book__leaf { opacity: 0; }
+
 /* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
-.program-book__page--right { position: absolute; inset: 0; }
+.program-book__page--right { position: absolute; inset: 0; transform: translateZ(0); }
 
-/* 안전장치: 뒤를 보고 있는 면을 숨기는 기능이 브라우저에 따라 어긋나면 표지와 속지가 겹쳐 보입니다.
-   판이 옆을 보는 절반 지점에서 확실히 바꿔 줍니다. */
-.program-book__cover,
-.program-book__page--left { transition: visibility 0s linear calc(var(--flip) * .5); }
-.program-book[data-open] .program-book__cover { visibility: hidden; }
-.program-book__page--left { visibility: hidden; }
-.program-book[data-open] .program-book__page--left { visibility: visible; }
-
-/* 넘어가는 동안 빛이 변합니다 — 표지는 돌아가며 그늘이 지고, 왼쪽 면은 다가오며 그늘이 걷힙니다.
-   모양이 휘는 것보다 이 빛 변화가 '종이 같다'는 느낌을 가장 크게 만듭니다. */
-.program-book__face::after {
-  content: '';
+/* ── 휘는 종이(움직이는 동안만) ──────────────────────
+   띠 하나 = 종이 폭 / 띠 수. 띠 안에 다음 띠가 들어 있어 앞 띠 끝에 붙어 따라 돕니다. */
+.program-book__paper {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+  transform-style: preserve-3d;
+  transform: translateZ(1px);
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--flip) var(--paper);
 }
-.program-book__cover::after {
+.program-book[data-pose='moving'] .program-book__paper { visibility: visible; }
+.program-book__strip {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+/* 띠의 앞면(표지 조각)·뒷면(왼쪽 면 조각). 이음매가 비치지 않게 1px씩 겹칩니다. */
+.program-book__slice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% + 1px);
+  height: 100%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.program-book__slice--back { transform: rotateY(180deg); }
+.program-book__copy {
+  position: absolute;
+  top: 0;
+  width: var(--page-w);
+  height: var(--page-h);
+  box-sizing: border-box;
+  box-shadow: none;
+  transform: none;
+}
+/* 기울어진 만큼 지는 그늘(띠마다 JS가 진하기를 정함) */
+.program-book__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(59 34 32 / calc(var(--a, 0) * 100%)), rgb(59 34 32 / calc(var(--b, 0) * 100%)));
+  pointer-events: none;
+}
+
+/* 들린 종이가 아래 면에 드리우는 그림자: 책등에서 종이 끝이 닿는 곳(--reach)까지 */
+.program-book__cast,
+.program-book__ground {
+  position: absolute;
+  top: 0;
+  height: 100%;
   opacity: 0;
-  background: linear-gradient(90deg, rgb(70 40 38 / 30%), rgb(70 40 38 / 6%) 58%, transparent);
+  pointer-events: none;
 }
-.program-book[data-open] .program-book__cover::after { opacity: 1; }
-.program-book__page--left::after {
-  opacity: 1;
-  background: linear-gradient(270deg, rgb(70 40 38 / 28%), rgb(70 40 38 / 5%) 58%, transparent);
+.program-book__cast {
+  z-index: 2;
+  left: 0;
+  width: calc(var(--page-w) * (var(--reach, 0) * .9 + .12));
+  background: linear-gradient(90deg, rgb(59 34 32 / 45%), rgb(59 34 32 / 16%) 55%, transparent);
 }
-.program-book[data-open] .program-book__page--left::after { opacity: 0; }
+.program-book__ground {
+  right: 100%;
+  width: calc(var(--page-w) * (var(--reach, 0) * .9 + .12));
+  border-radius: calc(5 * var(--s));
+  background: linear-gradient(270deg, rgb(23 23 23 / 22%), rgb(23 23 23 / 6%) 60%, transparent);
+  filter: blur(3px);
+  transform: translateZ(-.5px);
+}
 
 /* ── 세 면 공통(피그마: 흰 바탕, 1px #d4d4d4 테두리, 모서리 5px) ── */
 .program-book__cover,
@@ -217,10 +245,7 @@
 /* 폰·좁은 화면에서는 조금 작게 */
 @media (max-width: 700px) { .program-book { right: 14px; bottom: 14px; --s: .56px; } }
 
-/* 동작 줄이기 설정: 넘어가는 애니메이션 없이 바로 펼쳐집니다. */
+/* 동작 줄이기 설정: 넘어가는 움직임 없이 바로 펼쳐집니다(ProgramBook.tsx에서 처리). */
 @media (prefers-reduced-motion: reduce) {
-  .program-book[data-ever] .program-book__flip { animation: none; }
-  .program-book__face::after,
   .program-book__item { transition: none; }
-  .program-book__cover, .program-book__page--left { transition: none; }
 }

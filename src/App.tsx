@@ -7,8 +7,6 @@ import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import { heroPhotos, profile, projects } from './portfolio'
 import { galleryTracks } from './galleryPhotos'
 import type { PhotoPosition, Project } from './portfolio'
-import heroCurve from './assets/design/hero-curve.svg'
-import heroCurveColor from './assets/design/hero-curve-color.svg'
 import paperclip from './assets/design/paperclip.svg'
 import StrokePresenter from './components/StrokePresenter'
 import { useColorReveal } from './hooks/useColorReveal'
@@ -21,9 +19,11 @@ import type { ArchiveOrigin } from './components/GalleryArchive'
 import CurvedLoop from './components/CurvedLoop'
 import FoldText from './components/FoldText'
 import ProgramBook from './components/ProgramBook'
+import HeroCurve from './components/HeroCurve'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
 import { heroCurveEdge } from './heroCurveEdge'
+import { useSectionSnap } from './hooks/useSectionSnap'
 import chevron from './assets/design/chevron.svg'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
@@ -100,11 +100,8 @@ function Hero() {
         <PhotoSlot position="upper" />
         <StrokePresenter />
       </section>
-      {/* 히어로 아래 물결(피그마 150-1626): 기본은 검정, 커서 주변 원 안에서는 히어로 배경이 끝나는 색 */}
-      <div className="hero-curve" aria-hidden="true">
-        <img className="hero-curve__img" src={heroCurve} alt="" />
-        <img className="hero-curve__img hero-curve__color hero__color-layer" src={heroCurveColor} alt="" data-reveal="" />
-      </div>
+      {/* 히어로 아래 물결(피그마 150-1626): 맨 위에선 1자, 스크롤할수록 휨. 기본은 검정, 커서 주변 원 안에서는 히어로 배경이 끝나는 색 */}
+      <HeroCurve />
     </div>
   )
 }
@@ -627,6 +624,8 @@ function Portfolio() {
     }
   }
   const [archiveOrigin, setArchiveOrigin] = useState<ArchiveOrigin | null>(null)
+  // 휠을 굴리면 섹션마다(긴 섹션은 화면 높이마다) 한 번씩 멈춰 갑니다(src/hooks/useSectionSnap.ts, 마우스 있는 컴퓨터만).
+  useSectionSnap()
   useEffect(() => {
     document.title = 'Grand exhibition | 최수빈'
     document.documentElement.lang = 'ko'
