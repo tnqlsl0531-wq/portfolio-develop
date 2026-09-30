@@ -1,6 +1,7 @@
 /*
  * 히어로 아래 물결(피그마 346-296 / 150-1626) — 스크롤할수록 휘는 경계선
  * - 맨 위(스크롤 0)에서는 곧은 1자이고, 스크롤을 내릴수록 피그마 물결 모양으로 휩니다. 다시 올리면 펴집니다.
+ *   히어로가 화면에 멈춰 있는 동안(Pin) 물결이 화면 아래에 보이면서 휘도록 거리를 맞췄습니다.
  * - 휘는 정도는 스크롤 위치를 바로 쓰지 않고 용수철처럼 따라가서, 멈출 때 고무줄처럼 살짝 출렁입니다(CURVE).
  * - 기본은 검정, 커서 주변 원 안에서는 히어로 배경이 끝나는 와인색(#502421, 커서 효과 색 레이어).
  * - 경계선 모양은 heroCurveEdge.ts에 있고, 커서 물감 효과(SplashCursor)도 같은 경계선을 따라갑니다.
@@ -8,10 +9,10 @@
 import { useEffect, useRef } from 'react'
 import { HERO_CURVE_VIEW, heroCurvePath, setHeroCurveMorph } from '../heroCurveEdge'
 
-/* reach    : 다 휘기까지 내려야 하는 스크롤 거리(히어로+물결 높이 대비). 작을수록 빨리 휩니다.
+/* reach    : 히어로가 화면에 멈춰 있는 거리(--pin-hold) 중 어디까지 가면 다 휠지(0~1). 작을수록 빨리 휩니다.
    stiffness: 스크롤을 따라가는 힘. 클수록 바로바로 따라갑니다.
    damping  : 1이면 출렁임 없이 멈추고, 작을수록 멈출 때 더 출렁입니다. */
-const CURVE = { reach: .6, stiffness: 90, damping: .42 }
+const CURVE = { reach: .8, stiffness: 90, damping: .42 }
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 3)
 
@@ -28,9 +29,13 @@ export default function HeroCurve() {
     const state = { m: 0, v: 0, target: 0, raf: 0, last: 0, drawn: NaN }
 
     const measure = () => {
-      // 물결이 있는 히어로 묶음(.hero-stage)의 높이만큼 내려가는 동안 1자 → 물결
+      // 1자 → 물결: 스크롤해서 물결이 화면에 들어온 뒤, 히어로가 화면에 멈춰 있는 동안(Pin) 휩니다.
+      // 거리 = 물결이 화면 안으로 다 들어오기까지(히어로 묶음 높이 - 화면 높이) + 멈춰 있는 거리(--pin-hold)의 reach만큼.
       const stage = element.parentElement
-      const distance = (stage?.offsetHeight ?? window.innerHeight) * CURVE.reach
+      const pin = element.closest('.pin')
+      const hold = pin ? parseFloat(getComputedStyle(pin, '::after').height) || 0 : 0
+      const height = stage?.offsetHeight ?? window.innerHeight
+      const distance = Math.max(height * .35, height - window.innerHeight + hold * CURVE.reach)
       state.target = ease(Math.min(1, Math.max(0, window.scrollY / Math.max(1, distance))))
     }
 

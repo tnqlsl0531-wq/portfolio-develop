@@ -268,3 +268,15 @@ https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/
 - 프로그램북: 스크롤 따라 늦게 오기(lag 0.22초, 최대 48px), z-index 60(물감 위).
 - 섹션 멈춤 스크롤·목차 이동: 리니어 이징(같은 속도, 화면 한 칸당 0.9초, 0.45~1.6초).
 
+부드러운 스크롤 · 섹션 화면 고정 · Stage Works 되돌림 (2026-09-30 저녁 2)
+- 사용자 피드백: 리니어 이동은 딱딱하고 '스크롤이 잠기는' 느낌 → 섹션 멈춤 스크롤(useSectionSnap.ts)을 빼고 두 가지로 바꿈. useSectionSnap.ts는 이제 안 씀.
+- 부드러운 스크롤(src/hooks/useSmoothScroll.ts): Lenis(https://github.com/darkroomengineering/lenis, MIT)의 lerp 방식을 참고해 직접 만듦(패키지 없음).
+  휠 → 가고 싶은 자리(target)만 바꾸고, 매 프레임 남은 거리의 10%(lerp 0.1, 60fps 기준)씩 따라감. 키보드·스크롤 막대·터치는 브라우저 기본.
+- 섹션 화면 고정(src/components/Pin.tsx + App.css .pin): CSS sticky. 섹션 뒤에 --pin-hold(45vh) 빈 자리(::after)를 붙여 그만큼 스크롤하는 동안 멈춤.
+  화면보다 긴 섹션은 top = 화면 높이 - 섹션 높이(음수)로 두어 끝까지 본 자리에서 멈춤. 히어로·Stage Works·Artist Gallery·Director’s Note만(맨 끝 Contact·글자 띠 제외).
+  히어로 물결(HeroCurve)은 히어로가 멈춰 있는 동안 휘도록 거리 = (히어로 묶음 높이 - 화면 높이) + 멈춤 거리 × 0.8.
+- Stage Works: 공연 순서 커서 효과(useLineProximity)와 조명 마우스 따라가기(mouseInfluence 0.2) 되돌림. '자세히 보기' 알약(StageCue) 삭제.
+  어린이대공원 카드: 흰 바탕, 그림 진하기 0.3 → 0.85, COMING SOON 글자 #a3a3a3 → #8f8f8f.
+  future-preview.png: 그림에 박혀 있던 흐린 '쇼 예정' 스티커 자리(가로 225~305, 세로 14~62px)를 주변 바탕색(235,232,193, 투명도 60%)으로 칠해 지움(아래 8줄은 아래 그림과 섞음).
+  '리허설 중' 스티커: CircularCarousel renderSticker로 카드 틀 밖(가운데에서 가로 +36%, 위 테두리)에 원기둥 면을 따라 붙임, 6도 기울임.
+

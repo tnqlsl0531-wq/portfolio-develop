@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import CircularCarousel from './CircularCarousel'
 import LightRays from './LightRays'
+import { useLineProximity } from '../hooks/useLineProximity'
 import type { CircularCarouselHandle } from './CircularCarousel'
 import { projects } from '../portfolio'
 import type { Project } from '../portfolio'
@@ -42,7 +43,7 @@ const kooksoondang = projects.find(project => project.id === 'kooksoondang')!
 const stageItems: StageItem[] = [
   { key: 'jadu', label: '안녕자두야', orderStatus: '쇼 종료', badge: '쇼 종료', project: jadu },
   { key: 'kooksoondang', label: '국순당', orderStatus: '메인 공연', badge: '쇼 종료', project: kooksoondang },
-  { key: 'future', label: '어린이대공원', orderStatus: '리허설 중', badge: '쇼 예정' },
+  { key: 'future', label: '어린이대공원', orderStatus: '리허설 중', badge: '리허설 중' },
 ]
 
 /*
@@ -80,45 +81,24 @@ function StageArtwork({ item }: { item: StageItem }) {
   )
 }
 
-/* 가운데 카드에만 뜨는 '눌러서 볼 수 있어요' 표시.
-   끌 수 있다는 건 커서(손바닥)로 알 수 있는데 누를 수 있다는 건 알 길이 없어서 카드 안에 직접 넣었습니다.
-   보이고 숨기는 것과 마우스를 올렸을 때 색이 차는 건 CSS(.circular-carousel__card[data-active])가 맡습니다.
-   아직 무대에 오르지 않은 작품은 열어 볼 게 없으므로 '리허설 중'을 흐린 색으로 보여 줍니다. */
-function StageCue({ item }: { item: StageItem }) {
-  return (
-    <span className="stage-card__cue" data-quiet={item.project ? undefined : 'true'} aria-hidden="true">
-      {item.project ? '자세히 보기' : '리허설 중'}
-      {item.project && <span className="stage-card__cue-arrow">↗</span>}
-    </span>
-  )
-}
-
 function StageCard({ item }: { item: StageItem }) {
   if (!item.project) {
-    return (
-      <>
-        <div className="stage-card__inner stage-card__inner--future"><StageArtwork item={item} /><p>COMING<br />SOON</p></div>
-        <StageCue item={item} />
-      </>
-    )
+    return <div className="stage-card__inner stage-card__inner--future"><StageArtwork item={item} /><p>COMING<br />SOON</p></div>
   }
   return (
-    <>
-      <div className="stage-card__inner">
-        <StageArtwork item={item} />
-        <div className="stage-card__info">
-          <div className="stage-card__details">
-            <h3>{item.project.title}</h3>
-            <dl>
-              <div><dt>기관:</dt><dd>{item.project.organization}</dd></div>
-              <div><dt>유형:</dt><dd>{item.project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'}</dd></div>
-            </dl>
-          </div>
-          <p className="stage-card__period">{item.project.period}</p>
+    <div className="stage-card__inner">
+      <StageArtwork item={item} />
+      <div className="stage-card__info">
+        <div className="stage-card__details">
+          <h3>{item.project.title}</h3>
+          <dl>
+            <div><dt>기관:</dt><dd>{item.project.organization}</dd></div>
+            <div><dt>유형:</dt><dd>{item.project.team === 'Team' ? '팀프로젝트' : '개인프로젝트'}</dd></div>
+          </dl>
         </div>
+        <p className="stage-card__period">{item.project.period}</p>
       </div>
-      <StageCue item={item} />
-    </>
+    </div>
   )
 }
 
@@ -128,6 +108,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
   const carousel = useRef<CircularCarouselHandle>(null)
   const activeSlot = useRef(START_SLOT)
   const [notice, setNotice] = useState('')
+  const orderList = useLineProximity<HTMLOListElement>(75)
 
   // 안내 문구는 잠깐 보였다가 사라집니다(백스테이지 안내와 같은 2.6초).
   useEffect(() => {
@@ -167,8 +148,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
         <img className="stage-works__asset stage-works__air" src={airGlow} width={1554} height={1000} alt="" />
         {/* 무대 조명. 예전의 분홍 빛기둥(spotlight.svg)을 걷어내고 이 빛만 씁니다.
             originPoint = 빛이 모이는 자리(이 영역 안의 가로·세로 비율). 카드 위 공중에서 시작해 아래로 퍼집니다.
-            색은 raysColor, 진하기는 intensity, 퍼지는 너비는 lightSpread로 조절합니다.
-            Stage Works에서는 커서 효과를 쓰지 않기로 해서 빛이 마우스를 따라가지 않습니다(mouseInfluence 0). */}
+            색은 raysColor, 진하기는 intensity, 퍼지는 너비는 lightSpread로 조절합니다. */}
         <LightRays
           className="stage-works__rays"
           originPoint={RAYS_ORIGIN}
@@ -178,7 +158,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
           rayLength={.95}
           saturation={.8}
           intensity={2.6}
-          mouseInfluence={0}
+          mouseInfluence={.2}
         />
         <img className="stage-works__asset stage-works__floor-shadow" src={floorShadow} width={1252} height={132} alt="" />
         <img className="stage-works__asset stage-works__side" src={stageSide} width={1079} height={266} alt="" />
@@ -196,7 +176,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
 
         <nav className="stage-works__order" aria-label="오늘의 공연 순서">
           <p>오늘의 공연 순서</p>
-          <ol>
+          <ol ref={orderList}>
             {stageItems.map((item, index) => (
               <li key={item.key} data-active={index === active || undefined}>
                 <button type="button" aria-current={index === active ? 'true' : undefined}
@@ -264,6 +244,11 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
                 <StageCard item={item} />
               </div>
             )
+          }}
+          // 어린이대공원 카드: '리허설 중' 스티커를 카드 틀 밖(오른쪽 위 모서리)에 따로 붙입니다.
+          renderSticker={slot => {
+            const item = itemAt(slot)
+            return item.project ? null : <span className="stage-card__sticker">{item.badge}</span>
           }}
           renderBack={slot => (
             <div className={`stage-card stage-card--back${itemAt(slot).key === 'future' ? ' stage-card--future' : ''}`} style={cardStyle} />

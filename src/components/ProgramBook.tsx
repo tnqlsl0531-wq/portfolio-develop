@@ -15,7 +15,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
-import { glideTo } from '../hooks/useSectionSnap'
+import { smoothScrollTo } from '../hooks/useSmoothScroll'
 import './ProgramBook.css'
 
 /* 항목 자리는 피그마 좌표 그대로입니다(한 면 261 × 338 기준).
@@ -320,8 +320,9 @@ export default function ProgramBook() {
     const element = document.getElementById(id)
     if (!element) return
     event.preventDefault()
-    // 휠로 섹션을 넘길 때와 같은 리니어(같은 속도) 움직임으로 이동합니다(useSectionSnap.ts의 glideTo).
-    glideTo(element.getBoundingClientRect().top + window.scrollY)
+    // 휠 스크롤과 같은 부드러운 움직임으로 이동합니다(useSmoothScroll.ts). 화면 고정(Pin) 중인 섹션은 고정이 시작되기 전 자리(묶음 맨 위)로 갑니다.
+    const place = element.closest('.pin') ?? element
+    smoothScrollTo(place.getBoundingClientRect().top + window.scrollY)
     setBook(false)
   }, [setBook])
 

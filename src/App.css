@@ -267,6 +267,14 @@
 
 /* 아래 섹션은 1920px 피그마 비율을 바탕으로, 작은 화면에서는 읽기 쉽게 재배치합니다. */
 .portfolio { width: 100%; overflow-x: clip; }
+/* 섹션 화면 고정(src/components/Pin.tsx): 섹션이 화면을 채우면 --pin-hold만큼 스크롤하는 동안 그 자리에 멈춰 있습니다.
+   더 오래 멈추게 하려면 --pin-hold를 늘리고(예: 70vh), 짧게 하려면 줄이세요. 0이면 멈추지 않습니다. */
+.portfolio { --pin-hold: 45vh; }
+@media (min-width: 701px) and (prefers-reduced-motion: no-preference) {
+  /* 멈춰 있을 거리만큼 빈 자리를 뒤에 붙입니다(padding은 sticky가 움직일 자리로 쳐 주지 않아서 ::after로). */
+  .portfolio .pin::after { content: ''; display: block; height: var(--pin-hold); }
+  .portfolio .pin__body { position: sticky; top: var(--pin-top, 0px); }
+}
 .section-heading { font-family: 'Lisu Bosa', Georgia, serif; font-weight: 700; }
 .hero-curve { position: relative; margin-top: -1px; }
 .hero-curve__img { display: block; width: 100%; height: auto; aspect-ratio: 1920 / 193; }

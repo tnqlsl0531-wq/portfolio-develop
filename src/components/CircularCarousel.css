@@ -55,3 +55,14 @@
 .circular-carousel__inner { background: var(--cc-inner-color); opacity: var(--cc-inner); }
 .circular-carousel__shade { background: var(--cc-fade); opacity: var(--cc-depth, 0); }
 .circular-carousel img { -webkit-user-drag: none; pointer-events: none; }
+/* 카드 틀 밖 스티커: 카드 앞면과 같이 돌고, 뒤로 가면 흐려지며(depthFade), 카드가 다 올라온 뒤에 나타납니다. */
+.circular-carousel__sticker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+  opacity: calc(var(--cc-risen, 1) * (1 - var(--cc-depth, 0)));
+  transition: opacity 300ms ease;
+}

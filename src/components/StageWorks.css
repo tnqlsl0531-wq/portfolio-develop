@@ -56,6 +56,15 @@
 .stage-works__order li[data-active] .stage-works__number { color: #f8574f; font-weight: 700; }
 .stage-works__order li[data-active] .stage-works__status { color: #525252; }
 .stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 2px; }
+/* 커서 근접 효과(React Bits Line Sidebar): --effect(0~1)는 useLineProximity가 각 항목(li)에 넣어 줍니다.
+   0이면 원래 모습 그대로이고, 커서가 가까워질수록 글자가 진해지며 오른쪽으로 밀려납니다.
+   현재 고른 작품의 색(#171717 글자 · #f8574f 점·번호)은 위 li[data-active] 규칙이 그대로 이깁니다. */
+.stage-works__order li button {
+  color: color-mix(in srgb, #171717 calc(var(--effect, 0) * 100%), #a3a3a3);
+  transform: translateX(calc(var(--effect, 0) * 30px));
+}
+.stage-works__order li .stage-works__dot { background: color-mix(in srgb, #737373 calc(var(--effect, 0) * 100%), #d4d4d4); }
+
 /* 아직 무대에 오르지 않은 작품 안내. 카드 위에 잠깐 떠올랐다가 사라집니다. */
 .stage-works__notice {
   position: absolute; z-index: 7; left: 727px; top: 300px; width: 1079px; margin: 0;
@@ -145,38 +154,7 @@
 .stage-card__details dt { color: #ffa29c; font-weight: 700; }
 .stage-card__details dd { margin: 0; color: #a3a3a3; }
 .stage-card__period { margin: 0; color: #a3a3a3; font: 600 19.084px/1 'Min Sans VF', sans-serif; }
-/*
- * '자세히 보기' 표시(StageWorks.tsx의 StageCue): 가운데 카드에만 뜹니다.
- * 자리는 오른쪽 정보 칸의 왼쪽 아래(제목·기관 아래 빈 자리), 오른쪽 아래 기간 글씨와 높이를 맞췄습니다.
- * 카드는 세로 띠로 잘려 그려지지만 이 표시도 카드 안에 있어 같이 휘어 보입니다.
- * 가운데로 새 카드가 올 때마다 살짝 떠오르며 나타나 눈에 띕니다(회전목마가 6.5초마다 도니 반복해서 알려 줍니다).
- */
-.stage-card__cue {
-  position: absolute; left: 362.4px; bottom: 18px;
-  display: inline-flex; align-items: center; gap: 7.2px;
-  padding: 8.4px 16.8px;
-  border: 1.2px solid #ffa29c; border-radius: 999px;
-  background: #fff;
-  color: #f8574f; font: 600 16.8px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; white-space: nowrap;
-  opacity: 0;
-  transition: opacity 260ms ease, background-color 200ms ease, border-color 200ms ease, color 200ms ease;
-  pointer-events: none;
-}
-/* 아직 무대에 오르지 않은 작품: 열어 볼 게 없으니 코랄 대신 회색으로 조용히 알려 줍니다. */
-.stage-card__cue[data-quiet] { border-color: #d4d4d4; color: #a3a3a3; }
-.stage-card__cue-arrow { transition: transform 200ms ease; }
-.stage-works__carousel .circular-carousel__card[data-active] .stage-card__cue {
-  opacity: 1;
-  animation: stage-cue-in 620ms cubic-bezier(.22, 1, .36, 1);
-}
-/* 마우스를 올리면 표시에 색이 차고 화살표가 살짝 튀어 나가며, 카드 테두리도 같이 진해집니다(누를 수 있는 것 = 반응한다). */
-.stage-works__carousel .circular-carousel__card[data-active]:hover .stage-card__cue {
-  background: #f8574f; border-color: #f8574f; color: #fff;
-}
-.stage-works__carousel .circular-carousel__card[data-active]:hover .stage-card__cue[data-quiet] {
-  background: #a3a3a3; border-color: #a3a3a3; color: #fff;
-}
-.stage-works__carousel .circular-carousel__card[data-active]:hover .stage-card__cue-arrow { transform: translate(2px, -2px); }
+/* 가운데 카드에 마우스를 올리면 카드 테두리가 분홍으로 진해집니다(누를 수 있는 것 = 반응한다). */
 .stage-works__carousel .circular-carousel__card[data-active]:hover .stage-card {
   border-color: #ffa29c;
   background: linear-gradient(174.981deg, #fff 24.346%, #fff3f2 101.59%);
@@ -185,20 +163,24 @@
    얼마나 커질지는 1.07, 빠르기는 아래 transition 시간으로 조절합니다. */
 .stage-works__carousel .circular-carousel__card { transition: --cc-scale 380ms cubic-bezier(.22, 1, .36, 1); }
 .stage-works__carousel .circular-carousel__card[data-active]:hover { --cc-scale: 1.07; }
-@keyframes stage-cue-in {
-  from { opacity: 0; transform: translateY(9px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .stage-works__carousel .circular-carousel__card[data-active] .stage-card__cue { animation: none; }
-  .stage-card__cue-arrow { transition: none; }
-  .stage-works__carousel .circular-carousel__card[data-active]:hover .stage-card__cue-arrow { transform: none; }
-}
-
-.stage-card--future { border-color: #d4d4d4; background: linear-gradient(174.993deg, #fafafa 24.346%, #f7f7f7 101.59%); }
-.stage-card__art--future img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: .3; }
+/* 어린이대공원(아직 준비 중) 카드: 너무 비쳐 보이지 않게 흰 바탕 + 그림 진하기 85%(예전 30%). */
+.stage-card--future { border-color: #d4d4d4; background: linear-gradient(174.993deg, #fff 24.346%, #f7f7f7 101.59%); }
+.stage-card__art--future img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: .85; }
 .stage-card__inner--future { align-items: center; }
-.stage-card__inner--future > p { flex: 1; margin: 0; color: #a3a3a3; font: 400 31.808px/1.5 'Special Gothic Expanded One', sans-serif; text-align: center; letter-spacing: .954px; }
+.stage-card__inner--future > p { flex: 1; margin: 0; color: #8f8f8f; font: 400 31.808px/1.5 'Special Gothic Expanded One', sans-serif; text-align: center; letter-spacing: .954px; }
+/* 카드 틀 밖에 붙이는 '리허설 중' 스티커(CircularCarousel의 renderSticker). 오른쪽 위 모서리에서 위 테두리에 걸쳐 살짝 기울어 붙습니다. */
+.stage-card__sticker {
+  display: block;
+  padding: 7px 14px;
+  border: 1.5px solid #ffa29c;
+  border-radius: 999px;
+  background: #ffc7c3;
+  box-shadow: 0 4px 10px rgb(80 36 33 / 16%);
+  color: #171717;
+  font: 600 15px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  white-space: nowrap;
+  transform: rotate(6deg);
+}
 
 @media (max-width: 700px) {
   .stage-works__intro { left: 930px; top: 28px; gap: 18px; }
@@ -211,6 +193,8 @@
   .stage-works__label { gap: 8px; }
   .stage-works__order strong { width: auto; font-size: 21px; }
   .stage-works__order li[data-active] strong { min-width: 0; }
+  /* 가로로 누운 목록에서는 옆으로 밀면 줄이 흐트러지므로 위로 살짝 떠오릅니다. */
+  .stage-works__order li button { transform: translateY(calc(var(--effect, 0) * -8px)); }
   .stage-works__number { font-size: 17px; }
   .stage-works__status { display: none; }
   .stage-works__dot { flex-basis: 7px; width: 7px; height: 7px; }

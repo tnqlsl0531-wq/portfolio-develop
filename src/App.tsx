@@ -23,7 +23,8 @@ import HeroCurve from './components/HeroCurve'
 import { ScrollReveal, revealWords } from './components/ScrollReveal'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
-import { useSectionSnap } from './hooks/useSectionSnap'
+import { useSmoothScroll } from './hooks/useSmoothScroll'
+import Pin from './components/Pin'
 import chevron from './assets/design/chevron.svg'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
@@ -631,8 +632,8 @@ function Portfolio() {
     }
   }
   const [archiveOrigin, setArchiveOrigin] = useState<ArchiveOrigin | null>(null)
-  // 휠을 굴리면 섹션마다(긴 섹션은 화면 높이마다) 한 번씩 멈춰 갑니다(src/hooks/useSectionSnap.ts, 마우스 있는 컴퓨터만).
-  useSectionSnap()
+  // 휠 스크롤을 부드럽게(Lenis 방식 lerp, src/hooks/useSmoothScroll.ts, 마우스 있는 컴퓨터만).
+  useSmoothScroll()
   useEffect(() => {
     document.title = 'Grand exhibition | 최수빈'
     document.documentElement.lang = 'ko'
@@ -642,11 +643,13 @@ function Portfolio() {
       <a className="skip-link" href="#lineup">프로젝트 목록으로 이동</a>
       {/* 화면 오른쪽 아래에 늘 떠 있는 목차(프로그램북). 겉모습은 피그마 디자인이 나오면 갈아 끼웁니다. */}
       <ProgramBook />
+      {/* 섹션마다 화면을 꽉 채우면 잠깐 멈춰 서 있다가 다시 흘러갑니다(Pin, 멈추는 거리는 App.css의 --pin-hold).
+          맨 끝(Contact·글자 띠)은 뒤에 이어질 게 없어서 걸지 않습니다. */}
       <main className="portfolio">
-        <Hero />
-        <StageWorks onSelect={setSelectedProject} />
-        <ArtistGallery onOpen={setArchiveOrigin} />
-        <DirectorsNote />
+        <Pin><Hero /></Pin>
+        <Pin><StageWorks onSelect={setSelectedProject} /></Pin>
+        <Pin><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
+        <Pin><DirectorsNote /></Pin>
         <Contact />
         <MarqueeBand />
       </main>
