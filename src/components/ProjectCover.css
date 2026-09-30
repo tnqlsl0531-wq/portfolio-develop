@@ -12,7 +12,7 @@
   /* 테두리를 안쪽 그림자로 그려서 로고 위치(%)가 테두리 두께에 밀리지 않게 합니다. */
   box-shadow: inset 0 0 0 .634cqw #efefef;
 }
-.project-cover--jadu { background: #fffaf5; }
+.project-cover--jadu { background: #fff; }
 /* 국순당 로고: 피그마 inset 45.46% / 21.54% / 45.5% / 21.3%, 로고 원본 모양 마스크는 Show Line-up 카드와 같습니다. */
 .project-cover__kooksoondang {
   position: absolute; left: 21.3%; top: 45.46%; width: 57.16%; aspect-ratio: 201 / 18;
@@ -20,5 +20,5 @@
 }
 .project-cover__kooksoondang img { width: 100%; height: auto; }
 .project-cover__dot { position: absolute; left: 40.53%; top: 38.8%; width: 1.9%; height: auto; }
-/* 자두야 로고: 피그마 시안이 없어 국순당과 같은 비율(Show Line-up 카드 대비 약 3/4 크기)로 가운데에 둡니다. */
-.project-cover__jadu { position: absolute; left: 34.15%; top: 34.4%; width: 31.7%; height: auto; }
+/* 자두야 그림(피그마 358-244의 360:318): inset 29.33% / 29.08% / 29.07% / 29% → 카드 폭의 41.92%, 원본 비율 그대로 */
+.project-cover__jadu { position: absolute; left: 29%; top: 29.333%; width: 41.922%; height: auto; }

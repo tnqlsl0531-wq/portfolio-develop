@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react'
 import type { PointerEvent, ReactNode } from 'react'
 import { animate } from 'motion'
-import artwork from '../assets/backstage/backstage-choice-art.png'
+import kooksoondangArtwork from '../assets/backstage/backstage-choice-art.png'
+import jaduArtwork from '../assets/backstage/jadu-backstage-choice-art.png'
+import type { Project } from '../portfolio'
 import './BackstageChoice.css'
+
+// 작품마다 커서 주변에 드러나는 작업 사진이 다릅니다(움직임은 같음).
+// 국순당: 피그마 296:205 / 자두야: 피그마 358-244의 360:356(자두야팀 회의 사진 IMG_5964, 같은 타원 마스크)
+const ARTWORK: Record<Project['id'], string> = { kooksoondang: kooksoondangArtwork, jadu: jaduArtwork }
 
 // React Bits ChromaGrid: radius 100, damping .55, fadeOut .2.
 // Reveal a grayscale photo through the darkness; keep the label readable.
-export default function BackstageChoice({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+export default function BackstageChoice({ projectId = 'kooksoondang', children, onClick }: { projectId?: Project['id']; children: ReactNode; onClick: () => void }) {
   const button = useRef<HTMLButtonElement>(null)
   const position = useRef({ x: 0, y: 0 })
   const movement = useRef<ReturnType<typeof animate> | null>(null)
@@ -74,7 +80,7 @@ export default function BackstageChoice({ children, onClick }: { children: React
       onBlur={hide}
     >
       <span className="backstage-choice__reveal" aria-hidden="true">
-        <img src={artwork} width={432} height={192} alt="" draggable={false} />
+        <img src={ARTWORK[projectId]} width={432} height={192} alt="" draggable={false} />
       </span>
       {children}
     </button>

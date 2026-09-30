@@ -549,6 +549,8 @@ function ProjectSelect({ project, onClose, onBackstage }: { project: Project | n
           <ProjectCover project={project} className="project-select__cover" />
           <div className="project-select__choices">
             <OnStageChoice
+              key={`on-${project.id}`}
+              projectId={project.id}
               href={project.url}
               onClick={() => setNotice('완성된 프로젝트 페이지를 준비하고 있어요.')}
             >
@@ -556,6 +558,7 @@ function ProjectSelect({ project, onClose, onBackstage }: { project: Project | n
             </OnStageChoice>
             <BackstageChoice
               key={project.id}
+              projectId={project.id}
               onClick={() => hasBackstage(project.id) ? onBackstage(project) : setNotice('기획 의도와 작업 과정 페이지를 준비하고 있어요.')}
             >
               {choiceContent('BACKSTAGE', '기획 의도와 작업 과정 보기')}
