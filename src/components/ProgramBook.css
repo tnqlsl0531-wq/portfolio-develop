@@ -1,0 +1,120 @@
+/* 프로그램북 목차 — 화면 오른쪽 아래 고정.
+   크기는 --page-w · --page-h 하나만 바꾸면 전체가 같이 줄고 늘어납니다. */
+.program-book {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  --page-w: 170px;
+  --page-h: 210px;
+  --flip: 620ms;
+}
+
+/* perspective가 있어야 판이 '넘어가는' 것처럼 보입니다(없으면 그냥 납작하게 줄어듭니다). */
+.program-book__book {
+  position: relative;
+  width: var(--page-w);
+  height: var(--page-h);
+  perspective: 1500px;
+}
+
+/* 넘어가는 판. 왼쪽 모서리를 축으로 돕니다. translateZ는 도는 동안 뒤 페이지보다 앞에 있게 합니다. */
+.program-book__flip {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transform: translateZ(1px) rotateY(0deg);
+  transition: transform var(--flip) cubic-bezier(.32, .8, .28, 1);
+}
+.program-book[data-open] .program-book__flip { transform: translateZ(1px) rotateY(-180deg); }
+
+/* 판의 앞뒤 두 면. 뒤를 보고 있는 면은 비칩니다. */
+.program-book__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.program-book__page--left { transform: rotateY(180deg); }
+/* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
+.program-book__page--right { position: absolute; inset: 0; }
+
+/* ── 표지 ─────────────────────────────────────────── */
+.program-book__cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0;
+  padding: 16px 14px 14px;
+  border: 1.5px solid var(--neutral-black);
+  border-radius: 3px;
+  background: var(--neutral-white);
+  box-shadow: 0 10px 22px rgb(0 0 0 / 16%);
+  text-align: left;
+  cursor: pointer;
+}
+.program-book__title {
+  font: 400 13px/16px 'Special Gothic Expanded One', sans-serif;
+  color: var(--primary-500);
+}
+.program-book__year {
+  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  letter-spacing: 1.4px;
+  color: #a3a3a3;
+}
+
+/* ── 속지 ─────────────────────────────────────────── */
+.program-book__page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 10px 14px;
+  border: 1.5px solid var(--neutral-black);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgb(0 0 0 / 16%);
+}
+.program-book__slug {
+  margin: 0;
+  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  letter-spacing: 2px;
+  color: #a3a3a3;
+}
+.program-book__list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+.program-book__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px;
+  border-radius: 4px;
+  color: #171717;
+  text-decoration: none;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.program-book__no {
+  font: 500 9px/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
+  letter-spacing: .5px;
+  color: #a3a3a3;
+}
+.program-book__label { font: 600 12.5px/1.2 'Lisu Bosa', Georgia, serif; white-space: nowrap; }
+
+.program-book__item:hover,
+.program-book__item:focus-visible { background: rgb(255 227 225 / 70%); }
+/* 지금 보고 있는 섹션 */
+.program-book__item[data-current] { background: rgb(255 227 225 / 85%); color: var(--primary-500); }
+.program-book__item[data-current] .program-book__no { color: var(--primary-500); }
+
+/* 폰·좁은 화면에서는 조금 작게 */
+@media (max-width: 700px) {
+  .program-book { right: 14px; bottom: 14px; --page-w: 148px; --page-h: 184px; }
+  .program-book__label { font-size: 11px; }
+}
+
+/* 동작 줄이기 설정: 넘어가는 애니메이션 없이 바로 펼쳐집니다. */
+@media (prefers-reduced-motion: reduce) {
+  .program-book__flip { transition: none; }
+  .program-book__item { transition: none; }
+}

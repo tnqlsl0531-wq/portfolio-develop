@@ -20,6 +20,7 @@ import type { ArchiveOrigin } from './components/GalleryArchive'
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
 import CurvedLoop from './components/CurvedLoop'
 import FoldText from './components/FoldText'
+import ProgramBook from './components/ProgramBook'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
 import { heroCurveEdge } from './heroCurveEdge'
@@ -85,7 +86,7 @@ function Hero() {
   }, [])
   return (
     <div ref={stageRef} className="hero-stage">
-      <section ref={heroRef} className="hero" aria-labelledby="exhibition-title">
+      <section ref={heroRef} id="exhibition" className="hero" aria-labelledby="exhibition-title">
         <div className="hero__shade" aria-hidden="true" />
         <div className="hero__shade hero__shade--color hero__color-layer" data-reveal="" aria-hidden="true" />
         <PhotoSlot position="right" />
@@ -633,6 +634,8 @@ function Portfolio() {
   return (
     <>
       <a className="skip-link" href="#lineup">프로젝트 목록으로 이동</a>
+      {/* 화면 오른쪽 아래에 늘 떠 있는 목차(프로그램북). 겉모습은 피그마 디자인이 나오면 갈아 끼웁니다. */}
+      <ProgramBook />
       <main className="portfolio">
         <Hero />
         <StageWorks onSelect={setSelectedProject} />
