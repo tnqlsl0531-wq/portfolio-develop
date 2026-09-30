@@ -30,7 +30,14 @@ export default function ProgramBook() {
   const root = useRef<HTMLElement>(null)
   const cover = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
+  // 한 번이라도 펼친 적이 있는지. 처음 화면에서 '닫히는 동작'이 보이지 않게 하려고 씁니다.
+  const [everOpened, setEverOpened] = useState(false)
   const [active, setActive] = useState<string>(CHAPTERS[0].id)
+
+  const setBook = useCallback((next: boolean) => {
+    setOpen(next)
+    if (next) setEverOpened(true)
+  }, [])
 
   // ── 지금 보고 있는 섹션 표시 ──────────────────────────
   useEffect(() => {
@@ -105,9 +112,10 @@ export default function ProgramBook() {
       className="program-book"
       aria-label="목차"
       data-open={open || undefined}
+      data-ever={everOpened || undefined}
       // 마우스에서만 올리면 펼쳐집니다. 터치는 표지를 눌러서 펼칩니다.
-      onPointerEnter={event => { if (event.pointerType === 'mouse') setOpen(true) }}
-      onPointerLeave={event => { if (event.pointerType === 'mouse') setOpen(false) }}
+      onPointerEnter={event => { if (event.pointerType === 'mouse') setBook(true) }}
+      onPointerLeave={event => { if (event.pointerType === 'mouse') setBook(false) }}
     >
       <div className="program-book__book">
         {/* 오른쪽 면: 표지 뒤에 그대로 서 있다가, 표지가 넘어가면 드러납니다. */}
@@ -124,7 +132,7 @@ export default function ProgramBook() {
             className="program-book__face program-book__cover"
             aria-expanded={open}
             aria-controls="program-book-pages"
-            onClick={() => setOpen(value => !value)}
+            onClick={() => setBook(!open)}
           >
             <span className="program-book__slug">PROGRAM</span>
             <span className="program-book__title">CHOI-<br />SUBIN<br />PORTFOLIO</span>

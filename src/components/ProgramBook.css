@@ -7,7 +7,9 @@
   z-index: 40;
   --page-w: 170px;
   --page-h: 210px;
-  --flip: 620ms;
+  /* 종이 넘기는 시간과 곡선. 판자처럼 등속으로 돌지 않도록 천천히 들렸다가 빨라지고 부드럽게 안착합니다. */
+  --flip: 820ms;
+  --paper: cubic-bezier(.48, .04, .22, 1);
 }
 
 /* perspective가 있어야 판이 '넘어가는' 것처럼 보입니다(없으면 그냥 납작하게 줄어듭니다). */
@@ -15,7 +17,8 @@
   position: relative;
   width: var(--page-w);
   height: var(--page-h);
-  perspective: 1500px;
+  /* 값이 작을수록 원근이 세져서 넘어가는 느낌이 살아납니다. */
+  perspective: 900px;
 }
 
 /* 넘어가는 판. 왼쪽 모서리를 축으로 돕니다. translateZ는 도는 동안 뒤 페이지보다 앞에 있게 합니다. */
@@ -25,9 +28,54 @@
   transform-origin: left center;
   transform-style: preserve-3d;
   transform: translateZ(1px) rotateY(0deg);
-  transition: transform var(--flip) cubic-bezier(.32, .8, .28, 1);
 }
 .program-book[data-open] .program-book__flip { transform: translateZ(1px) rotateY(-180deg); }
+
+/* 한 번이라도 펼친 뒤부터 애니메이션을 씁니다(페이지를 처음 열었을 때 닫히는 동작이 보이지 않게). */
+.program-book[data-ever] .program-book__flip {
+  animation-duration: var(--flip);
+  animation-timing-function: var(--paper);
+  animation-fill-mode: forwards;
+}
+.program-book[data-ever][data-open] .program-book__flip { animation-name: book-open; }
+.program-book[data-ever]:not([data-open]) .program-book__flip { animation-name: book-close; }
+
+/* 넘어가는 동안 종이가 살짝 휘었다 펴집니다(rotateX). 이게 없으면 나무판자처럼 뻣뻣합니다. */
+@keyframes book-open {
+  0%   { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
+  30%  { transform: translateZ(1px) rotateY(-50deg)  rotateX(2deg); }
+  62%  { transform: translateZ(1px) rotateY(-112deg) rotateX(2.4deg); }
+  88%  { transform: translateZ(1px) rotateY(-170deg) rotateX(.7deg); }
+  100% { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
+}
+@keyframes book-close {
+  0%   { transform: translateZ(1px) rotateY(-180deg) rotateX(0deg); }
+  30%  { transform: translateZ(1px) rotateY(-130deg) rotateX(2deg); }
+  62%  { transform: translateZ(1px) rotateY(-68deg)  rotateX(2.4deg); }
+  88%  { transform: translateZ(1px) rotateY(-10deg)  rotateX(.7deg); }
+  100% { transform: translateZ(1px) rotateY(0deg)    rotateX(0deg); }
+}
+
+/* 넘어가는 동안 빛이 변합니다 — 표지는 돌아가며 그늘이 지고, 왼쪽 면은 다가오며 그늘이 걷힙니다.
+   모양이 휘는 것보다 이 빛 변화가 '종이 같다'는 느낌을 가장 크게 만듭니다. */
+.program-book__face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity var(--flip) var(--paper);
+}
+.program-book__cover::after {
+  opacity: 0;
+  background: linear-gradient(90deg, rgb(15 15 15 / 40%), rgb(15 15 15 / 8%) 58%, transparent);
+}
+.program-book[data-open] .program-book__cover::after { opacity: 1; }
+.program-book__page--left::after {
+  opacity: 1;
+  background: linear-gradient(270deg, rgb(15 15 15 / 36%), rgb(15 15 15 / 6%) 58%, transparent);
+}
+.program-book[data-open] .program-book__page--left::after { opacity: 0; }
 
 /* 판의 앞뒤 두 면. 뒤를 보고 있는 면은 비칩니다. */
 .program-book__face {
@@ -39,6 +87,8 @@
 .program-book__page--left { transform: rotateY(180deg); }
 /* 오른쪽 면은 표지 바로 뒤 같은 자리에 겹쳐 둡니다(그래야 세 면의 크기가 맞습니다). */
 .program-book__page--right { position: absolute; inset: 0; }
+/* 글자는 그늘 그라데이션 위로 올라오게 합니다. */
+.program-book__slug, .program-book__list { position: relative; z-index: 1; }
 
 /* ── 표지 ─────────────────────────────────────────── */
 .program-book__cover {
@@ -66,15 +116,45 @@
 }
 
 /* ── 속지 ─────────────────────────────────────────── */
+/* position은 위쪽 .program-book__face / --right 규칙이 정합니다(여기서 다시 쓰면 그 값을 덮어써서
+   두 면이 내용 높이로 줄어듭니다). */
 .program-book__page {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 16px 10px 14px;
   border: 1.5px solid var(--neutral-black);
-  border-radius: 3px;
   background: #fff;
-  box-shadow: 0 10px 22px rgb(0 0 0 / 16%);
+}
+/* 진짜 책처럼 가운데(등)로 갈수록 종이가 말려 들어가 그늘이 지고, 바깥 모서리 쪽은 살짝 떠올라 밝습니다.
+   그늘 세기는 아래 두 그라데이션의 % 값으로 조절합니다. */
+.program-book__page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+/* 등(spine) 쪽 테두리는 뺍니다 — 두 면의 검은 선이 겹치면 가운데가 띠처럼 진해집니다. */
+.program-book__page--left {
+  border-right: 0;
+  border-radius: 5px 0 0 5px;
+  box-shadow: -7px 9px 20px rgb(0 0 0 / 14%);
+}
+.program-book__page--left::before {
+  background:
+    linear-gradient(90deg, transparent 46%, rgb(15 15 15 / 3%) 72%, rgb(15 15 15 / 9%) 92%, rgb(15 15 15 / 13%) 100%),
+    linear-gradient(90deg, rgb(255 255 255 / 80%) 0%, transparent 30%);
+}
+.program-book__page--right {
+  border-left: 0;
+  border-radius: 0 5px 5px 0;
+  box-shadow: 7px 9px 20px rgb(0 0 0 / 14%);
+}
+.program-book__page--right::before {
+  background:
+    linear-gradient(270deg, transparent 46%, rgb(15 15 15 / 3%) 72%, rgb(15 15 15 / 9%) 92%, rgb(15 15 15 / 13%) 100%),
+    linear-gradient(270deg, rgb(255 255 255 / 80%) 0%, transparent 30%);
 }
 .program-book__slug {
   margin: 0;
@@ -115,6 +195,7 @@
 
 /* 동작 줄이기 설정: 넘어가는 애니메이션 없이 바로 펼쳐집니다. */
 @media (prefers-reduced-motion: reduce) {
-  .program-book__flip { transition: none; }
+  .program-book[data-ever] .program-book__flip { animation: none; }
+  .program-book__face::after { transition: none; }
   .program-book__item { transition: none; }
 }
