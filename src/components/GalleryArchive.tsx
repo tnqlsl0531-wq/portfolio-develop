@@ -148,8 +148,8 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
         y: rowTop + button.offsetTop + button.offsetHeight / 2,
         w: button.offsetWidth,
         h: button.offsetHeight,
-        // 사진마다 물결 시작점을 흩어 놓습니다(전부 같은 모양으로 일렁이지 않게).
-        phase: order * 3.7 + index * 11.3,
+        // 사진마다 물결이 다르게(시작하는 때 + 굽이 수) 나오도록 값을 흩어 놓습니다.
+        phase: (order * 2.399 + index * 5.117) % 6.283,
       }] : [])
       if (hoverAmount.current[index].length !== spots.current[index].length) {
         hoverAmount.current[index] = spots.current[index].map(() => 0)

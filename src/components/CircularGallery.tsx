@@ -33,7 +33,7 @@ export type GalleryTile = {
   saturate: number
   /** 이번 프레임에 줄이 옆으로 움직인 거리(CSS 픽셀). 빠를수록 물결이 커집니다. */
   speed: number
-  /** 물결의 시작점. 사진마다 다른 값을 줘야 다 같은 모양으로 일렁이지 않습니다(원본도 사진마다 다릅니다). */
+  /** 사진마다 다른 값. 물결이 시작하는 때와 굽이 수가 이 값으로 갈려서, 옆 사진과 같은 모양으로 일렁이지 않습니다. */
   phase: number
 }
 
@@ -63,12 +63,16 @@ uniform float uSpeed;
 uniform float uIdle;
 uniform float uDrag;
 uniform float uMax;
+uniform float uPhase;
 varying vec2 vUv;
 void main() {
   vUv = aGrid + 0.5;
   // 원본과 같은 물결식(판 안의 자리 -0.5~0.5로 sin·cos을 겹칩니다). 나누기 3은 값을 -1~1로 맞추려는 것입니다.
-  // uTime에 사진마다 다른 시작점이 들어 있어, 옆 사진과 같은 모양으로 움직이지 않습니다.
-  float wave = (sin(aGrid.x * 4.0 + uTime) * 1.5 + cos(aGrid.y * 2.0 + uTime) * 1.5) / 3.0;
+  // 사진마다 다른 uPhase로 (1) 물결이 시작하는 때와 (2) 물결의 굽이 수를 함께 바꿉니다.
+  // 시작점만 다르면 결국 다 같은 모양으로 굽이치기 때문에, 굽이 수까지 달라야 제각각으로 보입니다.
+  float wobbleTime = uTime + uPhase;
+  vec2 bend = vec2(4.0 + sin(uPhase) * 1.6, 2.0 + cos(uPhase * 1.7) * 0.9);
+  float wave = (sin(aGrid.x * bend.x + wobbleTime) * 1.5 + cos(aGrid.y * bend.y + wobbleTime) * 1.5) / 3.0;
   // 원본은 화면 한가운데를 기준으로 원근을 주기 때문에, 가장자리 사진일수록 크게 기울어집니다.
   // 여기서는 두 줄이 화면을 가로지르므로 사진마다 제 가운데를 기준으로 부풀렸다 줄여 고르게 일렁이게 합니다.
   // 빠르게 끌어도 uMax를 넘지 않게 막습니다(넘으면 사진 모양이 무너지고 화면이 느려집니다).
@@ -198,7 +202,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
 
     const at = Object.fromEntries(
-      ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag', 'uMax',
+      ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag', 'uMax', 'uPhase',
         'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uSaturate']
         .map(name => [name, gl.getUniformLocation(program, name)]),
     )
@@ -275,6 +279,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
       gl.uniform1f(at.uIdle, WOBBLE.idle)
       gl.uniform1f(at.uDrag, WOBBLE.drag)
       gl.uniform1f(at.uMax, WOBBLE.max)
+      gl.uniform1f(at.uTime, current.time)
       gl.uniform1f(at.uRadius, borderRadius)
       gl.uniform1i(at.uTexture, 0)
       gl.activeTexture(gl.TEXTURE0)
@@ -292,8 +297,8 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
         gl.uniform2f(at.uImageSize, size[0], size[1])
         gl.uniform1f(at.uSaturate, tile.saturate)
         gl.uniform1f(at.uSpeed, tile.speed * speedScale)
-        // 사진마다 물결 시작점을 달리해 옆 사진과 같은 모양으로 움직이지 않게 합니다.
-        gl.uniform1f(at.uTime, current.time + tile.phase)
+        // 사진마다 다른 값 — 물결이 시작하는 때와 굽이 수가 함께 달라집니다.
+        gl.uniform1f(at.uPhase, tile.phase)
         gl.drawElements(gl.TRIANGLES, current.indexCount, gl.UNSIGNED_SHORT, 0)
       }
     },
