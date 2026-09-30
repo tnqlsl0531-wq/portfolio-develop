@@ -24,9 +24,11 @@ import { ScrollReveal, revealWords } from './components/ScrollReveal'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
-import Pin, { onScrollFrame, pinProgress } from './components/Pin'
+import Pin, { usePinTrigger } from './components/Pin'
 import chevron from './assets/design/chevron.svg'
-const Lanyard = lazy(() => import('./components/Lanyard'))
+// 3D 목걸이는 파일이 커서 따로 불러옵니다. 첫 화면이 다 뜬 뒤 한가할 때 미리 받아 두고(ContactPass), 필요할 때 바로 씁니다.
+const loadLanyard = () => import('./components/Lanyard')
+const Lanyard = lazy(loadLanyard)
 import './App.css'
 
 const photoDescriptions: Record<PhotoPosition, string> = {
@@ -107,15 +109,13 @@ function Hero() {
   )
 }
 
-// Artist Gallery가 화면에 멈춰 있는 동안(Pin, App 아래 hold) 스크롤한 비율로 정하는 순서:
-// title  = 제목 글자가 다 펴지는 지점(React Bits Fold Text, 멈추는 순간 시작)
-// intro  = 부제·'자세히 보러가기'가 아래에서 올라오는 구간 [시작, 끝] — 제목 끝부분과 겹치게 함께 등장
-const GALLERY_PIN = { title: .46, intro: [.3, .52] }
-
+// Artist Gallery 제목·부제·버튼 등장(9/30 밤 2): 화면이 멈추는 순간 제목이 접혔다 펴지는 애니메이션을 처음부터 끝까지 한 번에 재생하고
+// (React Bits Fold Text 원본 속도), 제목이 거의 다 펴질 무렵 부제·'자세히 보러가기'가 아래에서 올라옵니다(App.css .gallery__intro).
+// 예전처럼 스크롤 양에 맞춰 움직이면 빠르게 스크롤할 때 0.1초 만에 지나가 버려서 바꿨습니다. 멈추기 전에는 셋 다 숨어 있습니다.
 function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
-  const intro = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
+  const { pinned, play } = usePinTrigger(section)
   useEffect(() => {
     const element = section.current
     if (!element) return
@@ -124,24 +124,6 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
     return () => observer.disconnect()
   }, [])
 
-  // 화면이 멈추면 제목과 함께 부제·버튼도 등장합니다(멈추기 전에는 숨김). 화면 고정이 없는 기기에서는 처음부터 보입니다.
-  useEffect(() => {
-    const element = intro.current
-    if (!element) return
-    const [from, to] = GALLERY_PIN.intro
-    return onScrollFrame(() => {
-      const progress = pinProgress(element)
-      if (progress === null) {
-        element.style.removeProperty('--intro-in')
-        delete element.dataset.introHidden
-        return
-      }
-      const amount = Math.min(1, Math.max(0, (progress - from) / (to - from)))
-      element.style.setProperty('--intro-in', amount.toFixed(3))
-      if (amount <= 0) element.dataset.introHidden = ''
-      else delete element.dataset.introHidden
-    })
-  }, [])
 
   return (
     <section ref={section} id="gallery" className="gallery" aria-labelledby="gallery-title" data-active={visible}>
@@ -176,11 +158,11 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
         <div className="gallery__fade gallery__fade--edge" />
         <div className="gallery__fade gallery__fade--top" />
       </div>
-      <div ref={intro} className="gallery__intro">
+      <div className="gallery__intro" data-play={play || undefined} data-wait={(pinned && !play) || undefined}>
         <div className="gallery__heading">
-          {/* 화면이 멈추는 순간부터 스크롤한 만큼 글자가 한 장씩 접혔다 펴집니다(React Bits Fold Text, pinDriven). 글꼴·크기는 기존 피그마 값 그대로입니다. */}
+          {/* 화면이 멈추는 순간 글자가 한 장씩 접혔다 펴집니다(React Bits Fold Text, 원본 속도로 한 번에). 글꼴·크기는 기존 피그마 값 그대로입니다. */}
           <h2 id="gallery-title" className="section-heading gallery__title">
-            <FoldText text={'Artist\nGallery'} duration={.45} stagger={.04} perspective={375} creaseShading={.5} pinDriven pinShare={GALLERY_PIN.title} />
+            <FoldText text={'Artist\nGallery'} duration={.45} stagger={.04} perspective={375} creaseShading={.5} play={play} />
           </h2>
           <p>아티스트 포토 아카이브전</p>
         </div>
@@ -204,32 +186,16 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
   )
 }
 
-// Director’s Note가 화면에 멈춰 있는 동안(Pin, hold 80vh) 스크롤한 비율로 정하는 순서:
-// lead  = 멈추기 이만큼(화면 높이 대비) 전, 앞 섹션이 빠지고 흰 화면이 차오를 때부터 제목 글자가 떠오르기 시작합니다.
-// title = 제목 글자가 다 떠오르는 지점(멈춘 거리 대비). 그때까지는 사진·글 없이 흰 화면에 제목만 보입니다.
-// body  = 사진·이름·Profile·소개 글이 아래에서 올라오며 나타나는 구간 [시작, 끝]. 끝난 뒤 조금 더 멈췄다가 스크롤이 흘러갑니다.
-const DIRECTOR_PIN = { lead: .55, title: .22, body: [.28, .62], rise: 80 }
+// Director’s Note 제목 등장(9/30 밤 2): 앞 섹션이 빠지며 흰 화면이 차오를 때(멈추기 화면 높이 × lead 전) 제목 글자가 떠오르는 애니메이션을
+// 처음부터 끝까지 한 번에 재생합니다(React Bits Scroll Float 원본 속도). 그동안 사진·글은 숨겨 흰 화면에 제목만 보이고,
+// 제목이 다 뜰 무렵 아래에서 올라옵니다(App.css .director[data-wait]). 예전처럼 스크롤 양에 맞춰 움직이면 빠르게 스크롤할 때 지나가 버려서 바꿨습니다.
+const DIRECTOR_LEAD = .4
 
 function DirectorsNote() {
-  const body = useRef<HTMLDivElement>(null)
+  const section = useRef<HTMLElement>(null)
   const portrait = useRef<HTMLDivElement>(null)
+  const { pinned, play } = usePinTrigger(section, DIRECTOR_LEAD)
 
-  // 제목이 떠오르는 동안은 아래 내용(사진·글)을 숨겨 흰 화면만 보이게 하고, 제목이 다 뜨면 올라오게 합니다.
-  // 화면 고정이 없는 기기(폰·동작 줄이기)에서는 처음부터 보입니다.
-  useEffect(() => {
-    const element = body.current
-    if (!element) return
-    const [from, to] = DIRECTOR_PIN.body
-    return onScrollFrame(() => {
-      const progress = pinProgress(element)
-      if (progress === null) {
-        element.style.removeProperty('--director-in')
-        return
-      }
-      const amount = Math.min(1, Math.max(0, (progress - from) / (to - from)))
-      element.style.setProperty('--director-in', (1 - Math.pow(1 - amount, 3)).toFixed(3))
-    })
-  }, [])
 
   useEffect(() => {
     const element = portrait.current
@@ -264,10 +230,10 @@ function DirectorsNote() {
   ))
 
   return (
-    <section id="director" className="director" aria-labelledby="director-title">
-      {/* 제목(피그마 351-185): 화면이 멈춘 동안 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
-      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven pinShare={DIRECTOR_PIN.title} pinLead={DIRECTOR_PIN.lead} />
-      <div ref={body} className="director__body" style={{ '--director-rise': `${DIRECTOR_PIN.rise}px` } as CSSProperties}>
+    <section ref={section} id="director" className="director" aria-labelledby="director-title" data-wait={(pinned && !play) || undefined}>
+      {/* 제목(피그마 351-185): 흰 화면이 차오르면 글자가 하나씩 아래에서 떠오르는 애니메이션이 한 번에 재생됩니다(React Bits Scroll Float, stagger 0.02). */}
+      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" play={play} />
+      <div className="director__body">
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
             <img className="director__portrait" src={profile.portrait} alt={`${profile.name} 프로필 사진`} loading="lazy" decoding="async" />
@@ -459,11 +425,32 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
     return () => window.clearTimeout(timer)
   }, [toast])
 
+  // 3D 목걸이 파일(코드·모델·그림)을 첫 화면이 다 뜬 뒤 한가할 때 미리 받아 둡니다.
+  // 예전에는 Contact 근처(800px)에 와서야 받기 시작해서, 스크롤하는 도중에는 목걸이 자리에 닿아도 늦게 떨어졌습니다.
+  useEffect(() => {
+    if (!enabled) return
+    let idle = 0
+    let timer = 0
+    const start = () => {
+      const run = () => { loadLanyard().catch(() => {}) }
+      if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(run, { timeout: 3000 })
+      else timer = window.setTimeout(run, 1200)
+    }
+    if (document.readyState === 'complete') start()
+    else window.addEventListener('load', start, { once: true })
+    return () => {
+      window.removeEventListener('load', start)
+      if (idle) window.cancelIdleCallback(idle)
+      window.clearTimeout(timer)
+    }
+  }, [enabled])
+
   useEffect(() => {
     const element = area.current
     if (!element) return
     const section = element.closest('section') ?? element
-    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '800px 0px' })
+    // 3D 무대는 Contact가 화면 2장 거리 안에 오면 미리 만들어 두고(떨어지기 전 한 장면을 그려 준비까지 끝냄), 목걸이 자리에 닿는 순간 바로 떨어뜨립니다.
+    const nearObserver = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setNear(true) }, { rootMargin: '200% 0px' })
     // 섹션이 화면에 1px이라도 보이면 목걸이 물리 계산을 켭니다 → 화면을 많이 내리거나 올린 상태에서도 목걸이를 끌며 놀 수 있어요.
     const visibleObserver = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting))
     nearObserver.observe(section)
@@ -517,7 +504,7 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
 }
 
 // 맨 아래 흐르는 글자 띠(피그마 342-180, React Bits Curved Loop: speed 2.2, curveAmount 0 = 곧은 줄)
-// 피그마 수정본대로 검정(#0f0f0f) 바탕에 코랄(#f8574f) 글씨입니다(예전에는 코랄 바탕에 회색 그라데이션 글씨).
+// 피그마 수정본대로 검정(#0f0f0f) 바탕에, 글씨는 연분홍 → 코랄 → 연분홍 그라데이션입니다(9/30 밤 수정본 · 예전에는 코랄 #f8574f 한 색).
 // 글자가 48로 작아진 만큼 같은 speed가 두 배로 빨라 보여서 2.2 → 1.1로 낮췄고, 더 느릿하게 흐르도록 0.6으로 한 번 더 낮췄습니다.
 // 띠 높이 138 · 글자 48 · 자간 -1.44는 피그마 값이고, 색·크기는 App.css의 .marquee-band에 있습니다.
 // 마우스로 끌어서 움직일 수 있고, 끈 방향으로 계속 흐릅니다. 한 벌이 끝나면 ' · '로 이어집니다.
@@ -534,6 +521,16 @@ function MarqueeBand() {
         height={138}
         lineY={69}
         className="marquee-band__text"
+        defs={
+          // 피그마 342-180 수정본(9/30 밤): 글자 색 = 연한 분홍(#FF9D97)과 코랄(#FC7A73) 그라데이션.
+          // 피그마에서 글자 두 벌이 서로 반대 방향 그라데이션이라, 띠 전체로 보면 양 끝이 연하고 가운데(x 966)가 진합니다.
+          // 흐르는 글자가 화면 자리에 따라 색이 바뀌도록 띠(1920 기준 좌표)에 고정해 둡니다(피그마 글자 상자 -468 ~ 2388).
+          <linearGradient id="marquee-band-fill" gradientUnits="userSpaceOnUse" x1={-468} y1={0} x2={2388} y2={0}>
+            <stop offset="0" stopColor="#FF9D97" />
+            <stop offset="0.502" stopColor="#FC7A73" />
+            <stop offset="1" stopColor="#FF9D97" />
+          </linearGradient>
+        }
       />
     </section>
   )

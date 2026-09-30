@@ -14,7 +14,9 @@
  *   아래 WOBBLE 값으로 조절하며, 끌거나 굴리는 동안에는 원본처럼 물결이 더 커집니다.
  * - 원본은 사진을 전부 같은 크기 세로 타일로 잘라 넣지만, 여기서는 피그마(334-2) 사진 크기를 그대로 씁니다.
  *   그래서 판마다 크기가 달라, 둥근 모서리를 판 크기에 맞춰 진짜 원에 가깝게 깎습니다(원본은 판이 길쭉하면 모서리도 늘어남).
- * - 사진 채도(흑백 정도)를 아카이브가 쓰던 값 그대로 셰이더에서 처리합니다.
+ * - 사진 채도(흑백 정도)를 셰이더에서 처리합니다. 9/30 밤(피그마 334-2 조명 수정본): 평소 채도는 낮게(base),
+ *   위에서 내려오는 조명(사다리꼴) 안에 들어온 부분만 채도를 올리고(lit), 마우스를 올린 사진은 원래 색(1)으로 돌아옵니다.
+ *   조명 모양은 화면 좌표로 받아(GalleryLight) 사진의 픽셀마다 계산하므로, 사진이 조명 아래로 흘러 들어가면 들어간 만큼만 색이 살아납니다.
  * - 그림은 이 캔버스가 그리고, 누르기·키보드 이동은 위에 겹쳐 둔 원래 버튼이 그대로 맡습니다.
  *   그래서 사진을 눌러 원본을 크게 보는 기능과 화면 읽기 프로그램 지원이 그대로 남습니다.
  */
@@ -29,17 +31,36 @@ export type GalleryTile = {
   y: number
   w: number
   h: number
-  /** 1 = 원래 색, 0 = 흑백 */
-  saturate: number
+  /** 마우스를 올린 정도(0~1). 1이면 조명과 상관없이 원래 색 */
+  hover: number
   /** 이번 프레임에 줄이 옆으로 움직인 거리(CSS 픽셀). 빠를수록 물결이 커집니다. */
   speed: number
   /** 사진마다 다른 값. 물결이 시작하는 때와 굽이 수가 이 값으로 갈려서, 옆 사진과 같은 모양으로 일렁이지 않습니다. */
   phase: number
 }
 
+/** 위에서 내려오는 조명(사다리꼴)과 채도. 좌표는 CSS 픽셀(캔버스 왼쪽 위 기준). */
+export type GalleryLight = {
+  /** 윗변 y · 왼쪽 x · 오른쪽 x */
+  top: number
+  topLeft: number
+  topRight: number
+  /** 아랫변 y · 왼쪽 x · 오른쪽 x */
+  bottom: number
+  bottomLeft: number
+  bottomRight: number
+  /** 조명 가장자리를 부드럽게 넘어가는 폭(px) */
+  feather: number
+  /** 아래쪽 끝에서 서서히 사라지는 높이(px) */
+  fade: number
+  /** 채도: 조명 밖(base) · 조명 안(lit). 1 = 원래 색, 0 = 흑백 */
+  base: number
+  lit: number
+}
+
 export interface CircularGalleryHandle {
   /** advance를 false로 주면 물결이 흐르지 않고 멈춰 있습니다(동작 줄이기 설정). */
-  draw(tiles: GalleryTile[], advance?: boolean): void
+  draw(tiles: GalleryTile[], advance: boolean, light: GalleryLight): void
   ready(): boolean
 }
 
@@ -65,6 +86,7 @@ uniform float uDrag;
 uniform float uMax;
 uniform float uPhase;
 varying vec2 vUv;
+varying vec2 vScreen;
 void main() {
   vUv = aGrid + 0.5;
   // 원본과 같은 물결식(판 안의 자리 -0.5~0.5로 sin·cos을 겹칩니다). 나누기 3은 값을 -1~1로 맞추려는 것입니다.
@@ -78,6 +100,7 @@ void main() {
   // 빠르게 끌어도 uMax를 넘지 않게 막습니다(넘으면 사진 모양이 무너지고 화면이 느려집니다).
   float bulge = wave * min(uIdle + abs(uSpeed) * uDrag, uMax);
   vec2 screen = uCenter + aGrid * uSize * (1.0 + bulge);
+  vScreen = screen;
   gl_Position = vec4(screen.x / uCanvas.x * 2.0 - 1.0, 1.0 - screen.y / uCanvas.y * 2.0, 0.0, 1.0);
 }`
 
@@ -86,8 +109,23 @@ uniform sampler2D uTexture;
 uniform vec2 uImageSize;
 uniform vec2 uPlaneSize;
 uniform float uRadius;
-uniform float uSaturate;
+uniform float uHover;
+uniform vec4 uLight;       // 윗변 y, 아랫변 y, 가장자리 폭, 아래 끝 사라지는 높이 (캔버스 픽셀)
+uniform vec4 uLightEdges;  // 윗변 왼쪽 x, 윗변 오른쪽 x, 아랫변 왼쪽 x, 아랫변 오른쪽 x
+uniform vec2 uSat;         // 조명 밖 채도, 조명 안 채도
 varying vec2 vUv;
+varying vec2 vScreen;
+
+// 조명(사다리꼴) 안이면 1, 밖이면 0, 가장자리는 부드럽게
+float lightMask(vec2 p) {
+  float t = clamp((p.y - uLight.x) / max(uLight.y - uLight.x, 1.0), 0.0, 1.0);
+  float left = mix(uLightEdges.x, uLightEdges.z, t);
+  float right = mix(uLightEdges.y, uLightEdges.w, t);
+  float f = uLight.z;
+  float across = smoothstep(left - f, left + f, p.x) * (1.0 - smoothstep(right - f, right + f, p.x));
+  float down = smoothstep(uLight.x - f, uLight.x + f, p.y) * (1.0 - smoothstep(uLight.y - uLight.w, uLight.y, p.y));
+  return across * down;
+}
 
 float roundedBoxSDF(vec2 point, vec2 halfSize, float radius) {
   vec2 d = abs(point) - halfSize;
@@ -104,7 +142,8 @@ void main() {
   vec4 color = texture2D(uTexture, uv);
 
   float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  color.rgb = mix(vec3(gray), color.rgb, uSaturate);
+  float saturate = mix(mix(uSat.x, uSat.y, lightMask(vScreen)), 1.0, uHover);
+  color.rgb = mix(vec3(gray), color.rgb, saturate);
 
   // 둥근 모서리: 판의 짧은 변을 기준으로 깎아서 판이 길쭉해도 모서리가 늘어나지 않습니다.
   float radius = uRadius * min(uPlaneSize.x, uPlaneSize.y);
@@ -203,7 +242,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
 
     const at = Object.fromEntries(
       ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag', 'uMax', 'uPhase',
-        'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uSaturate']
+        'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uHover', 'uLight', 'uLightEdges', 'uSat']
         .map(name => [name, gl.getUniformLocation(program, name)]),
     )
 
@@ -257,7 +296,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
 
   useImperativeHandle(ref, () => ({
     ready: () => scene.current !== null,
-    draw(tiles, advance = true) {
+    draw(tiles, advance, light) {
       const box = container.current
       const current = scene.current
       if (!box || !current) return
@@ -282,6 +321,9 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
       gl.uniform1f(at.uTime, current.time)
       gl.uniform1f(at.uRadius, borderRadius)
       gl.uniform1i(at.uTexture, 0)
+      gl.uniform4f(at.uLight, light.top * dpr, light.bottom * dpr, light.feather * dpr, light.fade * dpr)
+      gl.uniform4f(at.uLightEdges, light.topLeft * dpr, light.topRight * dpr, light.bottomLeft * dpr, light.bottomRight * dpr)
+      gl.uniform2f(at.uSat, light.base, light.lit)
       gl.activeTexture(gl.TEXTURE0)
       // 움직인 거리를 원본 카메라의 단위로 바꿔야 물결이 커지는 정도가 원본과 같아집니다.
       const speedScale = dpr * VIEW_HEIGHT / height
@@ -295,7 +337,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
         gl.uniform2f(at.uSize, tile.w * dpr, tile.h * dpr)
         gl.uniform2f(at.uPlaneSize, tile.w * dpr, tile.h * dpr)
         gl.uniform2f(at.uImageSize, size[0], size[1])
-        gl.uniform1f(at.uSaturate, tile.saturate)
+        gl.uniform1f(at.uHover, tile.hover)
         gl.uniform1f(at.uSpeed, tile.speed * speedScale)
         // 사진마다 다른 값 — 물결이 시작하는 때와 굽이 수가 함께 달라집니다.
         gl.uniform1f(at.uPhase, tile.phase)

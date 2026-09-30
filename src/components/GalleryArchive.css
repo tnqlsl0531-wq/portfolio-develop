@@ -88,9 +88,10 @@
   cursor: pointer;
   transition: transform 400ms cubic-bezier(.22, .61, .36, 1);
 }
-/* 평소에는 채도를 살짝 낮춰(75%) 덜 쨍하게 — 회색빛이 돌지 않을 만큼만. 마우스를 올린 사진만 원래 색으로 돌아옵니다.
-   정도는 --archive-saturate 숫자로 조절하세요(1 = 원본, 0 = 흑백). */
-.archive { --archive-saturate: .75; }
+/* 채도(1 = 원본, 0 = 흑백): 평소에는 --archive-saturate(50%)로 낮추고, 위에서 내려오는 조명 안에 들어온 부분만
+   --archive-saturate-lit(75%, 예전 평소 채도)로 살립니다(캔버스 셰이더). 마우스를 올린 사진은 원래 색으로 돌아옵니다.
+   (WebGL이 안 되는 기기의 원래 <img>는 조명 계산 없이 --archive-saturate만 씁니다.) */
+.archive { --archive-saturate: .5; --archive-saturate-lit: .75; }
 .archive__photo img {
   display: block; width: 100%; height: 100%; object-fit: cover;
   filter: saturate(var(--archive-saturate));
@@ -107,8 +108,13 @@
 .archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 0; }
 .archive__photo:focus-visible img { filter: none; }
 
-/* 위에서 내려오는 조명(피그마 Spotlight · Grayscale)과 가운데 제목 */
-.archive__spotlight { position: absolute; z-index: 1; top: 0; left: 50%; width: calc(320 * var(--gu)); height: calc(378 * var(--gu)); transform: translateX(-50%); pointer-events: none; }
+/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale, 9/30 밤 수정본)과 가운데 제목
+   조명은 폭 948 · 높이 623의 사다리꼴(흐림 7.5, 가장자리 포함 SVG 978×653)이고, 사진을 가리지 않게 맨 뒤(캔버스보다 아래)에 깝니다. */
+.archive__spotlight {
+  position: absolute; z-index: 0; top: calc(-15 * var(--gu)); left: 50%;
+  width: calc(978 * var(--gu)); height: calc(653 * var(--gu)); max-width: none;
+  transform: translateX(-50%); pointer-events: none;
+}
 .archive__title {
   position: absolute;
   z-index: 1;

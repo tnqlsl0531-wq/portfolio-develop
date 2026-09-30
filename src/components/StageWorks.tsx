@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import CircularCarousel from './CircularCarousel'
 import LightRays from './LightRays'
@@ -28,6 +28,8 @@ const RAYS_ORIGIN = { x: .5, y: .06 }
 
 // 아직 무대에 오르지 않은 작품(어린이대공원)을 눌렀을 때 뜨는 안내입니다.
 const REHEARSAL_NOTICE = '현재 리허설 중이에요. 곧 무대에서 만나요!'
+// 드래그 안내를 이미 봤는지(카드를 끌어 봤는지) 기억하는 이름표(이번 방문 동안만)
+const DRAG_HINT_KEY = 'portfolio:stage-drag-hint:v1'
 
 type StageItem = {
   key: 'jadu' | 'kooksoondang' | 'future'
@@ -114,6 +116,14 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
   const carousel = useRef<CircularCarouselHandle>(null)
   const activeSlot = useRef(START_SLOT)
   const [notice, setNotice] = useState('')
+  // '옆으로 드래그해보세요!' 안내: 카드를 한 번 끌어 돌리면 스르륵 사라지고, 이번 방문 동안은 다시 나오지 않습니다.
+  const [dragHint, setDragHint] = useState(() => {
+    try { return sessionStorage.getItem(DRAG_HINT_KEY) !== 'done' } catch { return true }
+  })
+  const hideDragHint = useCallback(() => {
+    setDragHint(false)
+    try { sessionStorage.setItem(DRAG_HINT_KEY, 'done') } catch { /* 저장이 막혀 있으면 이번 화면에서만 숨김 */ }
+  }, [])
   const orderList = useLineProximity<HTMLOListElement>(75)
 
   // 안내 문구는 잠깐 보였다가 사라집니다(백스테이지 안내와 같은 2.6초).
@@ -236,6 +246,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
             activeSlot.current = slot
             setActive(slot % stageItems.length)
           }}
+          onDragStart={hideDragHint}
           onCardClick={(slot, wasActive) => {
             const project = itemAt(slot).project
             if (!wasActive) return
@@ -258,6 +269,13 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
 
         <p className="stage-works__notice" data-visible={notice ? 'true' : 'false'} aria-hidden="true"><span>{notice || REHEARSAL_NOTICE}</span></p>
         <img className="stage-works__asset stage-works__footlights" src={footlights} width={1000} height={76} alt="" />
+        {/* 무대 앞면(검은 원통)에 붙은 안내 — 처음 보는 사람이 카드를 끌어 돌릴 수 있다는 걸 알 수 있게(선생님 피드백, 9/30 밤).
+            화살표가 좌우로 살짝 흔들리고, 카드를 한 번 끌면 스르륵 사라집니다(StageWorks.css .stage-works__drag-hint). */}
+        <p className="stage-works__drag-hint" data-hidden={!dragHint || undefined} aria-hidden="true">
+          <span className="stage-works__drag-arrow stage-works__drag-arrow--left">←</span>
+          옆으로 드래그해보세요!
+          <span className="stage-works__drag-arrow stage-works__drag-arrow--right">→</span>
+        </p>
         <p className="sr-only" aria-live="polite">현재 작품: {stageItems[active].label}, {stageItems[active].orderStatus}</p>
         <p className="sr-only" aria-live="polite">{notice}</p>
       </div>

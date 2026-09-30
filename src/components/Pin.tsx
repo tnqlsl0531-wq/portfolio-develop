@@ -11,8 +11,8 @@
  * - CSS sticky로 만들어서 휠·키보드·스크롤 막대 어떤 방법으로 스크롤해도 똑같이 걸립니다.
  * - 폰·태블릿(700px 이하)과 동작 줄이기 설정에서는 걸지 않습니다(App.css).
  */
-import { useEffect, useRef } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 
 type Props = {
   children: ReactNode
@@ -105,4 +105,34 @@ export function onScrollFrame(update: () => void) {
     window.removeEventListener('resize', request)
     reduced.removeEventListener('change', request)
   }
+}
+
+/**
+ * '일정 스크롤에 닿으면 애니메이션을 통째로 한 번 재생'하는 시점을 알려줍니다(9/30 밤 2).
+ * - pinned: 이 섹션이 화면 고정(Pin)을 쓰는 중인지(폰·태블릿·동작 줄이기면 false)
+ * - play  : 재생할 때가 됐는지
+ *     고정을 쓰면 = 섹션이 멈추기 시작하는 순간(lead를 주면 멈추기 '화면 높이 × lead' 전부터)
+ *     고정을 안 쓰면 = 섹션 윗선이 화면 높이의 VIEW_AT 지점까지 올라왔을 때
+ *   섹션이 화면 아래로 완전히 내려가면(위로 되돌아가면) 다시 false가 돼서, 다음에 내려올 때 또 재생됩니다.
+ */
+const VIEW_AT = .6
+export function usePinTrigger(ref: RefObject<Element | null>, lead = 0) {
+  const [state, setState] = useState({ pinned: false, play: false })
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    return onScrollFrame(() => {
+      const viewport = window.innerHeight
+      const top = element.getBoundingClientRect().top
+      const travel = pinTravel(element)
+      const pinned = travel !== null
+      setState(previous => {
+        let play = previous.play
+        if (top > viewport) play = false
+        else if (travel ? travel.scrolled >= -lead * viewport : top < viewport * VIEW_AT) play = true
+        return previous.play === play && previous.pinned === pinned ? previous : { pinned, play }
+      })
+    })
+  }, [ref, lead])
+  return state
 }

@@ -58,11 +58,6 @@
   to { opacity: 0; }
 }
 
-/* pinDriven: 스크롤한 만큼 FoldText.tsx가 글자마다 투명도·기울기·그늘(--fold-crease-now)을 직접 정합니다. */
-.fold-text[data-scrub] .fold-text__piece,
-.fold-text[data-scrub] .fold-text__piece::after { animation: none; }
-.fold-text[data-scrub] .fold-text__piece::after { opacity: var(--fold-crease-now, 0); }
-
 @media (prefers-reduced-motion: reduce) {
   .fold-text__piece { opacity: 1; transform: none; animation: none !important; }
   .fold-text__piece::after { opacity: 0; animation: none !important; }

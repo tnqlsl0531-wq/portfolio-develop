@@ -13,6 +13,10 @@
  * - 뒷면도 보이도록, 가만히 있을 때 카드가 천천히 돌아 뒷면을 보여주고 다시 앞면으로 돌아옴(SHOWCASE)
  * - 목줄 고정점을 캔버스 가운데가 아닌 곳에 둘 수 있음(anchorLeft) — 카드가 떨어질 때 잘리지 않게 캔버스를 한쪽으로 넓히기 위해
  * - 카드가 다 떨어져 자리를 잡으면 한 번 알려줌(onLanded, 기준은 LANDING) — 그 뒤에 Contact 제안서가 올라옴
+ * - 선명도(9/30 밤): 화면 배율과 상관없이 2배로 그려서(DPR, 화면에 맞춰 줄이면 글자·가장자리가 매끈해짐) 카드 글자가 흐릿하고 계단져 보이던 것을 줄임.
+ *   카드 그림은 멀리 있는 것처럼 뭉개지지 않게 한 단계 선명한 그림을 고르고(EMISSIVE_SHARPEN), 구멍·가장자리는 계단 없이 부드럽게(alphaToCoverage).
+ * - 미리 준비(9/30 밤): 모델·그림을 파일을 불러올 때 바로 받아 두고(preload), 떨어지기 전에 한 장면을 미리 그려 셰이더·조명을 준비해 둠(warm-up).
+ *   그래서 스크롤하는 도중에 목걸이 자리에 닿아도 기다리지 않고 바로 떨어집니다.
  * - 카드 앞면의 이메일 글자를 누르면(끌지 않고 짧게 클릭) 알려줌(onEmailClick) — Contact에서 이메일을 복사하고 '복사되었습니다'를 띄움.
  *   이메일 위에 마우스를 올리면 손가락 커서가 됩니다. 누른 자리는 카드 그림의 좌표(uv)로 확인합니다(EMAIL_UV).
  */
@@ -74,9 +78,9 @@ export default function Lanyard({
     <div className="lanyard">
       <Canvas
         camera={{ position: [0, 0, cameraDistance], fov }}
-        dpr={[1, 2]}
+        dpr={RENDER_DPR}
         flat
-        frameloop={active ? 'always' : 'never'}
+        frameloop={active ? 'always' : 'demand'}
         gl={{ alpha: true }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 0)}
       >
@@ -100,6 +104,16 @@ type LerpedBody = RapierRigidBody & { lerped?: THREE.Vector3 }
 // 뒷면 보여주기: 내려오고 firstBack초 뒤 처음 뒤집히고, 그다음부터는 앞면 front초 → 뒷면 back초를 반복합니다.
 // 카드를 잡고 끄는 동안은 멈추고, 놓으면 앞면부터 다시 셉니다. stiffness가 클수록 빨리 돕니다.
 const SHOWCASE = { firstBack: 1.8, front: 6, back: 3.5, stiffness: 10 }
+
+// 선명도: 캔버스를 이 배율로 그립니다(보통 모니터 1배에서도 2배로 그려 화면에 맞춰 줄임 → 글자·가장자리가 매끈).
+// 캔버스 대부분이 빈 칸이라 2배로 그려도 무겁지 않습니다. 느린 기기에서 버벅이면 1.5로 낮추세요.
+const RENDER_DPR = 2
+// 카드 그림을 고를 때 한 단계 선명한 쪽으로 치우치게 합니다(0 = 기본, 음수일수록 선명, -1보다 작으면 글자가 자글자글해짐).
+const EMISSIVE_SHARPEN = -0.6
+
+// 파일을 불러오는 순간 모델·그림을 미리 받아 둡니다(목걸이 자리에 닿았을 때 기다리지 않게).
+useGLTF.preload(cardModel, false, false)
+useTexture.preload([cardTexture, cardCutout, strapTexture])
 
 // 착지로 보는 기준: 카드가 고정점에서 fallen(월드 단위)보다 아래까지 떨어진 뒤(줄 끝 = 약 4.5),
 // 속도가 speed(월드 단위/초) 아래로 hold초 동안 머물면 '다 떨어져 자리를 잡았다'고 봅니다.
@@ -136,6 +150,21 @@ const FRONT_UV = { ux: 0.695368, u0: 0.249875, vy: -0.750718, v0: 0.772094, z: t
 const BACK_UV = { ux: -0.695998, u0: 0.750691, vy: -0.755039, v0: 0.774547, z: thicken(CARD_DEPTH.back) - 0.0004 }
 // 모델에 원래 뚫려 있던 동그란 고리 구멍(중심 y 0.9418, 반지름 0.0186)을 덮는 크기
 const HOLE = { y: 0.9418, radius: 0.0215 }
+
+/** 카드 그림(emissiveMap)을 한 단계 선명한 쪽에서 고르도록 셰이더를 살짝 고칩니다(EMISSIVE_SHARPEN). */
+function withSharpEmissive<T extends THREE.Material>(material: T) {
+  material.onBeforeCompile = shader => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <emissivemap_fragment>',
+      THREE.ShaderChunk.emissivemap_fragment.replace(
+        'texture2D( emissiveMap, vEmissiveMapUv )',
+        `texture2D( emissiveMap, vEmissiveMapUv, ${EMISSIVE_SHARPEN.toFixed(2)} )`,
+      ),
+    )
+  }
+  material.customProgramCacheKey = () => `sharp-emissive-${EMISSIVE_SHARPEN}`
+  return material
+}
 
 /** 원래 구멍을 막는 작은 원판. 카드와 같은 재질·텍스처 좌표를 써서 이음매 없이 이어집니다. */
 function createHolePatch(side: typeof FRONT_UV) {
@@ -212,12 +241,12 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
   }, [cardMap, cutout, strap])
 
   // 디자인 색이 조명에 바래지 않도록 카드 그림은 스스로 빛나게(emissive) 하고, 코팅(clearcoat) 반사로만 광택을 줍니다.
-  // alphaMap + alphaTest로 슬롯 모양 구멍을 실제로 뚫습니다.
-  const cardMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
+  // alphaMap + alphaTest로 슬롯 모양 구멍을 실제로 뚫습니다. alphaToCoverage로 구멍·가장자리를 계단 없이 부드럽게 깎습니다.
+  const cardMaterial = useMemo(() => withSharpEmissive(new THREE.MeshPhysicalMaterial({
     color: 'black', emissive: 'white', emissiveMap: cardMap, emissiveIntensity: 1,
-    alphaMap: cutout, alphaTest: 0.5,
+    alphaMap: cutout, alphaTest: 0.5, alphaToCoverage: true,
     roughness: 1, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.6,
-  }), [cardMap, cutout])
+  })), [cardMap, cutout])
   const holePatches = useMemo(() => [createHolePatch(FRONT_UV), createHolePatch(BACK_UV)], [])
   // 원본 모델은 그대로 두고, 복사본을 카드 가운데 기준으로 z 방향만 늘려 두께를 줍니다(클립·고리는 그대로).
   const cardGeometry = useMemo(() => {
@@ -261,6 +290,9 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
   useSphericalJoint(j3, card, [[0, 0, 0], [0, 1.45, 0]])
 
   useEffect(() => { onReady?.() }, [onReady])
+  // 떨어지기 전(멈춰 있는 동안)에도 한 번 그려서 셰이더·조명 준비를 끝내 둡니다. 카드는 아직 화면 위쪽 밖에 있어서 보이지 않습니다.
+  const invalidate = useThree(state => state.invalidate)
+  useEffect(() => { invalidate() }, [invalidate])
 
   useEffect(() => {
     if (!hovered) return

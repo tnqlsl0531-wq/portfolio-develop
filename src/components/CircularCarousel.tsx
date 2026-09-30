@@ -58,6 +58,8 @@ type Props = {
   onChange?: (index: number) => void
   /** 카드를 눌렀을 때. 이미 가운데 있던 카드면 wasActive = true */
   onCardClick?: (index: number, wasActive: boolean) => void
+  /** 손으로 끌어서 돌리기 시작했을 때(누르기만 한 것은 제외) */
+  onDragStart?: () => void
   className?: string
   style?: CSSProperties
 }
@@ -109,6 +111,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
   cardLabel,
   onChange,
   onCardClick,
+  onDragStart,
   className = '',
   style,
 }, ref) {
@@ -195,6 +198,8 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
   }
   const settingsRef = useRef(settings)
   const onChangeRef = useRef(onChange)
+  const onDragStartRef = useRef(onDragStart)
+  useEffect(() => { onDragStartRef.current = onDragStart }, [onDragStart])
   useEffect(() => {
     settingsRef.current = settings
     onChangeRef.current = onChange
@@ -447,6 +452,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
       state.target = null
       state.velocity = 0
       setDragging(true)
+      onDragStartRef.current?.()
       try { rootRef.current?.setPointerCapture(event.pointerId) } catch { /* 이미 놓았으면 무시 */ }
     }
     // 끈 거리를 화면에 보이는 크기(부모 캔버스가 줄인 비율 포함) 기준으로 각도로 바꿉니다.

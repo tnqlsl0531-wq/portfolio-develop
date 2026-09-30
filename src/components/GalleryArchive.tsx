@@ -3,7 +3,7 @@ import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent, WheelEvent } 
 import { archiveRows } from '../archivePhotos'
 import type { ArchivePhoto } from '../archivePhotos'
 import CircularGallery from './CircularGallery'
-import type { CircularGalleryHandle, GalleryTile } from './CircularGallery'
+import type { CircularGalleryHandle, GalleryLight, GalleryTile } from './CircularGallery'
 import spotlight from '../assets/design/gallery-spotlight.svg'
 import './GalleryArchive.css'
 
@@ -14,14 +14,17 @@ import './GalleryArchive.css'
      모서리가 둥글며, 줄을 끌거나 휠을 굴리면 목표 위치를 부드럽게 따라옵니다(scrollEase 0.04).
      여기 있는 버튼은 그대로 위에 겹쳐 두어, 누르면 원본 크게 보기·키보드 이동·화면 읽기가 예전처럼 동작합니다.
      WebGL을 쓸 수 없는 기기에서는 캔버스 없이 원래 <img>가 그대로 보입니다(물결만 없습니다).
-   - 사진은 평소에 채도를 살짝 낮춰(회색빛이 돌지 않을 만큼) 보여주고, 마우스를 올리면 그 줄만 멈추고
-     사진이 살짝(4%) 커지며 원래 색으로 돌아옵니다.
+   - 사진은 평소에 채도를 낮춰(50%) 보여주고, 위에서 내려오는 조명(피그마 334-2 'Spotlight · Grayscale', 사진 뒤에 깔림) 안에
+     들어온 부분만 예전 채도(75%)로 살아납니다(사진이 조명 아래로 흘러 들어가면 들어간 만큼만). 마우스를 올리면 그 줄만 멈추고
+     사진이 살짝(4%) 커지며 원래 색으로 돌아옵니다. 채도 숫자는 GalleryArchive.css의 --archive-saturate / --archive-saturate-lit.
    - 사진을 누르면 뒤 화면이 흐려지고(6px) 어두워지며(#171717 58%) 가운데에 자르지 않은 원본 사진이 크게 뜹니다.
    - Esc, 뒤 배경 클릭으로 닫습니다. 아카이브 화면은 왼쪽 위 '돌아가기' 버튼으로도 닫습니다. */
 
 export type ArchiveOrigin = { x: number; y: number }
 
 const GAP = 34 // 사진 사이 간격
+// 조명 SVG(피그마 334-43, 978×653)의 사다리꼴 자리. feather = 조명 가장자리에서 채도가 서서히 바뀌는 폭, fade = 아래 끝에서 서서히 사라지는 높이.
+const SPOT = { width: 978, top: 15, topLeft: 288.718, topRight: 682.606, bottom: 638, bottomLeft: 15, bottomRight: 963, feather: 28, fade: 140 }
 const SPEED = 40 // 저절로 흐르는 속도(1초에 40px). 숫자가 작을수록 느려집니다.
 
 // start: 처음 열었을 때 한 벌 길이 중 어디쯤에서 시작할지(두 줄이 같은 모양으로 시작하지 않게)
@@ -105,7 +108,9 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
   const spots = useRef<TileSpot[][]>(rows.map(() => []))
   const hoverAmount = useRef<number[][]>(rows.map(() => []))
   const hoverIndex = useRef<number[]>(rows.map(() => -1))
-  const saturate = useRef(.75)
+  // 조명 모양(화면 좌표)과 채도 — 창 크기가 바뀔 때마다 다시 잽니다(measureRows).
+  const spotlightRef = useRef<HTMLImageElement>(null)
+  const light = useRef<GalleryLight>({ top: 0, topLeft: 0, topRight: 0, bottom: 0, bottomLeft: 0, bottomRight: 0, feather: 1, fade: 1, base: .5, lit: .75 })
   const gallery = useRef<CircularGalleryHandle>(null)
   const [webglReady, setWebglReady] = useState(false)
   const suppressClick = useRef(false)
@@ -116,8 +121,27 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
   const measureRows = () => {
     const dialog = archive.current
     if (!dialog) return
-    // 채도는 CSS의 --archive-saturate 한 곳에서만 정합니다(캔버스도 같은 값을 씁니다).
-    saturate.current = Number.parseFloat(getComputedStyle(dialog).getPropertyValue('--archive-saturate')) || .75
+    // 채도는 CSS의 --archive-saturate(조명 밖) · --archive-saturate-lit(조명 안)에서만 정합니다(캔버스도 같은 값을 씁니다).
+    const style = getComputedStyle(dialog)
+    const number = (name: string, fallback: number) => {
+      const value = Number.parseFloat(style.getPropertyValue(name))
+      return Number.isFinite(value) ? value : fallback
+    }
+    // 조명(피그마 SVG 978×653 안의 사다리꼴: 윗변 y 15, x 288.718~682.606 / 아랫변 y 638, x 15~963)을 화면 좌표로 옮깁니다.
+    const spot = spotlightRef.current
+    const box = spot?.getBoundingClientRect()
+    const home = dialog.getBoundingClientRect()
+    if (box && box.width > 0) {
+      const scale = box.width / SPOT.width
+      const x = (value: number) => box.left - home.left + value * scale
+      const y = (value: number) => box.top - home.top + value * scale
+      light.current = {
+        top: y(SPOT.top), topLeft: x(SPOT.topLeft), topRight: x(SPOT.topRight),
+        bottom: y(SPOT.bottom), bottomLeft: x(SPOT.bottomLeft), bottomRight: x(SPOT.bottomRight),
+        feather: SPOT.feather * scale, fade: SPOT.fade * scale,
+        base: number('--archive-saturate', .5), lit: number('--archive-saturate-lit', .75),
+      }
+    }
     rows.forEach((row, index) => {
       const track = trackElements.current[index]
       const motion = motions.current[index]
@@ -205,14 +229,14 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
             photo: spot.photo,
             x, y: spot.y,
             w: spot.w * grow, h: spot.h * grow,
-            saturate: saturate.current + (1 - saturate.current) * amount,
+            hover: amount,
             speed: moved,
             phase: spot.phase,
           })
         })
       })
 
-      gallery.current?.draw(tiles, !still)
+      gallery.current?.draw(tiles, !still, light.current)
       frame = requestAnimationFrame(step)
     }
     frame = requestAnimationFrame(step)
@@ -350,6 +374,8 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
         </svg>
       </button>
 
+      {/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale). 사진을 가리지 않게 맨 뒤에 깔고, 이 안에 들어온 사진만 채도가 살아납니다. */}
+      <img ref={spotlightRef} className="archive__spotlight" src={spotlight} alt="" width={978} height={653} />
       {/* 사진 그림은 이 캔버스가 그립니다(React Bits Circular Gallery). 아래 버튼들은 그대로 겹쳐 두어 누르기·키보드 이동을 맡습니다. */}
       <CircularGallery ref={gallery} photos={ALL_PHOTOS} borderRadius={.06} className="archive__canvas" />
 
@@ -390,7 +416,6 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
           </div>
       ))}
 
-      <img className="archive__spotlight" src={spotlight} alt="" width={320} height={378} />
       <h2 id="archive-title" className="section-heading archive__title">Artist Gallery</h2>
 
       <dialog
