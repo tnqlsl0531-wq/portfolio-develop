@@ -22,7 +22,7 @@
 .backstage__frame { container-type: inline-size; --bu: calc(100cqw / 1920); }
 /* overflow: clip — 넘치는 부분만 자르고 스크롤 영역은 만들지 않아서, 안쪽 sticky가 페이지 스크롤에 맞춰 붙습니다. */
 .backstage__page {
-  position: relative; overflow: clip; display: flex; flex-direction: column; gap: calc(200 * var(--bu)); padding-bottom: calc(470 * var(--bu));
+  position: relative; overflow: clip; display: flex; flex-direction: column; gap: calc(200 * var(--bu)); padding-bottom: calc(183 * var(--bu));
   font-family: 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; line-height: normal;
 }
 .backstage__line { display: block; white-space: nowrap; }
@@ -69,11 +69,10 @@
 .backstage__plan:hover { background: #e67f3c; }
 
 /* ── 왼쪽 큐시트(피그마 427:1043, 화면 기준 130·255에 고정) ──
-   스크롤을 따라 --follow만큼 아주 살짝 늦게 따라오고, 지금 섹션의 램프가 켜집니다(Backstage.tsx MOTION.nav).
+   스크롤해도 움직이지 않고(완전 고정), 지금 섹션의 램프가 켜집니다.
    done = 지나온 큐(은은하게 켜진 채), current = 지금 큐(주황 램프 + 글자가 살짝 앞으로), next = 남은 큐(꺼짐). */
 .backstage__cuesheet {
   position: fixed; z-index: 15; left: calc(130 * var(--bu)); top: calc(255 * var(--bu)); width: calc(190 * var(--bu));
-  transform: translate3d(0, var(--follow, 0px), 0);
   transition: opacity 600ms ease, translate 600ms cubic-bezier(.2, .7, .2, 1), visibility 0s;
 }
 .backstage__cuesheet[data-hidden] { opacity: 0; translate: calc(-16 * var(--bu)) 0; visibility: hidden; transition: opacity 500ms ease, translate 500ms ease, visibility 0s 500ms; }
@@ -151,17 +150,7 @@
   padding: calc(10 * var(--bu)) calc(20 * var(--bu)); border: 1px solid var(--bs-line); border-radius: 999px;
   color: var(--bs-body); font: 500 calc(16 * var(--bu))/1.25 var(--bs-gothic); white-space: nowrap;
 }
-/* 첫 화면 안내: 화면 아래쪽에 떠 있다가, 스크롤하면(--intro-fade) 자연스럽게 사라집니다. */
-.backstage__scroll-cue {
-  position: fixed; z-index: 2; left: 0; right: 0; bottom: max(20px, calc(93 * var(--bu))); margin: 0; padding-left: .24em; text-align: center; pointer-events: none;
-  color: var(--bs-sub); font-size: max(11px, calc(14 * var(--bu))); font-weight: 600; letter-spacing: .24em; white-space: nowrap;
-  opacity: var(--intro-fade, 1); transform: translate3d(0, calc((1 - var(--intro-fade, 1)) * 14px), 0);
-  animation: backstage-fade 1200ms ease 1800ms both;
-}
-.backstage__scroll-cue span { display: inline-block; margin-left: .3em; color: var(--bs-orange); animation: backstage-bob 1.8s ease-in-out 3s infinite; }
 @keyframes backstage-rise { from { opacity: 0; transform: translate3d(0, calc(24 * var(--bu)), 0); } }
-@keyframes backstage-fade { from { opacity: 0; } }
-@keyframes backstage-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
 /* ── CUE 01~06 공통: 왼쪽 480에서 시작, 오른쪽 여백 120 ── */
 .backstage__cue { position: relative; z-index: 1; display: flex; flex-direction: column; padding: 0 calc(120 * var(--bu)) 0 calc(480 * var(--bu)); }
@@ -182,23 +171,27 @@
 .backstage__kicker { margin: 0; color: var(--bs-orange); font-size: calc(13 * var(--bu)); font-weight: 600; letter-spacing: .05em; line-height: 1.3; }
 
 /* ── CUE 01 · CAST & CREW ──
-   사진(511)이 플레이빌 카드(607) 뒤에 숨어 60px만 보이다가, 스크롤하면(--pull 0 → 1) 왼쪽으로 스르륵 나옵니다.
-   436 = 카드 왼쪽(496) + 보이는 폭 60을 뺀 이동 거리. 숨어 있을 때는 조금 어둡게 가라앉아 있습니다. */
+   사진(511)이 처음에는 피그마 자리보다 60px만 카드 뒤로 더 들어가 있다가, 스크롤하면(--pull 0 → 1) 왼쪽으로 스르륵 나와 제자리에 옵니다.
+   들어가 있을 때는 아주 살짝 어둡습니다. */
 .backstage__cast { position: relative; display: flex; align-items: center; width: calc(1103 * var(--bu)); height: calc(585 * var(--bu)); }
 .backstage__cast-photo {
   position: relative; z-index: 0; flex: none; width: calc(511 * var(--bu)); height: calc(511 * var(--bu)); margin: 0; border-radius: calc(15 * var(--bu)); overflow: hidden;
-  transform: translate3d(calc((1 - var(--pull, 0)) * 436 * var(--bu)), 0, 0); will-change: transform;
+  transform: translate3d(calc((1 - var(--pull, 0)) * 60 * var(--bu)), 0, 0); will-change: transform;
 }
 .backstage__cast-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .backstage__cast-shade { position: absolute; inset: 0; background: rgb(96 96 96 / 10%); }
-.backstage__cast-photo::after { content: ''; position: absolute; inset: 0; background: #141211; opacity: calc((1 - var(--pull, 0)) * .55); pointer-events: none; }
+.backstage__cast-photo::after { content: ''; position: absolute; inset: 0; background: #141211; opacity: calc((1 - var(--pull, 0)) * .3); pointer-events: none; }
 .backstage__playbill {
   position: relative; z-index: 1; flex: none; box-sizing: border-box; width: calc(607 * var(--bu)); height: calc(585 * var(--bu)); margin-left: calc(-15 * var(--bu));
   display: flex; flex-direction: column; gap: calc(28 * var(--bu)); padding: calc(52 * var(--bu)) calc(60 * var(--bu));
   border: 1px solid var(--bs-line); border-radius: calc(20 * var(--bu)); background: linear-gradient(#211f1e, #1c1a1a);
   box-shadow: calc(-13 * var(--bu)) calc(4 * var(--bu)) calc(10 * var(--bu)) rgb(0 0 0 / 25%);
 }
-.backstage__playbill::before { content: ''; position: absolute; inset: calc(11 * var(--bu)); border: 1px solid var(--bs-line); border-radius: calc(20 * var(--bu)); pointer-events: none; }
+.backstage__playbill-border { position: absolute; inset: calc(12 * var(--bu)); width: calc(100% - 24 * var(--bu)); height: calc(100% - 24 * var(--bu)); overflow: visible; pointer-events: none; }
+.backstage__playbill-border rect {
+  width: calc(100% - 1px); height: calc(100% - 1px); rx: calc(20 * var(--bu));
+  fill: none; stroke: var(--bs-line); stroke-width: 1px; stroke-dasharray: 4px 4px;
+}
 .backstage__playbill-intro { display: flex; flex-direction: column; }
 .backstage__playbill-intro .backstage__kicker { margin-bottom: calc(14 * var(--bu)); }
 .backstage__playbill-title { margin: 0 0 calc(20 * var(--bu)); color: var(--bs-ink); font-size: calc(30 * var(--bu)); font-weight: 600; line-height: 1.333; white-space: nowrap; }
@@ -278,14 +271,15 @@
 
 /* ── CUE 03 · REHEARSAL LOG ──
    뒤 사진(피그마 배경사진2, 710×748)은 가장자리가 배경색으로 녹아든 그림이고, 페이지보다 천천히 움직입니다(--parallax, 최대 80).
-   타임라인 선은 스크롤한 만큼 차오르고(--fill), 선이 닿은 기록은 불이 켜집니다(data-lit). */
+   타임라인 선은 처음부터 다 그어져 있고(10/1: 내려오며 차오르던 선은 큐시트 선과 겹쳐 보여서 뺌), 화면 62% 지점을 지난 기록에 불이 켜집니다(data-lit). */
 .backstage__backdrop { position: absolute; z-index: 0; margin: 0; pointer-events: none; }
 .backstage__backdrop img { display: block; width: 100%; height: 100%; transform: translate3d(0, var(--parallax, 0px), 0); will-change: transform; }
 .backstage__backdrop--log { left: calc(887 * var(--bu)); top: calc(53 * var(--bu)); width: calc(710 * var(--bu)); height: calc(748 * var(--bu)); }
+.backstage__backdrop--call img { filter: saturate(.55); }
 .backstage__backdrop--call { left: calc(912 * var(--bu)); top: calc(-20 * var(--bu)); width: calc(697 * var(--bu)); height: calc(630 * var(--bu)); }
 .backstage__timeline { position: relative; display: flex; flex-direction: column; gap: calc(60 * var(--bu)); width: calc(700 * var(--bu)); margin: 0; padding: 0; list-style: none; }
 .backstage__timeline-line { position: absolute; left: calc(15 * var(--bu)); top: calc(12 * var(--bu)); bottom: 0; width: calc(2 * var(--bu)); background: #3a3431; }
-.backstage__timeline-line i { position: absolute; inset: 0; background: linear-gradient(#f29556, #d4e400); transform: scaleY(var(--fill, 0)); transform-origin: top; }
+.backstage__timeline-line i { position: absolute; inset: 0; background: linear-gradient(#f29556, #d4e400); }
 .backstage__log { position: relative; display: flex; flex-direction: column; padding-left: calc(56 * var(--bu)); transition: opacity 700ms ease; }
 .backstage__log::before {
   content: ''; position: absolute; left: calc(4 * var(--bu)); top: 0; width: calc(24 * var(--bu)); height: calc(24 * var(--bu)); box-sizing: border-box;
@@ -328,29 +322,48 @@
 .backstage__note-text { margin: 0; color: var(--bs-body); font: 300 calc(18 * var(--bu))/1.75 var(--bs-gothic); }
 .backstage__note-text strong { color: #ffd7bb; font-weight: 600; }
 
-/* ── CUE 05 · STAGE SET: 브라우저 틀(1320×760) 안에서 최종 메인 화면 긴 캡처가 천천히 저절로 스크롤됩니다(StageSetShot) ── */
-.backstage__stage-set { width: calc(1320 * var(--bu)); margin: 0; box-sizing: border-box; border: 1px solid #5d504a; background: #211f1e; overflow: hidden; }
-.backstage__browser-bar--wide { position: relative; gap: calc(8 * var(--bu)); height: calc(40 * var(--bu)); padding: 0 calc(18 * var(--bu)); background: #2e2c2a; }
-.backstage__browser-bar--wide i { width: calc(12 * var(--bu)); height: calc(12 * var(--bu)); background: var(--bs-orange); }
+/* ── CUE 05 · STAGE SET: 브라우저 틀(1320×760) 안의 최종 메인 화면 긴 캡처를 휠로 직접 내려 봅니다(StageSetShot) ── */
+.backstage__stage-set { --ss: calc(var(--bu) * .7); position: relative; width: calc(1320 * var(--ss)); margin: 0; box-sizing: border-box; border: 1px solid #5d504a; background: #211f1e; overflow: hidden; }
+.backstage__browser-bar--wide { position: relative; gap: calc(8 * var(--ss)); height: calc(40 * var(--ss)); padding: 0 calc(18 * var(--ss)); background: #2e2c2a; }
+.backstage__browser-bar--wide i { width: calc(12 * var(--ss)); height: calc(12 * var(--ss)); background: var(--bs-orange); }
 .backstage__browser-bar--wide i:nth-child(2) { background: #ffd7bb; }
 .backstage__browser-bar--wide i:nth-child(3) { background: #d4e400; }
 .backstage__url {
-  position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: calc(480 * var(--bu)); height: calc(18 * var(--bu)); margin: 0;
-  border-radius: calc(9 * var(--bu)); background: #211f1e; color: var(--bs-sub); font-size: calc(11 * var(--bu)); font-weight: 500; line-height: 1; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: calc(480 * var(--ss)); height: calc(18 * var(--ss)); margin: 0;
+  border-radius: calc(9 * var(--ss)); background: #211f1e; color: var(--bs-sub); font-size: max(8px, calc(11 * var(--ss))); font-weight: 500; line-height: 1; transform: translate(-50%, -50%);
 }
-.backstage__stage-set-view { position: relative; height: calc(718 * var(--bu)); overflow: hidden; background: #211f1e; }
-.backstage__stage-set-view img { display: block; width: 100%; height: auto; max-width: none; will-change: transform; }
+.backstage__stage-set-view {
+  position: relative; height: calc(718 * var(--ss)); overflow-x: hidden; overflow-y: auto; background: #211f1e; outline: none;
+  scrollbar-width: thin; scrollbar-color: rgb(242 149 86 / 70%) transparent;
+}
+.backstage__stage-set-view::-webkit-scrollbar { width: 8px; }
+.backstage__stage-set-view::-webkit-scrollbar-track { background: transparent; }
+.backstage__stage-set-view::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 99px; background: rgb(242 149 86 / 70%) padding-box; }
+.backstage__stage-set-view:focus-visible { box-shadow: inset 0 0 0 2px var(--bs-orange); }
+.backstage__stage-set-view img { display: block; width: 100%; height: auto; max-width: none; }
+/* '휠을 굴려 둘러보세요' 안내: 틀 아래쪽 가운데 알약. 한 번 굴리면 사라집니다. */
+.backstage__wheel-hint {
+  position: absolute; left: 50%; bottom: calc(24 * var(--bu)); display: inline-flex; align-items: center; gap: calc(10 * var(--bu)); margin: 0;
+  padding: calc(10 * var(--bu)) calc(18 * var(--bu)); border-radius: 999px; background: rgb(39 38 37 / 82%); color: var(--bs-ink); pointer-events: none;
+  font: 500 max(12px, calc(15 * var(--bu)))/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; white-space: nowrap;
+  box-shadow: 0 calc(8 * var(--bu)) calc(24 * var(--bu)) rgb(0 0 0 / 30%); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transform: translateX(-50%); transition: opacity 500ms ease, transform 500ms ease;
+}
+.backstage__wheel-hint[data-gone] { opacity: 0; transform: translate(-50%, 8px); }
+/* 마우스 모양 + 굴러가는 휠 */
+.backstage__wheel-hint i { position: relative; flex: none; width: max(12px, calc(15 * var(--bu))); height: max(19px, calc(23 * var(--bu))); box-sizing: border-box; border: 1.5px solid var(--bs-orange); border-radius: 99px; }
+.backstage__wheel-hint i::after { content: ''; position: absolute; left: 50%; top: 22%; width: 2px; height: 26%; margin-left: -1px; border-radius: 2px; background: var(--bs-orange); animation: backstage-wheel 1.6s ease-in-out infinite; }
+@keyframes backstage-wheel { 0% { opacity: 0; transform: translateY(-2px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(6px); } }
 .backstage__stage-set-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(10 * var(--bu)); margin: 0; color: var(--bs-sub); font: 500 calc(18 * var(--bu))/1.3 var(--bs-gothic); }
 .backstage__stage-set-empty span { font-size: calc(13 * var(--bu)); font-weight: 600; letter-spacing: .3em; }
 
-/* ── CUE 06 · CURTAIN CALL: 인용문이 한 줄씩 떠오르고 '서로의 강점'에 불이 켜집니다 + 다음 무대 카드 ── */
+/* ── CUE 06 · CURTAIN CALL: 인용문이 한 줄씩 떠오르고('서로의 강점'은 주황) + 다음 무대 카드 ── */
 .backstage__call { display: flex; flex-direction: column; width: calc(700 * var(--bu)); }
 .backstage__quote { margin: 0 0 calc(36 * var(--bu)); color: var(--bs-ink); font-size: calc(48 * var(--bu)); font-weight: 700; line-height: 1.45; }
 .backstage__quote[data-appear] { opacity: 1; transform: none; }
 .backstage__quote-line { display: block; white-space: nowrap; opacity: 0; transform: translate3d(0, calc(30 * var(--bu)), 0); transition: opacity 900ms ease, transform 1100ms cubic-bezier(.2, .7, .2, 1); transition-delay: calc(var(--i) * 240ms); }
 .backstage__quote[data-shown] .backstage__quote-line { opacity: 1; transform: none; }
-.backstage__quote em { font-style: normal; color: var(--bs-ink); transition: color 900ms ease 1100ms, text-shadow 900ms ease 1100ms; }
-.backstage__quote[data-shown] em { color: var(--bs-orange); text-shadow: 0 0 calc(26 * var(--bu)) rgb(242 149 86 / 45%); }
+.backstage__quote em { font-style: normal; color: var(--bs-orange); }
 .backstage__call-text { width: calc(640 * var(--bu)); margin: 0 0 calc(80 * var(--bu)); color: var(--bs-body); font-size: calc(18 * var(--bu)); font-weight: 300; line-height: 1.5; letter-spacing: .03em; }
 .backstage__next { display: flex; flex-direction: column; gap: calc(20 * var(--bu)); }
 .backstage__kicker--next { font-size: calc(16 * var(--bu)); }
@@ -429,7 +442,7 @@
 .backstage__finale-body p { margin: 0; color: #fff; font-size: max(15px, calc(20 * var(--bu))); font-weight: 600; text-align: center; }
 .backstage__onstage {
   display: inline-flex; align-items: center; justify-content: center; width: calc(302 * var(--bu)); height: calc(56 * var(--bu));
-  border: 0; border-radius: calc(8 * var(--bu)); background: #fff; color: var(--bs-orange); text-decoration: none; cursor: pointer;
+  border: 0; border-radius: calc(8 * var(--bu)); background: #fff; color: #3b3836; text-decoration: none; cursor: pointer;
   font: 600 max(15px, calc(20 * var(--bu)))/normal 'Min Sans VF', 'Noto Sans KR Variable', sans-serif;
   box-shadow: 0 calc(10 * var(--bu)) calc(30 * var(--bu)) rgb(90 40 15 / 25%); transition: transform 180ms ease, box-shadow 180ms ease;
 }
@@ -472,7 +485,6 @@
   .backstage__award-text small { margin-top: 4px; font-size: 12px; }
   .backstage__chips { gap: 8px; }
   .backstage__chips li { padding: 8px 14px; font-size: 13px; }
-  .backstage__scroll-cue { bottom: 24px; font-size: 11px; }
 
   .backstage__cue { padding: 0 var(--pad); }
   .backstage__cue--cast, .backstage__cue--script, .backstage__cue--log, .backstage__cue--show, .backstage__cue--set, .backstage__cue--call { gap: 28px; padding-bottom: 0; }
@@ -485,7 +497,8 @@
   .backstage__cast { flex-direction: column; align-items: stretch; width: 100%; height: auto; }
   .backstage__cast-photo { width: 100%; height: auto; aspect-ratio: 1; border-radius: 14px; transform: none; }
   .backstage__playbill { width: 100%; height: auto; margin: -28px 0 0; gap: 22px; padding: 36px 26px; border-radius: 16px; }
-  .backstage__playbill::before { inset: 9px; border-radius: 14px; }
+  .backstage__playbill-border { inset: 9px; width: calc(100% - 18px); height: calc(100% - 18px); }
+  .backstage__playbill-border rect { rx: 14px; }
   .backstage__playbill-title { margin-bottom: 14px; font-size: 22px; white-space: normal; }
   .backstage__playbill-text { font-size: 14.5px; line-height: 1.6; }
   .backstage__playbill hr { width: 100%; }
@@ -508,7 +521,8 @@
   .backstage__goal-text > span { font-size: 14px; line-height: 1.55; }
 
   .backstage__backdrop--log { left: auto; right: -20%; top: 40px; width: 90%; height: auto; aspect-ratio: 710 / 748; opacity: .7; }
-  .backstage__backdrop--call { left: auto; right: -25%; top: 20px; width: 90%; height: auto; aspect-ratio: 697 / 630; opacity: .6; }
+  .backstage__backdrop--call img { filter: saturate(.55); }
+.backstage__backdrop--call { left: auto; right: -25%; top: 20px; width: 90%; height: auto; aspect-ratio: 697 / 630; opacity: .6; }
   .backstage__timeline { gap: 36px; width: 100%; }
   .backstage__timeline-line { left: 11px; top: 10px; width: 2px; }
   .backstage__log { padding-left: 40px; }
@@ -537,6 +551,7 @@
   .backstage__url { width: 52%; height: 14px; border-radius: 7px; font-size: 9px; }
   .backstage__stage-set-view { height: auto; aspect-ratio: 1318 / 718; }
   .backstage__stage-set-empty { font-size: 14px; }
+  .backstage__wheel-hint { bottom: 14px; padding: 8px 14px; gap: 8px; }
   .backstage__stage-set-empty span { font-size: 11px; }
 
   .backstage__call { width: 100%; }
@@ -558,14 +573,14 @@
 @media (prefers-reduced-motion: reduce) {
   .backstage[open] { animation: none; }
   [data-appear], .backstage__goal, .backstage__quote-line, .backstage__next li { opacity: 1; transform: none; transition: none; }
-  .backstage__eyebrow, .backstage__hero-cover, .backstage__hero-info, .backstage__scroll-cue { animation: none; }
+  .backstage__eyebrow, .backstage__hero-cover, .backstage__hero-info { animation: none; }
   .backstage__bulbs i::after { animation: none; opacity: 1; }
-  .backstage__scroll-cue span, .backstage__pin::after { animation: none; }
+  .backstage__pin::after, .backstage__wheel-hint i::after { animation: none; }
   .backstage__pin { transform: scale(1); transition: none; }
   .backstage__cuesheet, .backstage__cuesheet-text, .backstage__lamp { transition: none; }
   .backstage__cuesheet-item[data-state='current'] .backstage__lamp { animation: none; }
   .backstage__capture, .backstage__capture[data-pose='leaving'] { transition: none; animation: none; }
-  .backstage__cue-label i, .backstage__log-trophy, .backstage__quote em { transition: none; }
+  .backstage__cue-label i, .backstage__log-trophy { transition: none; }
   .backstage__onstage, .backstage__plan, .backstage__toast, .backstage__play, .backstage__back, .backstage__goal button { transition: none; }
   .backstage__curtain-canvas { transition: none; }
   .backstage__curtain-hint { transition: opacity 600ms ease; }

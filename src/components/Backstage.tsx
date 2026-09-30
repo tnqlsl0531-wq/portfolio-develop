@@ -22,7 +22,7 @@ import './Backstage.css'
    공연 큐시트처럼 CUE 00(막 오르기 전) → CUE 06(커튼콜) 순서로 내려가고, 맨 끝에 무대 커튼 + GO ONSTAGE가 있습니다.
    - 주소 끝에 #backstage-작품이름 이 붙어서, 브라우저 '뒤로 가기'를 누르면 원래 화면으로 돌아옵니다.
    - 맨 위 줄('← 돌아가기' · '기획서 보러가기')은 스크롤하면 화면 맨 위에 붙어 있습니다(sticky, 뒤 흐림).
-   - 왼쪽 큐시트(CueSheet)는 화면에 고정돼 있고, 스크롤하면 아주 살짝 늦게 따라옵니다(MOTION.nav). 지금 섹션의 램프가 켜집니다.
+   - 왼쪽 큐시트(CueSheet)는 화면에 고정돼 있고, 스크롤해도 움직이지 않습니다(10/1 완전 고정). 지금 섹션의 램프가 켜집니다.
    - 섹션별 움직임 값은 아래 MOTION에서 조절합니다. 기획서 주소는 portfolio.ts의 planUrl, GO ONSTAGE는 url입니다. */
 
 // 백스테이지 페이지가 있는 작품. 자두야는 기획 화면이 완성되면 추가합니다.
@@ -30,14 +30,13 @@ const BACKSTAGE_PROJECTS: Project['id'][] = ['kooksoondang']
 export const hasBackstage = (id: Project['id']) => BACKSTAGE_PROJECTS.includes(id)
 
 /* 움직임 값(피그마 1920 기준 px)
-   nav      : 큐시트가 스크롤을 따라 끌려가는 몫(drag)·최대 거리(max, px)·돌아오는 힘(stiffness). 튕김 없이 부드럽게 제자리로 옵니다.
    cast     : CUE 01 사진이 플레이빌 카드 뒤에서 나오는 구간. 카드 묶음 윗선이 화면 높이의 start 지점에 오면 시작해 end 지점에서 다 나옵니다.
-              peek = 나오기 전 카드 밖으로 보이는 폭, follow = 스크롤을 따라가는 부드러움(초).
+              나오기 전에는 피그마 자리보다 60px만 카드 뒤로 더 들어가 있습니다(Backstage.css .backstage__cast-photo). follow = 스크롤을 따라가는 부드러움(초).
    parallax : CUE 03·06 배경사진이 페이지보다 천천히 움직이는 정도(speed)와 최대 거리(max). 다른 섹션까지 넘어가지 않게 max로 막아 둡니다.
-   timeline : CUE 03 선이 차오르는 기준선(화면 높이 비율). */
+              사진마다 data-parallax 숫자만큼 곱해집니다(CUE 03 = 1.6배, CUE 06 = 1배).
+   timeline : CUE 03 기록에 불이 켜지는 기준선(화면 높이 비율). */
 const MOTION = {
-  nav: { drag: 0.14, max: 26, stiffness: 150 },
-  cast: { start: 0.9, end: 0.36, peek: 60, width: 511, overlap: 15, card: 607, follow: 0.14 },
+  cast: { start: 0.9, end: 0.36, follow: 0.14 },
   parallax: { speed: 0.24, max: 80 },
   timeline: { line: 0.62 },
 }
@@ -215,86 +214,32 @@ function IntroClip({ item }: { item: IntroVideo }) {
   )
 }
 
-/* ── CUE 05: 최종 메인 화면 — 긴 캡처가 브라우저 틀 안에서 천천히 저절로 스크롤됩니다 ──
-   shot이 있으면 화면에 보이는 동안 위 → 아래로 천천히 내려갔다가 잠깐 멈추고 다시 올라오기를 반복합니다(마우스를 올리면 멈춤).
-   빠르기는 SHOT.speed(1920 기준 px/초), 끝에서 멈추는 시간은 SHOT.hold(초). 캡처가 아직 없으면 안내만 보입니다. */
-const SHOT = { speed: 140, hold: 1.6 }
-
+/* ── CUE 05: 최종 메인 화면 — 긴 캡처를 브라우저 틀 안에서 마우스 휠(터치는 손가락)로 직접 내려 봅니다 ──
+   틀 끝까지 내리면 그다음부터는 페이지가 이어서 내려갑니다. 오른쪽에 얇은 스크롤 막대, 처음에는 '휠을 굴려 둘러보세요' 안내가 떠 있다가
+   한 번 굴리면 사라집니다. 캡처가 아직 없으면 안내만 보입니다. */
 function StageSetShot({ shot }: { shot?: string }) {
-  const viewport = useRef<HTMLDivElement>(null)
-  const image = useRef<HTMLImageElement>(null)
-  useEffect(() => {
-    const frame = viewport.current
-    const picture = image.current
-    if (!shot || !frame || !picture || typeof picture.animate !== 'function') return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let animation: Animation | null = null
-    let visible = false
-    let hovering = false
-    const sync = () => {
-      if (!animation) return
-      if (visible && !hovering) animation.play()
-      else animation.pause()
-    }
-    const build = () => {
-      animation?.cancel()
-      animation = null
-      const distance = picture.getBoundingClientRect().height - frame.clientHeight
-      if (distance <= 1) return
-      const scale = frame.clientWidth / 1318
-      const travel = distance / scale / SHOT.speed
-      const total = (travel + SHOT.hold) * 2
-      const at = (seconds: number) => seconds / total
-      animation = picture.animate([
-        { transform: 'translate3d(0, 0, 0)', offset: 0, easing: 'cubic-bezier(.45, 0, .25, 1)' },
-        { transform: `translate3d(0, ${-distance}px, 0)`, offset: at(travel) },
-        { transform: `translate3d(0, ${-distance}px, 0)`, offset: at(travel + SHOT.hold), easing: 'cubic-bezier(.45, 0, .25, 1)' },
-        { transform: 'translate3d(0, 0, 0)', offset: at(travel * 2 + SHOT.hold) },
-        { transform: 'translate3d(0, 0, 0)', offset: 1 },
-      ], { duration: total * 1000, iterations: Infinity, delay: 900 })
-      sync()
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting
-      sync()
-    }, { threshold: 0.2 })
-    const enter = () => { hovering = true; sync() }
-    const leave = () => { hovering = false; sync() }
-    const resize = new ResizeObserver(build)
-    if (picture.complete) build()
-    else picture.addEventListener('load', build, { once: true })
-    observer.observe(frame)
-    resize.observe(frame)
-    frame.addEventListener('pointerenter', enter)
-    frame.addEventListener('pointerleave', leave)
-    return () => {
-      animation?.cancel()
-      observer.disconnect()
-      resize.disconnect()
-      frame.removeEventListener('pointerenter', enter)
-      frame.removeEventListener('pointerleave', leave)
-      picture.removeEventListener('load', build)
-    }
-  }, [shot])
+  const [used, setUsed] = useState(false)
   return (
     <figure className="backstage__stage-set" data-empty={!shot || undefined} data-appear="">
       <div className="backstage__browser-bar backstage__browser-bar--wide">
         <i /><i /><i />
         <p className="backstage__url">KookSoonDang - Redesign</p>
       </div>
-      <div ref={viewport} className="backstage__stage-set-view">
+      <div className="backstage__stage-set-view" tabIndex={shot ? 0 : undefined} aria-label={shot ? '최종 메인 화면(휠로 내려 보기)' : undefined}
+        onScroll={used ? undefined : () => setUsed(true)}>
         {shot ? (
-          <img ref={image} src={shot} alt="리디자인한 국순당 웹사이트의 최종 메인 화면 전체" loading="lazy" decoding="async" />
+          <img src={shot} alt="리디자인한 국순당 웹사이트의 최종 메인 화면 전체" loading="lazy" decoding="async" />
         ) : (
           <p className="backstage__stage-set-empty"><span>FINAL · DESKTOP</span>최종 메인 화면을 준비하고 있어요</p>
         )}
       </div>
+      {shot && <p className="backstage__wheel-hint" data-gone={used || undefined} aria-hidden="true"><i />휠을 굴려 둘러보세요</p>}
     </figure>
   )
 }
 
 /* ── 스크롤에 맞춰 움직이는 것들을 한곳에서 계산합니다(스크롤 한 번에 한 프레임) ──
-   큐시트 램프·세로선 · 첫 화면 안내 글자 사라지기 · CUE 01 사진 나오기 · CUE 03·06 배경사진 패럴랙스 · CUE 03 선 차오르기 · 큐시트 늦게 따라오기 */
+   큐시트 램프·세로선 · 맨 위 줄 배경(--intro-fade) · CUE 01 사진 나오기 · CUE 03·06 배경사진 패럴랙스 · CUE 03 기록 불 켜기 */
 function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean, onActive: (index: number, hidden: boolean) => void) {
   const onActiveRef = useRef(onActive)
   useEffect(() => { onActiveRef.current = onActive }, [onActive])
@@ -313,8 +258,8 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
     const logs = timeline ? [...timeline.querySelectorAll<HTMLElement>('.backstage__log')] : []
     const finale = page.querySelector<HTMLElement>('.backstage__finale')
     const state = {
-      raf: 0, last: 0, scroll: scroller.scrollTop, active: -1, hidden: false,
-      navY: 0, navV: 0, pull: 0, pullTarget: 0, fill: -1,
+      raf: 0, last: 0, active: -1, hidden: false,
+      pull: 0, pullTarget: 0, fill: -1,
     }
     const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
 
@@ -322,7 +267,7 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
       const view = scroller.clientHeight
       const unit = page.clientWidth / 1920
       const top = scroller.scrollTop
-      // 첫 화면 안내 글자: 화면 높이의 25%만큼 내리면 다 사라집니다.
+      // 맨 위 줄 배경: 첫 화면에서는 없고, 화면 높이의 25%만큼 내리면 다 생깁니다(--intro-fade 1 → 0).
       page.style.setProperty('--intro-fade', (1 - clamp(top / (view * 0.25))).toFixed(3))
       // 지금 큐: 섹션 윗선이 화면 42% 지점을 지났는지
       const line = view * 0.42
@@ -361,7 +306,8 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
         const limit = MOTION.parallax.max * (compact.matches ? 0.5 : unit)
         for (const photo of backdrops) {
           const box = photo.parentElement!.getBoundingClientRect()
-          const offset = clamp((center - (box.top + box.height / 2)) * speed, -limit, limit)
+          const boost = Number(photo.dataset.parallax) || 1
+          const offset = clamp((center - (box.top + box.height / 2)) * speed * boost, -limit * boost, limit * boost)
           photo.style.setProperty('--parallax', `${offset.toFixed(1)}px`)
         }
       }
@@ -387,27 +333,6 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
       state.last = now
       measure()
       let moving = false
-      // 큐시트: 스크롤한 만큼 살짝 끌려갔다가 튕김 없이 제자리로
-      if (nav) {
-        const top = scroller.scrollTop
-        const delta = top - state.scroll
-        state.scroll = top
-        if (!reduced.matches && !compact.matches) {
-          state.navY = clamp(state.navY - delta * MOTION.nav.drag, -MOTION.nav.max * 1.6, MOTION.nav.max * 1.6)
-          const omega = Math.sqrt(MOTION.nav.stiffness)
-          let remaining = dt
-          while (remaining > 0) {
-            const h = Math.min(remaining, 1 / 240)
-            state.navV += (-MOTION.nav.stiffness * state.navY - 2 * omega * state.navV) * h
-            state.navY += state.navV * h
-            remaining -= h
-          }
-          if (Math.abs(state.navY) < 0.05 && Math.abs(state.navV) < 0.5) { state.navY = 0; state.navV = 0 }
-          else moving = true
-          const shown = MOTION.nav.max * Math.tanh(state.navY / MOTION.nav.max)
-          nav.style.setProperty('--follow', `${shown.toFixed(2)}px`)
-        }
-      }
       // CUE 01 사진: 스크롤 위치를 부드럽게 따라갑니다.
       if (cast) {
         const k = 1 - Math.exp(-dt / MOTION.cast.follow)
@@ -570,8 +495,6 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                   </ul>
                 </div>
               </div>
-              {/* 첫 화면에서만 떠 있는 안내. 스크롤하면 자연스럽게 사라집니다(--intro-fade). */}
-              <p className="backstage__scroll-cue" aria-hidden="true">SCROLL TO ENTER BACKSTAGE <span>↓</span></p>
             </section>
 
             {/* CUE 01 · CAST & CREW: 스크롤하면 플레이빌 카드 뒤에 숨어 있던(60px만 보이던) 사진이 옆으로 스르륵 나옵니다. */}
@@ -583,6 +506,8 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                   <i className="backstage__cast-shade" aria-hidden="true" />
                 </figure>
                 <article className="backstage__playbill" data-appear="">
+                  {/* 안쪽 점선 테두리(피그마 inner border: 1px #4c3b33, 점선 4·4, 모서리 20) */}
+                  <svg className="backstage__playbill-border" aria-hidden="true"><rect x="0.5" y="0.5" rx="20" /></svg>
                   <div className="backstage__playbill-intro">
                     <p className="backstage__kicker">PLAYBILL · NO. 02</p>
                     <h4 className="backstage__playbill-title">K-브랜드 리디자인 : 국순당</h4>
@@ -621,7 +546,7 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                 뒤 사진은 페이지보다 천천히 움직입니다(이 섹션 안에서만). */}
             <section className="backstage__cue backstage__cue--log" data-cue="3" aria-labelledby="backstage-cue-3">
               <figure className="backstage__backdrop backstage__backdrop--log" aria-hidden="true">
-                <img src={rehearsalBackdrop} alt="" width={710} height={748} loading="lazy" decoding="async" data-parallax="" />
+                <img src={rehearsalBackdrop} alt="" width={710} height={748} loading="lazy" decoding="async" data-parallax="1.6" />
               </figure>
               <CueHead index={3} title="REHEARSAL LOG" sub="문제를 발견하고 해결해 나간 과정" />
               <ol className="backstage__timeline">
