@@ -16,8 +16,8 @@
 }
 .stage-works__asset { position: absolute; max-width: none; pointer-events: none; user-select: none; }
 .stage-works__air { left: 366.5px; top: 180px; }
-/* 무대 조명(React Bits Light Rays). 카드(left 727 · width 1079) 가운데 위 공중에서 빛이 시작해
-   무대 쪽으로 퍼집니다. 예전 분홍 빛기둥(spotlight.svg)은 걷어냈습니다.
+/* 무대 조명(React Bits Light Rays). 카드 가운데 위 공중에서 빛이 시작해 무대 쪽으로 퍼집니다.
+   예전 분홍 빛기둥(spotlight.svg)은 걷어냈습니다(파일은 되돌리고 싶을 때를 위해 남겨 뒀습니다).
    빛이 모이는 자리는 StageWorks.tsx의 RAYS_ORIGIN, 진하기는 같은 파일의 intensity로 조절합니다.
    mask: 빛이 모이는 점을 중심으로 사방으로 서서히 사라지게 해서, 네모난 영역 경계가 보이지 않게 합니다. */
 .stage-works__rays {
@@ -32,29 +32,33 @@
 .stage-works__rim { left: 835px; top: 675px; }
 .stage-works__pool { left: 900px; top: 676px; }
 .stage-works__card-shadow { left: 925px; top: 706px; }
-.stage-works__side-shadow-left { left: 771.47px; top: 701px; }
-.stage-works__side-shadow-right { left: 1431.47px; top: 701px; }
 .stage-works__footlights { z-index: 6; left: 766.794px; top: 757.032px; }
 
 .stage-works__intro { position: absolute; left: 300px; top: 170px; display: flex; flex-direction: column; gap: 28px; white-space: nowrap; }
 .stage-works__intro h2 { margin: 0; font: 700 100px/1.2 'Lisu Bosa', Georgia, serif; color: #171717; }
 .stage-works__intro p { margin: 0; font: 400 24px/1.45 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; color: #525252; }
-.stage-works__order { position: absolute; left: 301px; top: 496px; display: flex; flex-direction: column; gap: 34.5px; color: #a3a3a3; }
-.stage-works__order > p { margin: 0; font: 500 22.5px/1 'Min Sans VF', sans-serif; letter-spacing: .45px; }
+/* 오늘의 공연 순서(피그마 346-295): 제목 칸은 117px, 넘치면 말줄임(…) */
+.stage-works__order { position: absolute; left: 301px; top: calc(50% + .25px); transform: translateY(-50%); display: flex; flex-direction: column; gap: 34.5px; color: #a3a3a3; }
+.stage-works__order > p { margin: 0; font: 500 22.5px/normal 'Min Sans VF', sans-serif; letter-spacing: .45px; white-space: nowrap; }
 .stage-works__order ol { display: flex; flex-direction: column; gap: 21px; margin: 0; padding: 0; list-style: none; }
-.stage-works__order button { display: grid; grid-template-columns: 9px 30px 1fr auto; align-items: center; gap: 21px; border: 0; padding: 0 0 0 10.5px; background: none; color: #a3a3a3; white-space: nowrap; text-align: left; cursor: pointer; }
-.stage-works__order button > span:last-child { font: 400 21px/1 'Min Sans VF', sans-serif; }
-.stage-works__dot { width: 9px; height: 9px; border-radius: 50%; background: #d4d4d4; }
-.stage-works__number { font: 400 22.5px/1 'Min Sans VF', sans-serif; }
-.stage-works__order strong { font: 500 27px/1 'Min Sans VF', sans-serif; }
-.stage-works__order li[data-active] button { color: #171717; }
+.stage-works__order button { display: flex; align-items: center; gap: 30px; border: 0; padding: 0 0 0 10.5px; background: none; color: #a3a3a3; white-space: nowrap; text-align: left; cursor: pointer; }
+.stage-works__label { display: flex; align-items: center; gap: 21px; }
+.stage-works__dot { flex: 0 0 9px; width: 9px; height: 9px; border-radius: 50%; background: #d4d4d4; }
+.stage-works__number { font: 400 22.5px/normal 'Min Sans VF', sans-serif; font-variant-numeric: tabular-nums; }
+.stage-works__order strong { display: block; width: 117px; overflow: hidden; font: 500 27px/normal 'Min Sans VF', sans-serif; text-overflow: ellipsis; }
+.stage-works__status { font: 400 21px/normal 'Min Sans VF', sans-serif; }
+/* 고른 작품은 이름을 끝까지 보여 주고, 나머지는 117px에서 잘려 '…'이 붙습니다(피그마 346-295).
+   min-width로 짧은 이름에서도 오른쪽 '쇼 종료 / 메인 공연' 줄이 흐트러지지 않게 잡아 둡니다. */
+.stage-works__order li[data-active] strong {
+  width: auto; min-width: 118px; overflow: visible; color: #171717; font-weight: 700;
+}
 .stage-works__order li[data-active] .stage-works__dot { background: #f8574f; }
 .stage-works__order li[data-active] .stage-works__number { color: #f8574f; font-weight: 700; }
-.stage-works__order li[data-active] strong { font-weight: 700; }
+.stage-works__order li[data-active] .stage-works__status { color: #525252; }
 .stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 2px; }
 /* 커서 근접 효과(React Bits Line Sidebar): --effect(0~1)는 useLineProximity가 각 항목(li)에 넣어 줍니다.
    0이면 원래 모습 그대로이고, 커서가 가까워질수록 글자가 진해지며 오른쪽으로 밀려납니다.
-   현재 고른 작품의 색(#171717 글자 · #f8574f 점·번호)은 아래 li[data-active] 규칙이 그대로 이깁니다. */
+   현재 고른 작품의 색(#171717 글자 · #f8574f 점·번호)은 위 li[data-active] 규칙이 그대로 이깁니다. */
 .stage-works__order li button {
   color: color-mix(in srgb, #171717 calc(var(--effect, 0) * 100%), #a3a3a3);
   transform: translateX(calc(var(--effect, 0) * 30px));
@@ -63,7 +67,7 @@
 
 /* 아직 무대에 오르지 않은 작품 안내. 카드 위에 잠깐 떠올랐다가 사라집니다. */
 .stage-works__notice {
-  position: absolute; z-index: 7; left: 727px; top: 398px; width: 1079px; margin: 0;
+  position: absolute; z-index: 7; left: 727px; top: 300px; width: 1079px; margin: 0;
   display: flex; justify-content: center; pointer-events: none;
   opacity: 0; transform: translateY(10px); transition: opacity 220ms ease, transform 220ms ease;
 }
@@ -73,15 +77,22 @@
 }
 .stage-works__notice[data-visible='true'] { opacity: 1; transform: translateY(0); }
 
-.stage-carousel {
-  position: absolute; z-index: 5; left: 727px; top: 474px;
-  width: 1079px; height: var(--face-height); outline: none;
-  perspective: 1800px; perspective-origin: 50% 50%;
-  touch-action: pan-y; user-select: none; -webkit-user-select: none;
-  cursor: grab;
+/*
+ * 둥근 회전목마(CircularCarousel) 자리: 상자 가운데 = 원의 중심 = 무대 가운데(1266.5) 위.
+ * top을 369 → 341로 28px 올려, 카드 아래와 무대 윗면 사이에 틈을 둡니다.
+ * 마우스 자리에 따라 카드가 조금씩 기울기 때문에, 붙여 두면 옆 카드가 무대 면에 파묻혀 보입니다.
+ * 더 띄우려면 top을 줄이고, 무대에 가깝게 붙이려면 늘리세요.
+ */
+.stage-works .stage-works__carousel {
+  position: absolute; z-index: 5;
+  left: 666.5px; top: 341px; width: 1200px; height: 500px;
+  overflow: visible;
 }
-.stage-carousel:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 12px; }
-.stage-carousel[data-dragging], .stage-carousel[data-dragging] .stage-card { cursor: grabbing; }
+.stage-works .stage-works__carousel:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 12px; }
+.stage-works__carousel .circular-carousel__card[data-active] { cursor: pointer; }
+/* 원 뒤쪽으로 돌아간 카드의 뒷면: 앞 카드 위에 회색 띠처럼 보이지 않도록 옅게 둡니다. */
+.stage-works__carousel .stage-card--back { opacity: .3; }
+.stage-card { cursor: grabbing; }
 /* Do not add opacity, filter, overflow clipping or paint containment to these
    two wrappers: they flatten CSS 3D and break the joined-face geometry. */
 /* --stage-tilt: 카드를 내려다보는 각도. 음수일수록 위(윗면)가 많이 보이고, 0이면 완전히 수평(윗면 안 보임). 예전 -10deg. */
@@ -111,8 +122,8 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: var(--face-width);
-  height: var(--face-height);
+  width: 706.8px;
+  height: 255.6px;
   box-sizing: border-box;
   padding: 21.6px;
   overflow: hidden;
@@ -122,14 +133,8 @@
   box-shadow: inset 0 0 0 .5px #ffe3e1;
   color: #171717;
   text-align: left;
-  transform-origin: center center;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  cursor: grab;
 }
-.stage-card__shade { position: absolute; inset: 0; background: #502421; pointer-events: none; }
 .stage-card img { -webkit-user-drag: none; }
-.stage-card:focus-visible { outline: 5px solid #f8574f; outline-offset: 0; }
 .stage-card__inner { display: flex; align-items: flex-start; gap: 22.8px; width: 658.8px; height: 212.4px; }
 .stage-card__art { position: relative; flex: 0 0 318px; width: 318px; height: 207.6px; overflow: hidden; border: 2.4px solid #efefef; border-radius: 7.2px; background: #fff; }
 .stage-card__art--jadu { background: #fffaf5; }
@@ -150,21 +155,21 @@
 .stage-card__art--future img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: .3; }
 .stage-card__inner--future { align-items: center; }
 .stage-card__inner--future > p { flex: 1; margin: 0; color: #a3a3a3; font: 400 31.808px/1.5 'Special Gothic Expanded One', sans-serif; text-align: center; letter-spacing: .954px; }
-.stage-works__drag-hint { position: absolute; z-index: 7; left: 1224px; top: 842px; margin: 0; color: #a3a3a3; font: 500 17px/1 'IBM Plex Mono', monospace; letter-spacing: 1.2px; opacity: .8; }
 
 @media (max-width: 700px) {
   .stage-works__intro { left: 930px; top: 28px; gap: 18px; }
   .stage-works__intro h2 { font-size: 78px; }
   .stage-works__intro p { font-size: 22px; }
-  .stage-works__order { left: 932px; top: 188px; gap: 22px; }
+  .stage-works__order { left: 932px; top: 188px; transform: none; gap: 22px; }
   .stage-works__order > p { font-size: 19px; }
   .stage-works__order ol { flex-direction: row; gap: 18px; }
-  .stage-works__order button { display: flex; gap: 8px; padding: 0; }
-  .stage-works__order strong { font-size: 21px; }
-  .stage-works__number, .stage-works__order button > span:last-child { font-size: 17px; }
-  .stage-works__order button > span:last-child { display: none; }
+  .stage-works__order button { gap: 8px; padding: 0; }
+  .stage-works__label { gap: 8px; }
+  .stage-works__order strong { width: auto; font-size: 21px; }
+  .stage-works__order li[data-active] strong { min-width: 0; }
   /* 가로로 누운 목록에서는 옆으로 밀면 줄이 흐트러지므로 위로 살짝 떠오릅니다. */
   .stage-works__order li button { transform: translateY(calc(var(--effect, 0) * -8px)); }
-  .stage-works__dot { width: 7px; height: 7px; }
-  .stage-works__drag-hint { left: 1219px; top: 850px; }
+  .stage-works__number { font-size: 17px; }
+  .stage-works__status { display: none; }
+  .stage-works__dot { flex-basis: 7px; width: 7px; height: 7px; }
 }
