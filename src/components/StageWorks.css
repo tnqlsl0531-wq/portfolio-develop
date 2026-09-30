@@ -43,7 +43,7 @@
 .stage-works__order li[data-active] .stage-works__dot { background: #f8574f; }
 .stage-works__order li[data-active] .stage-works__number { color: #f8574f; font-weight: 700; }
 .stage-works__order li[data-active] strong { font-weight: 700; }
-.stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 8px; border-radius: 2px; }
+.stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 2px; }
 
 .stage-carousel {
   position: absolute; z-index: 5; left: 727px; top: 474px;
@@ -52,7 +52,7 @@
   touch-action: pan-y; user-select: none; -webkit-user-select: none;
   cursor: grab;
 }
-.stage-carousel:focus-visible { outline: 3px solid #f8574f; outline-offset: 12px; border-radius: 12px; }
+.stage-carousel:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 12px; }
 .stage-carousel[data-dragging], .stage-carousel[data-dragging] .stage-card { cursor: grabbing; }
 /* Do not add opacity, filter, overflow clipping or paint containment to these
    two wrappers: they flatten CSS 3D and break the joined-face geometry. */
@@ -101,7 +101,7 @@
 }
 .stage-card__shade { position: absolute; inset: 0; background: #502421; pointer-events: none; }
 .stage-card img { -webkit-user-drag: none; }
-.stage-card:focus-visible { outline: 5px solid #f8574f; outline-offset: 6px; }
+.stage-card:focus-visible { outline: 5px solid #f8574f; outline-offset: 0; }
 .stage-card__inner { display: flex; align-items: flex-start; gap: 22.8px; width: 658.8px; height: 212.4px; }
 .stage-card__art { position: relative; flex: 0 0 318px; width: 318px; height: 207.6px; overflow: hidden; border: 2.4px solid #efefef; border-radius: 7.2px; background: #fff; }
 .stage-card__art--jadu { background: #fffaf5; }

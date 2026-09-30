@@ -40,7 +40,7 @@ const photoSizes: Record<PhotoPosition, [number, number]> = {
 
 const GALLERY_GAP = 24
 const GALLERY_COLUMN = 2656
-const GALLERY_SPEED = 41
+const GALLERY_SPEED = 41.2
 
 // 같은 사진을 두 장 겹칩니다. 아래 장은 채도를 90% 뺀 사진, 위 장은 원래 색 사진이며
 // 위 장은 커서 주변 원 안에서만 보입니다(가장자리 페이드는 바깥 틀이 두 장에 함께 적용).
