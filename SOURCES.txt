@@ -256,3 +256,15 @@ React Bits Circular Carousel(TS + CSS)를 src/components/CircularCarousel.tsx/.c
 - 섹션 멈춤 스크롤(src/hooks/useSectionSnap.ts): 휠·키보드 입력을 받아 다음 멈춤 자리로 직접 스크롤(0.9초, easeInOutCubic). 외부 라이브러리 없음.
   트랙패드 관성(점점 약해지는 휠 신호)은 새 입력으로 치지 않고, 계속 돌리면 도착 뒤 0.65초 멈췄다 다음 칸으로 갑니다.
 
+Director’s Note 문단 · 커서 효과 정리 · 리니어 스크롤 (2026-09-30 저녁)
+https://reactbits.dev/text-animations/scroll-reveal
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/ScrollReveal (2026-09-30 main)
+- React Bits Scroll Reveal을 src/components/ScrollReveal.tsx/.css로 옮겼습니다(MIT + Commons Clause, src/licenses/React-Bits-LICENSE.md).
+  원본 기본값 그대로: baseOpacity 0.1 · enableBlur · blurStrength 4px · baseRotation 3도(왼쪽 가운데 기준) · 단어별 시차 · 시작 'top bottom-=20%'.
+  바꾼 점: GSAP scrub 대신 시작 지점을 지나면 CSS 전환으로 끝까지 재생(단어 0.55초, 단어 사이 0.025초), 다시 아래로 내려가면 되돌림. 적용 범위는 ‘어릴 때부터~’ 문단부터.
+- 커서 물감(SplashCursor): 시작을 히어로 물결 → Stage Works 아랫선으로 옮기고, 끝나 갈 때 서서히 나타나게(FADE_IN 1 → 0.45). 목차(data-cursor-quiet) 위에서는 만들지 않음.
+- Stage Works 커서 효과 끔: 공연 순서 Line Sidebar(useLineProximity) 연결 해제, Light Rays mouseInfluence 0.2 → 0. 카드 회전목마의 마우스 기울기(parallax)는 카드 움직임이라 그대로 둠.
+- 가운데 카드 호버: 분홍 테두리와 함께 1.07배(CircularCarousel의 --cc-scale, @property로 부드럽게).
+- 프로그램북: 스크롤 따라 늦게 오기(lag 0.22초, 최대 48px), z-index 60(물감 위).
+- 섹션 멈춤 스크롤·목차 이동: 리니어 이징(같은 속도, 화면 한 칸당 0.9초, 0.45~1.6초).
+

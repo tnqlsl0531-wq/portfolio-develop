@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import CircularCarousel from './CircularCarousel'
 import LightRays from './LightRays'
-import { useLineProximity } from '../hooks/useLineProximity'
 import type { CircularCarouselHandle } from './CircularCarousel'
 import { projects } from '../portfolio'
 import type { Project } from '../portfolio'
@@ -129,7 +128,6 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
   const carousel = useRef<CircularCarouselHandle>(null)
   const activeSlot = useRef(START_SLOT)
   const [notice, setNotice] = useState('')
-  const orderList = useLineProximity<HTMLOListElement>(75)
 
   // 안내 문구는 잠깐 보였다가 사라집니다(백스테이지 안내와 같은 2.6초).
   useEffect(() => {
@@ -169,7 +167,8 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
         <img className="stage-works__asset stage-works__air" src={airGlow} width={1554} height={1000} alt="" />
         {/* 무대 조명. 예전의 분홍 빛기둥(spotlight.svg)을 걷어내고 이 빛만 씁니다.
             originPoint = 빛이 모이는 자리(이 영역 안의 가로·세로 비율). 카드 위 공중에서 시작해 아래로 퍼집니다.
-            색은 raysColor, 진하기는 intensity, 퍼지는 너비는 lightSpread로 조절합니다. */}
+            색은 raysColor, 진하기는 intensity, 퍼지는 너비는 lightSpread로 조절합니다.
+            Stage Works에서는 커서 효과를 쓰지 않기로 해서 빛이 마우스를 따라가지 않습니다(mouseInfluence 0). */}
         <LightRays
           className="stage-works__rays"
           originPoint={RAYS_ORIGIN}
@@ -179,7 +178,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
           rayLength={.95}
           saturation={.8}
           intensity={2.6}
-          mouseInfluence={.2}
+          mouseInfluence={0}
         />
         <img className="stage-works__asset stage-works__floor-shadow" src={floorShadow} width={1252} height={132} alt="" />
         <img className="stage-works__asset stage-works__side" src={stageSide} width={1079} height={266} alt="" />
@@ -197,7 +196,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
 
         <nav className="stage-works__order" aria-label="오늘의 공연 순서">
           <p>오늘의 공연 순서</p>
-          <ol ref={orderList}>
+          <ol>
             {stageItems.map((item, index) => (
               <li key={item.key} data-active={index === active || undefined}>
                 <button type="button" aria-current={index === active ? 'true' : undefined}

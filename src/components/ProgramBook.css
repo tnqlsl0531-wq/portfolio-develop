@@ -5,7 +5,8 @@
   position: fixed;
   right: 24px;
   bottom: 24px;
-  z-index: 40;
+  /* 커서 물감(SplashCursor, z-index 50)보다 위: 목차 위에는 물감이 번지지 않습니다. */
+  z-index: 60;
   --s: .72px;
   --page-w: calc(261 * var(--s));
   --page-h: calc(338 * var(--s));

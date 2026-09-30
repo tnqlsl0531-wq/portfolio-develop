@@ -15,6 +15,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
+import { glideTo } from '../hooks/useSectionSnap'
 import './ProgramBook.css'
 
 /* 항목 자리는 피그마 좌표 그대로입니다(한 면 261 × 338 기준).
@@ -68,6 +69,11 @@ const MOTION = {
   reverse: .45,
   closeDelay: 160,
 }
+
+/* 스크롤할 때 책이 화면에 딱 붙어 있지 않고 살짝 늦게 따라옵니다.
+   lag: 늦게 따라오는 정도(초, 0.1~0.5 사이 권장). 클수록 더 늦게 제자리로 돌아옵니다.
+   max: 가장 많이 밀려나는 거리(px). */
+const FOLLOW = { lag: .22, max: 48 }
 
 type Pose = 'closed' | 'open' | 'moving'
 
@@ -271,12 +277,51 @@ export default function ProgramBook() {
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), [])
 
+  // ── 스크롤할 때 살짝 늦게 따라오기 ──────────────────
+  // 페이지가 움직이면 책도 페이지와 같이 조금 끌려갔다가(최대 FOLLOW.max) 제자리로 부드럽게 돌아옵니다.
+  useEffect(() => {
+    const element = root.current
+    if (!element) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const state = { y: window.scrollY, raf: 0, last: 0 }
+    const frame = (now: number) => {
+      state.raf = 0
+      const dt = state.last ? Math.min((now - state.last) / 1000, 1 / 30) : 1 / 60
+      state.last = now
+      const target = window.scrollY
+      state.y += (target - state.y) * (1 - Math.exp(-dt / FOLLOW.lag))
+      const gap = state.y - target
+      if (Math.abs(gap) < .2) {
+        state.y = target
+        state.last = 0
+        element.style.transform = ''
+        return
+      }
+      const offset = FOLLOW.max * Math.tanh(gap / FOLLOW.max)
+      element.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`
+      state.raf = requestAnimationFrame(frame)
+    }
+    const onScroll = () => {
+      if (reduced.matches) {
+        state.y = window.scrollY
+        return
+      }
+      if (!state.raf) state.raf = requestAnimationFrame(frame)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      cancelAnimationFrame(state.raf)
+      window.removeEventListener('scroll', onScroll)
+      element.style.transform = ''
+    }
+  }, [])
+
   const go = useCallback((event: ReactMouseEvent, id: string) => {
     const element = document.getElementById(id)
     if (!element) return
     event.preventDefault()
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    element.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    // 휠로 섹션을 넘길 때와 같은 리니어(같은 속도) 움직임으로 이동합니다(useSectionSnap.ts의 glideTo).
+    glideTo(element.getBoundingClientRect().top + window.scrollY)
     setBook(false)
   }, [setBook])
 
@@ -346,6 +391,8 @@ export default function ProgramBook() {
       ref={root}
       className="program-book"
       aria-label="목차"
+      // 이 위에서는 커서 효과(물감 등)가 나오지 않습니다(SplashCursor가 이 표시를 봅니다).
+      data-cursor-quiet=""
       data-open={open || undefined}
       data-pose={pose}
       // 마우스에서만 올리면 펼쳐집니다. 터치는 표지를 눌러서 펼칩니다.

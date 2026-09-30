@@ -13,6 +13,8 @@
  * - 효과가 나오는 곳: startBelow 요소(히어로 아래 물결) 아래부터. startEdge를 주면 그 요소 안의 경계선(물결의 검은 부분 아래 선)을 따라
  *   흰 부분부터 나옵니다. 그 위(히어로·검은 물결)에서는 물감을 만들지 않고, 번진 물감도 경계선 위로는 안 보이게 잘라 냅니다.
  * - fadeInto 요소(Contact)가 화면에 들어오면 스크롤한 만큼 서서히 투명해지고(FADE), 다 들어오면 사라집니다. 그 안에서는 물감을 만들지 않습니다.
+ * - 시작 요소(지금은 Stage Works)가 끝나 갈 때부터 스크롤한 만큼 서서히 나타납니다(FADE_IN).
+ * - data-cursor-quiet 표시가 있는 곳(목차 프로그램북) 위에서는 물감을 만들지 않습니다.
  * - 효과가 안 보일 때(히어로만 보이거나 Contact에 다 들어왔을 때)는 계산을 멈춰 컴퓨터를 덜 씁니다.
  * - 작품 선택 창·BACKSTAGE·아카이브처럼 창(dialog)이 열려 있을 때는 물감을 만들지 않습니다.
  * - 화면에서 사라질 때 이벤트·애니메이션·WebGL을 정리합니다(원본은 정리하지 않음).
@@ -39,6 +41,11 @@ const SPLASH = {
 // Contact(fadeInto)가 들어올 때 사라지는 구간(화면 높이 대비 Contact 윗선 위치): start에서 흐려지기 시작해 end에서 완전히 사라짐.
 // 1 = Contact 윗선이 화면 아래 끝에 막 닿았을 때, 0.3 = 화면 위에서 30% 지점까지 올라왔을 때. 스크롤한 만큼 조금씩 흐려집니다.
 const FADE = { start: 1, end: 0.3 }
+
+// 시작 요소(Stage Works)가 끝나 갈 때 서서히 나타나는 구간(화면 높이 대비 시작 요소 아랫선 위치):
+// 1 = Stage Works 아랫선이 화면 아래 끝에 닿을 때부터 나타나기 시작, 0.45 = 화면 위에서 45% 지점까지 올라오면 다 나타남.
+// Stage Works 안(아랫선 위)에서는 물감을 만들지 않고 보이지도 않습니다.
+const FADE_IN = { start: 1, end: 0.45 }
 
 // 물감 전체 불투명도(0~1). 마우스를 한곳에서 오래 움직여 물감이 짙게 쌓여도 뒤 내용이 비쳐 보이도록 낮췄습니다(원래 1).
 // 더 옅게 하려면 숫자를 줄이고, 더 진하게 하려면 늘리세요.
@@ -768,6 +775,7 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     const EDGE_STEPS = 48
     // box: 시작 요소(물결)의 화면 위치, top: 경계선 중 가장 높은 곳(화면 기준)
     const region = { box: new DOMRect(0, 0, window.innerWidth, 0), top: 0, bottom: window.innerHeight, fade: 1 }
+    const quiet = (target: EventTarget | null) => target instanceof Element && !!target.closest('[data-cursor-quiet]')
     const edgeY = (clientX: number) => {
       const box = region.box
       return box.top + edgeAt(box.width ? (clientX - box.left) / box.width : 0) * box.height
@@ -777,7 +785,9 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       region.box = start ? start.getBoundingClientRect() : new DOMRect(0, 0, window.innerWidth, 0)
       region.bottom = end ? end.getBoundingClientRect().top : height
       const fade = (region.bottom - FADE.end * height) / ((FADE.start - FADE.end) * height)
-      region.fade = Math.min(1, Math.max(0, fade))
+      const startBottom = region.box.bottom
+      const fadeIn = (FADE_IN.start * height - startBottom) / ((FADE_IN.start - FADE_IN.end) * height)
+      region.fade = Math.min(1, Math.max(0, fade)) * Math.min(1, Math.max(0, fadeIn))
       // 경계선(물결의 흰 부분 윗선)을 따라 그 위로는 번진 물감도 보이지 않게 잘라 냅니다.
       const box = region.box
       const points: string[] = []
@@ -793,7 +803,7 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       region.top = top
       const floor = Math.max(height, lowest) + 1
       overlay!.style.clipPath = `polygon(${points.join(', ')}, ${box.right.toFixed(1)}px ${floor}px, ${box.left.toFixed(1)}px ${floor}px)`
-      // 전체 불투명도(OPACITY) × Contact가 들어올수록 투명하게(FADE)
+      // 전체 불투명도(OPACITY) × Stage Works가 끝나 갈수록 나타나게(FADE_IN) × Contact가 들어올수록 투명하게(FADE)
       overlay!.style.opacity = String(region.fade * OPACITY)
     }
     // 물감을 만들어도 되는 자리인지: 경계선(물결의 흰 부분) 아래, Contact 위, 창(dialog)이 열려 있지 않을 때
@@ -802,14 +812,14 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
 
     function onMouseMove(event: MouseEvent) {
       movePointer(event.clientX, event.clientY)
-      pointer.moved = canPaint(event.clientX, event.clientY) && (Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0)
+      pointer.moved = !quiet(event.target) && canPaint(event.clientX, event.clientY) && (Math.abs(pointer.deltaX) > 0 || Math.abs(pointer.deltaY) > 0)
     }
     function onMouseDown(event: MouseEvent) {
       movePointer(event.clientX, event.clientY)
       pointer.deltaX = 0
       pointer.deltaY = 0
       pointer.color = generateColor()
-      if (canPaint(event.clientX, event.clientY)) clickSplat()
+      if (!quiet(event.target) && canPaint(event.clientX, event.clientY)) clickSplat()
     }
 
     let frame = 0

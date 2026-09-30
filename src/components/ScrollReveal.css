@@ -1,0 +1,24 @@
+/* React Bits Scroll Reveal (MIT + Commons Clause) — 값은 ScrollReveal.tsx의 REVEAL */
+.scroll-reveal {
+  transform-origin: 0% 50%;
+  transform: rotate(var(--reveal-rotate, 3deg));
+  transition: transform 1.1s cubic-bezier(.22, 1, .36, 1);
+}
+.scroll-reveal[data-revealed] { transform: rotate(0deg); }
+
+.scroll-reveal__word {
+  display: inline-block;
+  /* 문단의 들여쓰기가 단어마다 붙지 않게 합니다. */
+  text-indent: 0;
+  opacity: var(--reveal-opacity, .1);
+  filter: blur(var(--reveal-blur, 4px));
+  transition: opacity var(--reveal-duration, .55s) linear, filter var(--reveal-duration, .55s) linear;
+  transition-delay: calc(var(--i, 0) * var(--reveal-stagger, .025s));
+}
+.scroll-reveal[data-revealed] .scroll-reveal__word { opacity: 1; filter: blur(0); }
+/* 되돌아갈 때는 순서 없이 한꺼번에 조용히 흐려집니다. */
+.scroll-reveal:not([data-revealed]) .scroll-reveal__word { transition-duration: .3s; transition-delay: 0s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal, .scroll-reveal__word { transition: none; }
+}

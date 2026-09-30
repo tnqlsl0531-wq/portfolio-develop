@@ -20,9 +20,9 @@ import CurvedLoop from './components/CurvedLoop'
 import FoldText from './components/FoldText'
 import ProgramBook from './components/ProgramBook'
 import HeroCurve from './components/HeroCurve'
+import { ScrollReveal, revealWords } from './components/ScrollReveal'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
-import { heroCurveEdge } from './heroCurveEdge'
 import { useSectionSnap } from './hooks/useSectionSnap'
 import chevron from './assets/design/chevron.svg'
 const Lanyard = lazy(() => import('./components/Lanyard'))
@@ -223,18 +223,25 @@ function DirectorsNote() {
               ))}</dl>
             </div>
           </div>
-          <div className="director__paragraphs">{profile.paragraphs.map((lines, index) => (
-            <p key={index}>{lines.map((line, lineIndex) => (
-              <Fragment key={lineIndex}>
-                {lineIndex > 0 && ' '}
-                <span className="director__line">
-                  {line.split(/(‘관객이 어떻게 느낄까’|‘이 사람의 다른 작업도 보고 싶다’)/u).map((part, partIndex) => (
-                    partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
-                  ))}
-                </span>
-              </Fragment>
-            ))}</p>
-          ))}</div>
+          {/* '어릴 때부터~' 문단부터: 흐릿하게 기울어 있다가 한 단어씩 또렷해집니다(React Bits Scroll Reveal, src/components/ScrollReveal.tsx).
+              위의 이름·Profile은 그대로 보여 줍니다. */}
+          <div className="director__paragraphs">{profile.paragraphs.map((lines, index) => {
+            const counter = { index: 0 }
+            return (
+              <ScrollReveal key={index}>{lines.map((line, lineIndex) => (
+                <Fragment key={lineIndex}>
+                  {lineIndex > 0 && ' '}
+                  <span className="director__line">
+                    {line.split(/(‘관객이 어떻게 느낄까’|‘이 사람의 다른 작업도 보고 싶다’)/u).map((part, partIndex) => (
+                      partIndex % 2 === 1
+                        ? <strong key={partIndex}>{revealWords(part, counter)}</strong>
+                        : <Fragment key={partIndex}>{revealWords(part, counter)}</Fragment>
+                    ))}
+                  </span>
+                </Fragment>
+              ))}</ScrollReveal>
+            )
+          })}</div>
         </div>
       </div>
     </section>
@@ -646,8 +653,9 @@ function Portfolio() {
       <ProjectSelect project={selectedProject} onClose={() => setSelectedProject(null)} onBackstage={openBackstage} />
       <Backstage project={backstageProject} onClose={closeBackstage} />
       <GalleryArchive origin={archiveOrigin} onClose={() => setArchiveOrigin(null)} />
-      {/* 히어로 아래 물결(피그마 346-296)의 흰 부분부터 커서를 따라 코랄 물감이 번지고, Contact에 들어오면 서서히 사라집니다(React Bits Splash Cursor). */}
-      {splashCursor && <SplashCursor startBelow=".hero-curve" startEdge={heroCurveEdge} fadeInto="#contact" />}
+      {/* 커서를 따라 코랄 물감이 번집니다(React Bits Splash Cursor). Stage Works 안에서는 없고, Stage Works가 끝나 갈 때부터 서서히 나타나며,
+          Contact에 들어오면 서서히 사라집니다. 목차(프로그램북) 위에서는 나오지 않습니다. */}
+      {splashCursor && <SplashCursor startBelow="#lineup" fadeInto="#contact" />}
     </>
   )
 }

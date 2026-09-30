@@ -56,15 +56,6 @@
 .stage-works__order li[data-active] .stage-works__number { color: #f8574f; font-weight: 700; }
 .stage-works__order li[data-active] .stage-works__status { color: #525252; }
 .stage-works__order button:focus-visible { outline: 3px solid #f8574f; outline-offset: 0; border-radius: 2px; }
-/* 커서 근접 효과(React Bits Line Sidebar): --effect(0~1)는 useLineProximity가 각 항목(li)에 넣어 줍니다.
-   0이면 원래 모습 그대로이고, 커서가 가까워질수록 글자가 진해지며 오른쪽으로 밀려납니다.
-   현재 고른 작품의 색(#171717 글자 · #f8574f 점·번호)은 위 li[data-active] 규칙이 그대로 이깁니다. */
-.stage-works__order li button {
-  color: color-mix(in srgb, #171717 calc(var(--effect, 0) * 100%), #a3a3a3);
-  transform: translateX(calc(var(--effect, 0) * 30px));
-}
-.stage-works__order li .stage-works__dot { background: color-mix(in srgb, #737373 calc(var(--effect, 0) * 100%), #d4d4d4); }
-
 /* 아직 무대에 오르지 않은 작품 안내. 카드 위에 잠깐 떠올랐다가 사라집니다. */
 .stage-works__notice {
   position: absolute; z-index: 7; left: 727px; top: 300px; width: 1079px; margin: 0;
@@ -190,6 +181,10 @@
   border-color: #ffa29c;
   background: linear-gradient(174.981deg, #fff 24.346%, #fff3f2 101.59%);
 }
+/* 가운데 카드에 마우스를 올리면 분홍 테두리와 함께 카드가 살짝 커집니다(--cc-scale, CircularCarousel이 카드 크기에 곱함).
+   얼마나 커질지는 1.07, 빠르기는 아래 transition 시간으로 조절합니다. */
+.stage-works__carousel .circular-carousel__card { transition: --cc-scale 380ms cubic-bezier(.22, 1, .36, 1); }
+.stage-works__carousel .circular-carousel__card[data-active]:hover { --cc-scale: 1.07; }
 @keyframes stage-cue-in {
   from { opacity: 0; transform: translateY(9px); }
   to { opacity: 1; transform: translateY(0); }
@@ -216,8 +211,6 @@
   .stage-works__label { gap: 8px; }
   .stage-works__order strong { width: auto; font-size: 21px; }
   .stage-works__order li[data-active] strong { min-width: 0; }
-  /* 가로로 누운 목록에서는 옆으로 밀면 줄이 흐트러지므로 위로 살짝 떠오릅니다. */
-  .stage-works__order li button { transform: translateY(calc(var(--effect, 0) * -8px)); }
   .stage-works__number { font-size: 17px; }
   .stage-works__status { display: none; }
   .stage-works__dot { flex-basis: 7px; width: 7px; height: 7px; }

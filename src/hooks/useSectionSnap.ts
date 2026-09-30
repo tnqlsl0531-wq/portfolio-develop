@@ -6,17 +6,61 @@
  *   나눠서 중간에도 멈춥니다. 맨 끝(아래 글자 띠)까지 내려갈 수 있게 페이지 맨 아래도 멈춤 자리로 넣습니다.
  * - 키보드(↓ ↑ PageDown PageUp Space Home End)도 같은 칸으로 움직입니다. 입력칸·선택칸에서 치는 키는 건드리지 않습니다.
  * - 폰·태블릿(터치)과 동작 줄이기 설정, 창(작품 선택·아카이브)·BACKSTAGE가 열려 있을 때는 원래 스크롤 그대로입니다.
+ * - 움직임은 리니어(linear) 이징: 처음부터 끝까지 가속·감속 없이 같은 속도로 흐릅니다(SNAP.ease로 바꿀 수 있음).
+ *   목차(프로그램북)에서 섹션으로 이동할 때도 같은 움직임(glideTo)을 씁니다.
  */
 import { useEffect } from 'react'
 
-/* duration : 한 칸(화면 높이만큼) 이동하는 시간(ms). 거리가 짧으면 조금 빨라집니다.
+/* duration : 한 칸(화면 높이만큼) 이동하는 시간(ms). 리니어라 거리에 비례하고(같은 속도), min~max 안으로 맞춥니다.
+   min, max : 가장 짧은·긴 이동 시간(ms). 목차에서 멀리 뛸 때도 max를 넘지 않습니다.
+   ease     : 'linear'(같은 속도) 또는 'smooth'(천천히 출발·도착).
    hold     : 도착한 뒤 계속 휠을 돌리고 있어도 멈춰 있는 시간(ms). 클수록 한 칸마다 오래 멈춥니다.
    quiet    : 휠이 이만큼(ms) 잠잠했다가 다시 굴리면 바로 다음 칸으로 갑니다(새로 굴린 것으로 봄).
    tolerance: 섹션이 화면보다 이만큼(화면 높이 대비) 더 길어도 중간에 멈추지 않고 한 번에 넘어갑니다.
    merge    : 멈춤 자리끼리 이보다(px) 가까우면 하나로 합칩니다. */
-const SNAP = { duration: 900, hold: 650, quiet: 200, tolerance: .25, merge: 48 }
+const SNAP = { duration: 900, min: 450, max: 1600, ease: 'linear' as 'linear' | 'smooth', hold: 650, quiet: 200, tolerance: .25, merge: 48 }
 
 const easeInOut = (t: number) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const easing = (t: number) => (SNAP.ease === 'linear' ? t : easeInOut(t))
+
+// 지금 움직이는 중인 이동(한 번에 하나). 휠·키보드·목차가 같이 씁니다.
+const glide = { raf: 0, moving: false, endedAt: -Infinity }
+
+export function stopGlide() {
+  cancelAnimationFrame(glide.raf)
+  glide.raf = 0
+  if (glide.moving) glide.endedAt = performance.now()
+  glide.moving = false
+}
+
+/** target(문서 위에서부터 px)까지 스크롤합니다. 동작 줄이기 설정이면 바로 이동합니다. */
+export function glideTo(target: number) {
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  const to = Math.min(max, Math.max(0, target))
+  const from = window.scrollY
+  const distance = to - from
+  if (Math.abs(distance) < 1) return false
+  stopGlide()
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo({ top: to, behavior: 'instant' })
+    return true
+  }
+  const duration = Math.min(SNAP.max, Math.max(SNAP.min, SNAP.duration * Math.abs(distance) / window.innerHeight))
+  const start = performance.now()
+  glide.moving = true
+  const frame = (now: number) => {
+    const t = Math.min(1, (now - start) / duration)
+    window.scrollTo({ top: from + distance * easing(t), behavior: 'instant' })
+    if (t < 1) glide.raf = requestAnimationFrame(frame)
+    else {
+      glide.raf = 0
+      glide.moving = false
+      glide.endedAt = performance.now()
+    }
+  }
+  glide.raf = requestAnimationFrame(frame)
+  return true
+}
 
 function snapStops() {
   const viewport = window.innerHeight
@@ -67,42 +111,10 @@ export function useSectionSnap(enabled = true) {
     const active = () => pointer.matches && !reduced.matches
 
     const state = {
-      raf: 0,
-      moving: false,
-      endedAt: -Infinity,
       lastWheel: -Infinity,
       history: [] as { time: number; size: number }[],
     }
-
-    const stop = () => {
-      cancelAnimationFrame(state.raf)
-      state.raf = 0
-      if (state.moving) state.endedAt = performance.now()
-      state.moving = false
-    }
-
-    const go = (target: number) => {
-      const from = window.scrollY
-      const distance = target - from
-      if (Math.abs(distance) < 1) return false
-      const viewport = window.innerHeight
-      const duration = SNAP.duration * Math.min(1.15, Math.max(.6, Math.sqrt(Math.abs(distance) / viewport)))
-      const start = performance.now()
-      state.moving = true
-      cancelAnimationFrame(state.raf)
-      const frame = (now: number) => {
-        const t = Math.min(1, (now - start) / duration)
-        window.scrollTo({ top: from + distance * easeInOut(t), behavior: 'instant' })
-        if (t < 1) state.raf = requestAnimationFrame(frame)
-        else {
-          state.raf = 0
-          state.moving = false
-          state.endedAt = performance.now()
-        }
-      }
-      state.raf = requestAnimationFrame(frame)
-      return true
-    }
+    const go = glideTo
 
     // direction: 1 = 아래, -1 = 위. 지금 자리에서 그 방향의 다음 멈춤 자리로 갑니다.
     const step = (direction: number) => {
@@ -127,7 +139,7 @@ export function useSectionSnap(enabled = true) {
       state.lastWheel = now
       state.history.push({ time: now, size: Math.abs(dy) })
       while (state.history.length > 8 || (state.history.length && now - state.history[0].time > 400)) state.history.shift()
-      if (state.moving) return
+      if (glide.moving) return
 
       // 트랙패드 관성(점점 약해지는 휠 신호)은 새로 굴린 것으로 치지 않습니다.
       const sizes = state.history.map(item => item.size)
@@ -136,7 +148,7 @@ export function useSectionSnap(enabled = true) {
       const average = (list: number[]) => list.reduce((sum, value) => sum + value, 0) / Math.max(1, list.length)
       const fading = before.length === 3 && average(recent) < average(before) * .85
       const fresh = gap > SNAP.quiet
-      const keptGoing = now - state.endedAt > SNAP.hold && !fading
+      const keptGoing = now - glide.endedAt > SNAP.hold && !fading
       if (!fresh && !keptGoing) return
       state.history = []
       step(direction)
@@ -164,18 +176,21 @@ export function useSectionSnap(enabled = true) {
         default: return
       }
       event.preventDefault()
-      if (state.moving || event.repeat && performance.now() - state.endedAt < SNAP.hold) return
+      if (glide.moving || (event.repeat && performance.now() - glide.endedAt < SNAP.hold)) return
       step(direction)
     }
 
     // 스크롤 막대를 잡거나 화면을 누르면 자동 이동을 멈추고 사용자에게 맡깁니다.
-    const onPointerDown = () => { if (state.moving) stop() }
+    const onPointerDown = (event: PointerEvent) => {
+      // 목차(프로그램북)를 누른 건 이동을 시작하는 것이라 멈추지 않습니다.
+      if (glide.moving && !(event.target instanceof Element && event.target.closest('.program-book'))) stopGlide()
+    }
 
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('keydown', onKey)
     window.addEventListener('pointerdown', onPointerDown)
     return () => {
-      stop()
+      stopGlide()
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('pointerdown', onPointerDown)

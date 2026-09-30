@@ -3,6 +3,12 @@
  * 바꾼 점: 사진 대신 카드 내용(__content)을 띠마다 잘라 보여 주고, 올라오기(rise)는 __lift를 카드 틀 안에서 밀어 올립니다.
  * 주의: __camera, __ring, __card에는 overflow·opacity·filter를 넣지 마세요(3D가 납작해집니다).
  */
+/* 카드 크기(1 = 원래 크기). 숫자로 등록해 두어야 부드럽게 커졌다 작아집니다(transition). */
+@property --cc-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
 .circular-carousel {
   --cc-fade: #000;
   --cc-radius: 12px;

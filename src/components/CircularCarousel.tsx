@@ -305,7 +305,8 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         if (!card) continue
         const base = index * s.step
         const lift = rise(elapsed, base, drop)
-        card.style.transform = `rotateY(${base}deg) translateZ(${R}px)`
+        // 카드 크기(--cc-scale): 기본 1, 쓰는 쪽 CSS에서 마우스를 올렸을 때 등으로 키울 수 있습니다.
+        card.style.transform = `rotateY(${base}deg) translateZ(${R}px) scale(var(--cc-scale, 1))`
         const liftValue = `${lift.toFixed(2)}px`
         if (card.style.getPropertyValue('--cc-lift') !== liftValue) card.style.setProperty('--cc-lift', liftValue)
         const facing = Math.cos(wrap(base + state.angle) * TO_RAD)
@@ -364,7 +365,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
       for (let index = 0; index < settingsRef.current.count; index++) {
         const card = cardRefs.current[index]
         if (!card) continue
-        card.style.transform = `rotateY(${index * settingsRef.current.step}deg) translateZ(${settingsRef.current.radius}px)`
+        card.style.transform = `rotateY(${index * settingsRef.current.step}deg) translateZ(${settingsRef.current.radius}px) scale(var(--cc-scale, 1))`
         card.style.setProperty('--cc-lift', `${(settingsRef.current.cardH * 1.04).toFixed(2)}px`)
       }
       camera.style.transform = `translate3d(0, 0, ${-settingsRef.current.radius}px) rotateX(${settingsRef.current.tilt}deg)`
