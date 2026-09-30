@@ -1,0 +1,60 @@
+/* React Bits Fold Text를 CSS 애니메이션으로 옮긴 모양. 글꼴·크기·색은 쓰는 쪽에서 정합니다. */
+.fold-text { display: inline-block; }
+
+/* 글자마다 따로 원근을 줘야 각 글자가 자기 자리에서 접힙니다. */
+.fold-text__segment {
+  display: inline-block;
+  line-height: inherit;
+  vertical-align: baseline;
+  perspective: var(--fold-perspective, 700px);
+  transform-style: preserve-3d;
+}
+
+/* 처음에는 위쪽 경첩을 기준으로 뒤로 접혀 있고(-92도), 보이지 않습니다. */
+.fold-text__piece {
+  position: relative;
+  display: inline-block;
+  line-height: inherit;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  opacity: 0;
+  transform: rotateX(-92deg);
+}
+
+/* 접힌 자리에 지는 그늘. 펴지면서 사라집니다. */
+.fold-text__piece::after {
+  content: '';
+  position: absolute;
+  inset: -.08em -.02em;
+  border-radius: .08em;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: multiply;
+  background: linear-gradient(180deg, rgb(0 0 0 / 58%) 0%, rgb(0 0 0 / 22%) 42%, rgb(255 255 255 / 26%) 100%);
+}
+
+/* 제목이 화면에 들어오면 글자 순서대로 한 장씩 펴집니다(--i = 글자 순서). */
+.fold-text[data-play] .fold-text__piece,
+.fold-text[data-play] .fold-text__piece::after {
+  animation-duration: var(--fold-duration, .45s);
+  animation-timing-function: cubic-bezier(.165, .84, .44, 1); /* GSAP power3.out */
+  animation-fill-mode: both;
+  animation-delay: calc(var(--i, 0) * var(--fold-stagger, .04s));
+}
+.fold-text[data-play] .fold-text__piece { animation-name: fold-text-in; }
+.fold-text[data-play] .fold-text__piece::after { animation-name: fold-text-crease; }
+
+@keyframes fold-text-in {
+  from { opacity: 0; transform: rotateX(-92deg); }
+  to { opacity: 1; transform: rotateX(0deg); }
+}
+@keyframes fold-text-crease {
+  from { opacity: var(--fold-crease, .5); }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fold-text__piece { opacity: 1; transform: none; animation: none !important; }
+  .fold-text__piece::after { opacity: 0; animation: none !important; }
+}

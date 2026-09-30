@@ -18,6 +18,19 @@ Min Sans는 npm install 시 scripts/install-fonts.mjs가 동일한 원본을 받
 원본 경로: web/fonts/variable/MinSansVF.woff2
 SHA-256: 0218401d2d9b651c30d217501d4389f7f5003ef92f91b55b6c1555595cf1f00a
 
+Artist Gallery 제목 접히는 애니메이션 참고 / 적용:
+https://reactbits.dev/text-animations/fold-text
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/TextAnimations/FoldText
+React Bits Fold Text의 움직임(위 경첩 -92도 → 0도, 접힌 그늘, 글자별 시차)을 GSAP 없이 CSS 애니메이션으로 옮겼습니다.
+글꼴·크기·자간은 원본이 정하지 않고 기존 제목 값을 그대로 씁니다.
+
+Artist Gallery 아카이브 사진 물결 참고 / 적용:
+https://reactbits.dev/components/circular-gallery
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Components/CircularGallery
+React Bits Circular Gallery의 물결 셰이더와 둥근 모서리, 목표 자리를 부드럽게 따라가는 방식(scrollEase)을 가져왔고,
+ogl 패키지 대신 브라우저 WebGL로 옮겼습니다. 가만히 있을 때의 물결은 원본보다 많이 줄였고,
+사진 크기·순서·흐르는 방향은 피그마(334-2) 그대로, 둥근 모서리는 판 크기에 맞춰 원에 가깝게 깎았습니다.
+
 Stage Works 조명 빛줄기 참고 / 적용:
 https://reactbits.dev/backgrounds/light-rays
 https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Backgrounds/LightRays

@@ -19,9 +19,11 @@ import type { ArchiveOrigin } from './components/GalleryArchive'
 
 // 3D 목줄은 용량이 커서 Contact 섹션에 가까워졌을 때만 불러옵니다.
 import CurvedLoop from './components/CurvedLoop'
+import FoldText from './components/FoldText'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
 import { heroCurveEdge } from './heroCurveEdge'
+import chevron from './assets/design/chevron.svg'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
 
@@ -152,7 +154,10 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
       </div>
       <div className="gallery__intro">
         <div className="gallery__heading">
-          <h2 id="gallery-title" className="section-heading gallery__title">Artist<br />Gallery</h2>
+          {/* 제목이 화면에 들어오면 글자가 한 장씩 접혔다 펴집니다(React Bits Fold Text). 글꼴·크기는 기존 피그마 값 그대로입니다. */}
+          <h2 id="gallery-title" className="section-heading gallery__title">
+            <FoldText text={'Artist\nGallery'} duration={.45} stagger={.04} perspective={375} creaseShading={.5} />
+          </h2>
           <p>아티스트 포토 아카이브전</p>
         </div>
         {/* 누르면 아카이브 화면(피그마 109-8)이 이 버튼 자리에서 원으로 퍼지며 열립니다. */}
@@ -376,7 +381,8 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
 }
 
 // 맨 아래 흐르는 글자 띠(피그마 342-180, React Bits Curved Loop: speed 2.2, curveAmount 0 = 곧은 줄)
-// 글자 색은 피그마처럼 왼쪽 연회색(#999)에서 오른쪽 짙은 회색(#333)으로 — 화면 기준으로 고정되어 글자가 지나가며 색이 바뀝니다.
+// 피그마 수정본대로 검정(#0f0f0f) 바탕에 코랄(#f8574f) 글씨입니다(예전에는 코랄 바탕에 회색 그라데이션 글씨).
+// 띠 높이 138 · 글자 48 · 자간 -1.44는 피그마 값이고, 색·크기는 App.css의 .marquee-band에 있습니다.
 // 마우스로 끌어서 움직일 수 있고, 끈 방향으로 계속 흐릅니다. 한 벌이 끝나면 ' · '로 이어집니다.
 const MARQUEE_TEXT = 'GRAND EXHIBITION · CHOISUBIN DESIGN PORTFOLIO · '
 
@@ -388,16 +394,9 @@ function MarqueeBand() {
         speed={2.2}
         curveAmount={0}
         width={1920}
-        height={346}
-        lineY={173}
+        height={138}
+        lineY={69}
         className="marquee-band__text"
-        fill="url(#marquee-band-fill)"
-        defs={(
-          <linearGradient id="marquee-band-fill" gradientUnits="userSpaceOnUse" x1="-360" y1="0" x2="1991" y2="0">
-            <stop offset="0" stopColor="#999999" />
-            <stop offset="1" stopColor="#333333" />
-          </linearGradient>
-        )}
       />
     </section>
   )
@@ -479,10 +478,15 @@ function Contact() {
             <label>소속 (선택)<input name="organization" autoComplete="organization" placeholder="회사 또는 단체명" maxLength={100} /></label>
           </div>
           <label>이메일 *<input name="email" type="email" autoComplete="email" placeholder="답변 받을 이메일 주소" required maxLength={150} /></label>
-          <label><span id="contact-topic-label">문의 유형 *</span><select name="topic" aria-labelledby="contact-topic-label" defaultValue="" required>
-            <option value="" disabled>채용 / 디자인 협업 / 공연·콘텐츠 / 기타</option>
-            <option>채용</option><option>디자인 협업</option><option>공연·콘텐츠</option><option>기타</option>
-          </select></label>
+          <label><span id="contact-topic-label">문의 유형 *</span>
+            <span className="contact-form__select">
+              <select name="topic" aria-labelledby="contact-topic-label" defaultValue="" required>
+                <option value="" disabled>채용 / 디자인 협업 / 공연·콘텐츠 / 기타</option>
+                <option>채용</option><option>디자인 협업</option><option>공연·콘텐츠</option><option>기타</option>
+              </select>
+              <img src={chevron} width={14} height={10} alt="" aria-hidden="true" />
+            </span>
+          </label>
           <label>메시지 *<textarea name="message" placeholder="제안 내용과 일정을 알려주세요." required maxLength={1200} onInput={event => {
             event.currentTarget.setCustomValidity(event.currentTarget.value.trim() ? '' : '메시지를 입력해주세요.')
           }} /></label>

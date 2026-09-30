@@ -158,3 +158,15 @@
   .archive[open], .archive[data-closing='true'], .archive-viewer[open], .archive-viewer[open]::backdrop { animation: none; }
   .archive__photo, .archive__photo img, .archive__back, .archive__back-line, .archive__back-tail { transition: none; }
 }
+
+/* 사진을 그리는 캔버스(React Bits Circular Gallery): 아카이브 화면 전체를 덮고, 두 줄 자리에 사진을 그립니다.
+   누르기·키보드 이동은 이 위에 그대로 있는 버튼이 맡습니다(CircularGallery.css에서 마우스를 받지 않게 해 둠). */
+.archive__canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* 캔버스가 그릴 수 있으면 원래 <img>는 감추고 버튼만 남깁니다.
+   커지기·색 돌아오기도 캔버스가 처리하므로 CSS 쪽 확대는 끕니다(키보드 테두리는 그대로 보입니다).
+   WebGL을 쓸 수 없는 기기에서는 이 규칙이 켜지지 않아 예전처럼 <img>가 그대로 보입니다. */
+.archive[data-webgl='true'] .archive__photo { background: none; }
+.archive[data-webgl='true'] .archive__photo img { opacity: 0; }
+.archive[data-webgl='true'] .archive__photo:hover,
+.archive[data-webgl='true'] .archive__photo:focus-visible { transform: none; }

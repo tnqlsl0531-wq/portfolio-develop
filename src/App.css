@@ -401,10 +401,11 @@
 /* 피그마 문단은 맨 앞에 한 칸 띄어 쓰여 있어 같은 폭만큼 들여씁니다. 브라우저 글자 폭이 피그마보다 약 1% 넓어 자간을 살짝 줄여 줄 길이를 맞춥니다. */
 .director__paragraphs { width: 100%; display: flex; flex-direction: column; gap: calc(50 * var(--u)); color: #525252; font: 400 calc(22 * var(--u))/calc(38 * var(--u)) 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; text-indent: 0.25em; letter-spacing: -0.01em; margin-bottom: calc((1em - 1lh) / 2); }
 
-/* 맨 아래 흐르는 글자 띠(피그마 342-180): 코랄 #f8574f, 1920 × 346, Special Gothic Expanded One 96 · 자간 -2.88(-3%)
+/* 맨 아래 흐르는 글자 띠(피그마 342-180 수정본): 검정 #0f0f0f 바탕에 코랄 #f8574f 글씨,
+   1920 × 138, Special Gothic Expanded One 48 · 자간 -1.44(-3%)
    글자 크기는 SVG 좌표(1920 기준)라 화면 폭에 맞춰 함께 커지고 작아집니다. */
-.marquee-band { position: relative; z-index: 2; overflow: hidden; background: #f8574f; }
-.marquee-band__text { font-family: 'Special Gothic Expanded One', sans-serif; font-size: 96px; font-weight: 400; letter-spacing: -2.88px; dominant-baseline: central; }
+.marquee-band { position: relative; z-index: 2; overflow: hidden; background: var(--neutral-black); }
+.marquee-band__text { fill: var(--primary-500); font-family: 'Special Gothic Expanded One', sans-serif; font-size: 48px; font-weight: 400; letter-spacing: -1.44px; dominant-baseline: central; }
 
 /* CONTACT */
 .contact {
@@ -483,6 +484,65 @@
 .contact-form input::placeholder, .contact-form textarea::placeholder { color: #737373; opacity: 1; }
 .contact-form select { color: #737373; cursor: pointer; }
 .contact-form select:valid { color: #171717; }
+
+/* 문의 유형 드롭다운: 브라우저 기본 화살표 대신 사이트에서 쓰는 chevron.svg를 넣고,
+   화살표와 오른쪽 가장자리 사이 여백을 칸의 왼쪽 안쪽 여백(21.333)과 같게 맞췄습니다. */
+.contact-form__select { position: relative; display: block; min-width: 0; }
+.contact-form__select select { appearance: none; padding-right: calc(21.333 * var(--u) + 14 * var(--u) + 12 * var(--u)); }
+.contact-form__select img {
+  position: absolute; right: calc(21.333 * var(--u)); top: 50%; transform: translateY(-50%);
+  width: calc(14 * var(--u)); height: auto; pointer-events: none;
+}
+
+/* 펼쳐진 목록(칸 높이·마우스 올렸을 때 색)은 원래 브라우저가 그려서 CSS로 바꿀 수 없습니다.
+   크롬·엣지의 새 기능(appearance: base-select)이 있으면 목록까지 우리 디자인으로 그립니다.
+   사파리·파이어폭스는 아직 이 기능이 없어서 예전처럼 브라우저 기본 목록이 나옵니다(닫힌 칸과 화살표는 어디서나 같습니다). */
+@supports (appearance: base-select) {
+  .contact-form__select select { appearance: base-select; }
+  /* 새 기능이 직접 넣는 화살표는 숨기고 우리 chevron을 그대로 씁니다. */
+  .contact-form__select select::picker-icon { display: none; }
+  .contact-form__select select::picker(select) {
+    appearance: base-select;
+    margin-top: calc(6 * var(--u));
+    padding: calc(8 * var(--u));
+    border: 1px solid rgb(255 227 225 / 90%);
+    border-radius: calc(12 * var(--u));
+    background: var(--neutral-white);
+    box-shadow: 0 calc(12 * var(--u)) calc(32 * var(--u)) rgb(23 23 23 / 12%);
+  }
+  .contact-form__select option {
+    display: flex; align-items: center; min-height: calc(52 * var(--u));
+    padding: calc(13 * var(--u)) calc(16 * var(--u));
+    border-radius: calc(8 * var(--u));
+    background: transparent; color: #171717;
+    font-size: calc(18.667 * var(--u)); font-weight: 400;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .contact-form__select option::checkmark { display: none; }
+  /* 파란 기본색 대신 입력칸과 같은 연한 코랄로 — 입력칸 배경(#ffe3e1 34%)보다 살짝 진하게 */
+  .contact-form__select option:hover, .contact-form__select option:focus {
+    background: rgb(255 227 225 / 62%); color: #171717;
+  }
+  /* 지금 고른 항목만 코랄 굵은 글씨 */
+  .contact-form__select option:checked:not(:disabled) {
+    background: rgb(255 227 225 / 92%); color: var(--primary-500); font-weight: 700;
+  }
+  /* 맨 위 안내 문구(채용 / 디자인 협업 / …)는 고를 수 없는 설명이라, 고른 것처럼 보이지 않게 흐린 회색으로 둡니다. */
+  .contact-form__select option:disabled,
+  .contact-form__select option:disabled:hover,
+  .contact-form__select option:disabled:checked {
+    background: transparent; color: #a3a3a3; font-weight: 400; cursor: default;
+  }
+}
+
+/* 입력칸을 클릭·이동했을 때 테두리: 사이트 기본(코랄 3px)은 제안서 안에서 너무 강해서
+   여기서만 한 톤 연한 코랄(--primary-300)에 2px로 줄였습니다. 다른 곳 버튼·링크는 그대로입니다. */
+.contact-form input:focus-visible,
+.contact-form select:focus-visible,
+.contact-form textarea:focus-visible {
+  outline: 2px solid var(--primary-300);
+  outline-offset: 0;
+}
 .contact-form textarea { height: calc(154.667 * var(--u)); min-height: calc(154.667 * var(--u)); resize: vertical; }
 .contact-form__submit { display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--u)); }
 /* 문의 보내기(피그마 337-877): 평소에는 검정(#0f0f0f), 필수 칸(*)이 모두 채워지면 코랄(#f8574f)로 바뀝니다. */
