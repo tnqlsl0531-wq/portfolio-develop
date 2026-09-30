@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { smoothScrollTo } from '../hooks/useSmoothScroll'
+import { pinHold, pinTop } from './Pin'
 import './ProgramBook.css'
 
 /* 항목 자리는 피그마 좌표 그대로입니다(한 면 261 × 338 기준).
@@ -321,11 +322,12 @@ export default function ProgramBook() {
     if (!element) return
     event.preventDefault()
     // 휠 스크롤과 같은 부드러운 움직임으로 이동합니다(useSmoothScroll.ts). 화면 고정(Pin) 중인 섹션은 고정이 시작되기 전 자리(묶음 맨 위)로 갑니다.
-    // landAt이 있는 섹션(Director’s Note)은 제목 애니메이션이 끝난 자리로 내려줍니다.
+    // landAt이 있는 섹션(Artist Gallery·Director’s Note)은 제목 애니메이션이 끝난 자리로 내려줍니다.
+    // (가운데·끝 맞춤 섹션은 멈추기 시작하는 자리가 묶음 맨 위보다 --pin-top만큼 아래라서 그만큼 더 내려갑니다.)
     const pin = element.closest<HTMLElement>('.pin')
     const place = pin ?? element
-    const hold = pin ? parseFloat(getComputedStyle(pin, '::after').height) || 0 : 0
-    const land = pin?.dataset.land ? Number(pin.dataset.land) * hold : 0
+    const hold = pin ? pinHold(pin) : 0
+    const land = pin?.dataset.land && hold > 0 ? Number(pin.dataset.land) * hold - pinTop(pin) : 0
     smoothScrollTo(place.getBoundingClientRect().top + window.scrollY + land)
     setBook(false)
   }, [setBook])

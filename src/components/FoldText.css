@@ -22,16 +22,20 @@
   transform: rotateX(-92deg);
 }
 
-/* 접힌 자리에 지는 그늘. 펴지면서 사라집니다. */
+/* 접힌 자리에 지는 그늘. 펴지면서 사라집니다.
+   원본은 글자 둘레 네모 칸 전체에 그늘을 곱해서(어두운 배경용) 밝은 배경에서는 회색 네모가 비쳤습니다.
+   그래서 같은 글자(data-char)를 겹쳐 쓰고 그라데이션을 글자 모양으로만 오려 입힙니다(background-clip: text). */
 .fold-text__piece::after {
-  content: '';
+  content: attr(data-char);
   position: absolute;
-  inset: -.08em -.02em;
-  border-radius: .08em;
+  inset: 0;
   pointer-events: none;
   opacity: 0;
-  mix-blend-mode: multiply;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   background: linear-gradient(180deg, rgb(0 0 0 / 58%) 0%, rgb(0 0 0 / 22%) 42%, rgb(255 255 255 / 26%) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 /* 제목이 화면에 들어오면 글자 순서대로 한 장씩 펴집니다(--i = 글자 순서). */
@@ -53,6 +57,11 @@
   from { opacity: var(--fold-crease, .5); }
   to { opacity: 0; }
 }
+
+/* pinDriven: 스크롤한 만큼 FoldText.tsx가 글자마다 투명도·기울기·그늘(--fold-crease-now)을 직접 정합니다. */
+.fold-text[data-scrub] .fold-text__piece,
+.fold-text[data-scrub] .fold-text__piece::after { animation: none; }
+.fold-text[data-scrub] .fold-text__piece::after { opacity: var(--fold-crease-now, 0); }
 
 @media (prefers-reduced-motion: reduce) {
   .fold-text__piece { opacity: 1; transform: none; animation: none !important; }

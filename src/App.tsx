@@ -3,7 +3,7 @@ import BackstageChoice from './components/BackstageChoice'
 import EntryTicket, { hasEnteredPortfolio } from './components/EntryTicket'
 import StageWorks from './components/StageWorks'
 import { Component, Fragment, Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, FormEvent, ReactNode } from 'react'
+import type { CSSProperties, FormEvent, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import { heroPhotos, profile, projects } from './portfolio'
 import { galleryTracks } from './galleryPhotos'
 import type { PhotoPosition, Project } from './portfolio'
@@ -24,7 +24,7 @@ import { ScrollReveal, revealWords } from './components/ScrollReveal'
 import ScrollFloat from './components/ScrollFloat'
 import SplashCursor from './components/SplashCursor'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
-import Pin from './components/Pin'
+import Pin, { onScrollFrame, pinProgress } from './components/Pin'
 import chevron from './assets/design/chevron.svg'
 const Lanyard = lazy(() => import('./components/Lanyard'))
 import './App.css'
@@ -107,8 +107,14 @@ function Hero() {
   )
 }
 
+// Artist Gallery가 화면에 멈춰 있는 동안(Pin, App 아래 hold) 스크롤한 비율로 정하는 순서:
+// title  = 제목 글자가 다 펴지는 지점(React Bits Fold Text, 멈추는 순간 시작)
+// intro  = 부제·'자세히 보러가기'가 아래에서 올라오는 구간 [시작, 끝] — 제목 끝부분과 겹치게 함께 등장
+const GALLERY_PIN = { title: .6, intro: [.35, .65] }
+
 function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) {
   const section = useRef<HTMLElement>(null)
+  const intro = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     const element = section.current
@@ -116,6 +122,25 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.05 })
     observer.observe(element)
     return () => observer.disconnect()
+  }, [])
+
+  // 화면이 멈추면 제목과 함께 부제·버튼도 등장합니다(멈추기 전에는 숨김). 화면 고정이 없는 기기에서는 처음부터 보입니다.
+  useEffect(() => {
+    const element = intro.current
+    if (!element) return
+    const [from, to] = GALLERY_PIN.intro
+    return onScrollFrame(() => {
+      const progress = pinProgress(element)
+      if (progress === null) {
+        element.style.removeProperty('--intro-in')
+        delete element.dataset.introHidden
+        return
+      }
+      const amount = Math.min(1, Math.max(0, (progress - from) / (to - from)))
+      element.style.setProperty('--intro-in', amount.toFixed(3))
+      if (amount <= 0) element.dataset.introHidden = ''
+      else delete element.dataset.introHidden
+    })
   }, [])
 
   return (
@@ -151,11 +176,11 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
         <div className="gallery__fade gallery__fade--edge" />
         <div className="gallery__fade gallery__fade--top" />
       </div>
-      <div className="gallery__intro">
+      <div ref={intro} className="gallery__intro">
         <div className="gallery__heading">
-          {/* 제목이 화면에 들어오면 글자가 한 장씩 접혔다 펴집니다(React Bits Fold Text). 글꼴·크기는 기존 피그마 값 그대로입니다. */}
+          {/* 화면이 멈추는 순간부터 스크롤한 만큼 글자가 한 장씩 접혔다 펴집니다(React Bits Fold Text, pinDriven). 글꼴·크기는 기존 피그마 값 그대로입니다. */}
           <h2 id="gallery-title" className="section-heading gallery__title">
-            <FoldText text={'Artist\nGallery'} duration={.45} stagger={.04} perspective={375} creaseShading={.5} />
+            <FoldText text={'Artist\nGallery'} duration={.45} stagger={.04} perspective={375} creaseShading={.5} pinDriven pinShare={GALLERY_PIN.title} />
           </h2>
           <p>아티스트 포토 아카이브전</p>
         </div>
@@ -179,8 +204,31 @@ function ArtistGallery({ onOpen }: { onOpen: (origin: ArchiveOrigin) => void }) 
   )
 }
 
+// Director’s Note가 화면에 멈춰 있는 동안(Pin, hold 130vh) 스크롤한 비율로 정하는 순서:
+// title = 제목 글자가 다 떠오르는 지점. 그때까지는 사진·글 없이 흰 화면에 제목만 보입니다.
+// body  = 사진·이름·Profile·소개 글이 아래에서 올라오며 나타나는 구간 [시작, 끝]. 끝난 뒤 조금 더 멈췄다가 스크롤이 흘러갑니다.
+const DIRECTOR_PIN = { title: .55, body: [.6, .9], rise: 80 }
+
 function DirectorsNote() {
+  const body = useRef<HTMLDivElement>(null)
   const portrait = useRef<HTMLDivElement>(null)
+
+  // 제목이 떠오르는 동안은 아래 내용(사진·글)을 숨겨 흰 화면만 보이게 하고, 제목이 다 뜨면 올라오게 합니다.
+  // 화면 고정이 없는 기기(폰·동작 줄이기)에서는 처음부터 보입니다.
+  useEffect(() => {
+    const element = body.current
+    if (!element) return
+    const [from, to] = DIRECTOR_PIN.body
+    return onScrollFrame(() => {
+      const progress = pinProgress(element)
+      if (progress === null) {
+        element.style.removeProperty('--director-in')
+        return
+      }
+      const amount = Math.min(1, Math.max(0, (progress - from) / (to - from)))
+      element.style.setProperty('--director-in', (1 - Math.pow(1 - amount, 3)).toFixed(3))
+    })
+  }, [])
 
   useEffect(() => {
     const element = portrait.current
@@ -216,9 +264,9 @@ function DirectorsNote() {
 
   return (
     <section id="director" className="director" aria-labelledby="director-title">
-      {/* 제목(피그마 351-185): 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
-      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven />
-      <div className="director__body">
+      {/* 제목(피그마 351-185): 화면이 멈춘 동안 스크롤하면 글자가 하나씩 아래에서 떠오릅니다(React Bits Scroll Float, stagger 0.02). */}
+      <ScrollFloat id="director-title" className="section-heading director__title" text="Director’s Note" pinDriven pinShare={DIRECTOR_PIN.title} />
+      <div ref={body} className="director__body" style={{ '--director-rise': `${DIRECTOR_PIN.rise}px` } as CSSProperties}>
         <div ref={portrait} className="director__portrait-sticky">
           {profile.portrait ? (
             <img className="director__portrait" src={profile.portrait} alt={`${profile.name} 프로필 사진`} loading="lazy" decoding="async" />
@@ -242,16 +290,69 @@ function DirectorsNote() {
             </div>
           </div>
           {/* '어릴 때부터~' 문단 묶음(피그마 'Director’s note · Lorem ipsum paragraphs') 전체에 한 번에 걸립니다:
-              묶음이 흐릿하게 기울어 있다가, 화면에 보이자마자 첫 단어부터 끝 단어까지 차례로 또렷해지며 바로 섭니다
+              묶음이 흐릿하게 기울어 있다가, 스크롤해서 화면 아래에서 줄이 드러나는 만큼 한 단어씩 또렷해지며 바로 섭니다
               (React Bits Scroll Reveal, src/components/ScrollReveal.tsx). 위의 이름·Profile은 그대로 보여 줍니다. */}
-          <ScrollReveal as="div" className="director__paragraphs" words={paragraphWords.index}>{paragraphs}</ScrollReveal>
+          <ScrollReveal as="div" className="director__paragraphs">{paragraphs}</ScrollReveal>
         </div>
       </div>
     </section>
   )
 }
 
-function StaffPass() {
+type CopyPoint = { x: number; y: number }
+
+/** 글을 클립보드에 복사합니다. 안 되는 브라우저에서는 옛 방식(execCommand)으로 한 번 더 시도합니다. */
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    const area = document.createElement('textarea')
+    area.value = text
+    area.setAttribute('readonly', '')
+    area.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
+    document.body.append(area)
+    area.select()
+    const done = document.execCommand('copy')
+    area.remove()
+    return done
+  }
+}
+
+/** 복사 아이콘(겹친 네모 두 개). 3D 카드 그림(staff-pass-card.png)에 그려 넣은 것과 같은 모양입니다. */
+function CopyIcon() {
+  return (
+    <svg className="copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="5.5" y="5.5" width="8.5" height="8.5" rx="1.6" />
+      <path d="M10.5 5.5V3.6A1.6 1.6 0 0 0 8.9 2H3.6A1.6 1.6 0 0 0 2 3.6v5.3a1.6 1.6 0 0 0 1.6 1.6h1.9" />
+    </svg>
+  )
+}
+
+/** 누른 자리 바로 위에 잠깐 뜨는 '복사되었습니다' 말풍선. 화면 읽기 프로그램에도 읽어 줍니다. */
+function CopyToast({ toast }: { toast: (CopyPoint & { id: number; ok: boolean }) | null }) {
+  return (
+    <p className="copy-toast" role="status" aria-live="polite">
+      {toast && (
+        <span key={toast.id} className="copy-toast__bubble" data-ok={toast.ok} style={{ left: toast.x, top: toast.y }}>
+          {toast.ok ? <>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
+            복사되었습니다
+          </> : '복사하지 못했어요. 직접 선택해 복사해 주세요.'}
+        </span>
+      )}
+    </p>
+  )
+}
+
+/** 누른 버튼의 위쪽 가운데(키보드) 또는 마우스로 누른 자리 */
+function pointOf(event: ReactMouseEvent<HTMLElement>): CopyPoint {
+  if (event.detail > 0) return { x: event.clientX, y: event.clientY }
+  const box = event.currentTarget.getBoundingClientRect()
+  return { x: box.left + box.width / 2, y: box.top }
+}
+
+function StaffPass({ onCopyEmail }: { onCopyEmail: (point: CopyPoint) => void }) {
   const label = 'GRAND EXHIBITION / CHOI - SUBIN PRESENTS'
   return (
     <div className="staff-pass">
@@ -261,7 +362,13 @@ function StaffPass() {
         <p className="staff-pass__staff">STAFF</p>
         <div className="staff-pass__person"><h3>{profile.name}</h3><p>UI·UX Designer</p></div>
         <dl>
-          <div><dt>EMAIL</dt><dd><a href={`mailto:${profile.email}`}>{profile.email} <span aria-hidden="true">↗</span></a></dd></div>
+          {/* 이메일: 누르면 주소가 복사되고 '복사되었습니다'가 뜹니다(밑줄 + 복사 아이콘으로 누를 수 있다는 걸 보여줌). */}
+          <div><dt>EMAIL</dt><dd>
+            <button type="button" className="staff-pass__email" title="클릭하면 이메일 주소가 복사돼요" aria-label={`이메일 주소 ${profile.email} 복사하기`} onClick={event => onCopyEmail(pointOf(event))}>
+              <span className="staff-pass__email-text">{profile.email}</span>
+              <CopyIcon />
+            </button>
+          </dd></div>
           <div><dt>INSTAGRAM</dt><dd className="staff-pass__instagram">{profile.instagramLabel}</dd></div>
         </dl>
       </div>
@@ -315,6 +422,9 @@ const LANYARD_ANCHOR_LEFT = 470.667 / 1300
 const LANDING_FALLBACK_MS = 5000
 
 /** onLanded: 목걸이가 다 떨어져 자리를 잡았을 때 알려줍니다(3D 목줄이면 true, 폰 등에서 그림 카드면 false). */
+// '복사되었습니다' 말풍선이 떠 있는 시간(ms)
+const COPY_TOAST_MS = 1800
+
 function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }) {
   const area = useRef<HTMLDivElement>(null)
   const dropZone = useRef<HTMLDivElement>(null)
@@ -335,6 +445,18 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
     return () => window.clearTimeout(timer)
   }, [dropped, show3D, onLanded])
   const handleLanded = useCallback(() => onLanded?.(true), [onLanded])
+
+  // 이메일 복사(3D 카드의 이메일 글자 · 그림 카드의 이메일 버튼 · 키보드용 숨은 버튼 공통) → '복사되었습니다' 말풍선
+  const [toast, setToast] = useState<(CopyPoint & { id: number; ok: boolean }) | null>(null)
+  const copyEmail = useCallback(async (point: CopyPoint) => {
+    const ok = await copyText(profile.email)
+    setToast({ ...point, id: performance.now(), ok })
+  }, [])
+  useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(null), COPY_TOAST_MS)
+    return () => window.clearTimeout(timer)
+  }, [toast])
 
   useEffect(() => {
     const element = area.current
@@ -366,7 +488,7 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
           <div className="contact__lanyard" aria-hidden="true">
             <LanyardBoundary onError={() => setFailed(true)}>
               <Suspense fallback={null}>
-                <Lanyard active={visible && dropped} anchorLeft={LANYARD_ANCHOR_LEFT} onLanded={handleLanded} />
+                <Lanyard active={visible && dropped} anchorLeft={LANYARD_ANCHOR_LEFT} onLanded={handleLanded} onEmailClick={copyEmail} />
               </Suspense>
             </LanyardBoundary>
           </div>
@@ -379,11 +501,16 @@ function ContactPass({ onLanded }: { onLanded?: (withLanyard: boolean) => void }
       )}
       <h2 id="contact-title" className="section-heading contact__title">Contact</h2>
       {!show3D && <div className="contact__connector" aria-hidden="true" />}
-      {show3D ? (
+      {show3D ? (<>
         <p className="sr-only">스태프 패스: {profile.name}, UI·UX Designer. 이메일 {profile.email}. 인스타그램 {profile.instagramLabel}.</p>
-      ) : (
-        <StaffPass />
+        {/* 3D 카드는 키보드로 누를 수 없어서, 키보드로 오면 보이는 복사 버튼을 따로 둡니다(마우스로는 카드의 이메일 글자를 누르면 됨). */}
+        <button type="button" className="contact__email-copy" onClick={event => copyEmail(pointOf(event))}>
+          <CopyIcon />이메일 주소 복사하기
+        </button>
+      </>) : (
+        <StaffPass onCopyEmail={copyEmail} />
       )}
+      <CopyToast toast={toast} />
     </div>
   )
 }
@@ -649,10 +776,12 @@ function Portfolio() {
       <main className="portfolio">
         <Pin><Hero /></Pin>
         <Pin><StageWorks onSelect={setSelectedProject} /></Pin>
-        {/* Artist Gallery: 섹션 가운데가 화면 가운데에 올 때 멈춤(글자가 너무 위에 붙지 않게) */}
-        <Pin align="center"><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
-        {/* Director’s Note: 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈추고, 멈춰 있는 동안 스크롤하는 만큼 제목 글자가 떠오른 뒤 다시 흘러감 */}
-        <Pin align="start" hold="110vh" landAt={.8}><DirectorsNote /></Pin>
+        {/* Artist Gallery: 섹션 가운데가 화면 가운데에 올 때 멈춤(글자가 너무 위에 붙지 않게).
+            멈추는 순간부터 제목 글자가 접혔다 펴지며 부제·버튼과 함께 등장하고, 그동안 화면 높이만큼(100vh) 멈춰 있습니다. */}
+        <Pin align="center" hold="100vh" landAt={.7}><ArtistGallery onOpen={setArchiveOrigin} /></Pin>
+        {/* Director’s Note: 맨 위가 화면 맨 위에 닿으면 흰 화면으로 멈추고, 멈춰 있는 동안 스크롤하는 만큼 제목 글자가 떠오른 뒤
+            사진·글이 아래에서 올라오고(DIRECTOR_PIN), 그다음 다시 흘러감 */}
+        <Pin align="start" hold="130vh" landAt={.92}><DirectorsNote /></Pin>
         <Contact />
         <MarqueeBand />
       </main>

@@ -1,10 +1,10 @@
-/* React Bits Scroll Reveal (MIT + Commons Clause) — 값은 ScrollReveal.tsx의 REVEAL */
+/* React Bits Scroll Reveal (MIT + Commons Clause) — 값은 ScrollReveal.tsx의 REVEAL.
+   스크롤한 만큼 ScrollReveal.tsx가 묶음 기울기(transform)와 단어마다 진하기·흐림(opacity, filter)을 직접 정합니다.
+   아래는 계산이 붙기 전(처음 그려질 때)의 모습입니다. */
 .scroll-reveal {
   transform-origin: 0% 50%;
   transform: rotate(var(--reveal-rotate, 3deg));
-  transition: transform 1.1s cubic-bezier(.22, 1, .36, 1);
 }
-.scroll-reveal[data-revealed] { transform: rotate(0deg); }
 
 .scroll-reveal__word {
   display: inline-block;
@@ -12,13 +12,12 @@
   text-indent: 0;
   opacity: var(--reveal-opacity, .1);
   filter: blur(var(--reveal-blur, 4px));
-  transition: opacity var(--reveal-duration, .55s) linear, filter var(--reveal-duration, .55s) linear;
-  transition-delay: calc(var(--i, 0) * var(--reveal-stagger, .025s));
 }
-.scroll-reveal[data-revealed] .scroll-reveal__word { opacity: 1; filter: blur(0); }
-/* 되돌아갈 때는 순서 없이 한꺼번에 조용히 흐려집니다. */
-.scroll-reveal:not([data-revealed]) .scroll-reveal__word { transition-duration: .3s; transition-delay: 0s; }
 
+/* 동작 줄이기 설정: 처음부터 또렷하고 반듯하게 */
+.scroll-reveal[data-static] { transform: none !important; }
+.scroll-reveal[data-static] .scroll-reveal__word { opacity: 1 !important; filter: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  .scroll-reveal, .scroll-reveal__word { transition: none; }
+  .scroll-reveal { transform: none !important; }
+  .scroll-reveal__word { opacity: 1 !important; filter: none !important; }
 }

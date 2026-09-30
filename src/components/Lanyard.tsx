@@ -13,6 +13,8 @@
  * - 뒷면도 보이도록, 가만히 있을 때 카드가 천천히 돌아 뒷면을 보여주고 다시 앞면으로 돌아옴(SHOWCASE)
  * - 목줄 고정점을 캔버스 가운데가 아닌 곳에 둘 수 있음(anchorLeft) — 카드가 떨어질 때 잘리지 않게 캔버스를 한쪽으로 넓히기 위해
  * - 카드가 다 떨어져 자리를 잡으면 한 번 알려줌(onLanded, 기준은 LANDING) — 그 뒤에 Contact 제안서가 올라옴
+ * - 카드 앞면의 이메일 글자를 누르면(끌지 않고 짧게 클릭) 알려줌(onEmailClick) — Contact에서 이메일을 복사하고 '복사되었습니다'를 띄움.
+ *   이메일 위에 마우스를 올리면 손가락 커서가 됩니다. 누른 자리는 카드 그림의 좌표(uv)로 확인합니다(EMAIL_UV).
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
@@ -48,6 +50,8 @@ interface LanyardProps {
   anchorLeft?: number
   /** 카드가 다 떨어져 자리를 잡았을 때 한 번 불립니다(기준: LANDING). */
   onLanded?: () => void
+  /** 카드 앞면의 이메일을 클릭했을 때 불립니다(누른 화면 좌표). */
+  onEmailClick?: (point: { x: number; y: number }) => void
   fov?: number
   gravity?: [number, number, number]
   lanyardWidth?: number
@@ -64,6 +68,7 @@ export default function Lanyard({
   lanyardWidth = 1,
   onReady,
   onLanded,
+  onEmailClick,
 }: LanyardProps) {
   return (
     <div className="lanyard">
@@ -77,7 +82,7 @@ export default function Lanyard({
       >
         <ambientLight intensity={1} />
         <Physics gravity={gravity} timeStep={1 / 60} paused={!active}>
-          <Band anchorY={anchorY} anchorLeft={anchorLeft} lanyardWidth={lanyardWidth} onReady={onReady} onLanded={onLanded} />
+          <Band anchorY={anchorY} anchorLeft={anchorLeft} lanyardWidth={lanyardWidth} onReady={onReady} onLanded={onLanded} onEmailClick={onEmailClick} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer intensity={2} color="white" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
@@ -109,7 +114,14 @@ interface BandProps {
   minSpeed?: number
   onReady?: () => void
   onLanded?: () => void
+  onEmailClick?: (point: { x: number; y: number }) => void
 }
+
+// 카드 그림(staff-pass-card.png, 2048px)에서 앞면 이메일 줄(글자 + 복사 아이콘)이 있는 자리를 그림 좌표(0~1)로 적은 값.
+// 누르기 쉽게 글자 둘레로 조금(약 12px) 넉넉하게 잡았습니다. 그림을 다시 만들면 같이 고치세요.
+const EMAIL_UV = { u: [70 / 2048, 785 / 2048], v: [962 / 2048, 1060 / 2048] }
+// 이 거리(px)보다 적게 움직이고 놓으면 '끌기'가 아니라 '클릭'으로 봅니다.
+const CLICK_SLOP = 6
 
 // 카드 두께: card.glb는 가로 대비 두께가 0.56%라 종이처럼 얇습니다.
 // 실제 신용카드 비율(0.76mm ÷ 53.98mm ≈ 1.4%)이 되도록 카드 가운데를 기준으로 앞뒤 방향(z)만 2.5배 늘립니다.
@@ -158,7 +170,7 @@ interface CardGLTF {
   materials: Record<'base' | 'metal', THREE.MeshStandardMaterial>
 }
 
-function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady, onLanded }: BandProps) {
+function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, onReady, onLanded, onEmailClick }: BandProps) {
   const band = useRef<THREE.Mesh<MeshLineGeometry, MeshLineMaterial>>(null!)
   const fixed = useRef<RapierRigidBody>(null!)
   const j1 = useRef<LerpedBody>(null!)
@@ -231,6 +243,17 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
   })
   const [dragged, drag] = useState<false | THREE.Vector3>(false)
   const [hovered, hover] = useState(false)
+  // 이메일 클릭: 카드 몸체(cardMesh)의 앞면 이메일 자리(EMAIL_UV)를 눌렀다가 거의 안 움직이고 놓으면 onEmailClick
+  const cardMesh = useRef<THREE.Mesh>(null)
+  const [overEmail, setOverEmail] = useState(false)
+  const press = useRef<{ x: number; y: number; email: boolean } | null>(null)
+  const onEmailClickRef = useRef(onEmailClick)
+  useEffect(() => { onEmailClickRef.current = onEmailClick }, [onEmailClick])
+  const hitsEmail = (event: ThreeEvent<PointerEvent>) => {
+    const uv = event.uv
+    if (event.object !== cardMesh.current || !uv) return false
+    return uv.x >= EMAIL_UV.u[0] && uv.x <= EMAIL_UV.u[1] && uv.y >= EMAIL_UV.v[0] && uv.y <= EMAIL_UV.v[1]
+  }
 
   useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1])
   useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1])
@@ -241,9 +264,9 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
 
   useEffect(() => {
     if (!hovered) return
-    document.body.style.cursor = dragged ? 'grabbing' : 'grab'
+    document.body.style.cursor = dragged ? 'grabbing' : overEmail ? 'pointer' : 'grab'
     return () => { document.body.style.cursor = '' }
-  }, [hovered, dragged])
+  }, [hovered, dragged, overEmail])
 
   const getLerped = (body: LerpedBody) => {
     if (!body.lerped) body.lerped = new THREE.Vector3().copy(body.translation())
@@ -287,7 +310,8 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
     // 카드가 세로축으로 목표 각도(앞면 0 / 뒷면 180°)를 향해 부드럽게 돌도록 회전 속도를 조금씩 보탭니다.
     // (원본은 늘 앞면(0)으로만 되돌렸습니다.)
     // 시계는 실제 흐른 시간으로 셉니다(느린 컴퓨터에서도 같은 박자). 화면 밖에서 멈췄다 돌아올 때 튀지 않게 한 번에 0.25초까지만.
-    if (dragged) showcase.current = 0
+    // 이메일 위에 마우스를 올려 두면 누르기 전에 뒤집히지 않도록 앞면에서 기다립니다.
+    if (dragged || overEmail) showcase.current = 0
     else showcase.current += Math.min(rawDelta, 0.25)
     const cycle = SHOWCASE.front + SHOWCASE.back
     const target = showcase.current % cycle < SHOWCASE.front ? 0 : Math.PI
@@ -313,17 +337,24 @@ function Band({ anchorY, anchorLeft, lanyardWidth, maxSpeed = 50, minSpeed = 0, 
             scale={2.25}
             position={[0, -1.2, -0.05]}
             onPointerOver={() => hover(true)}
-            onPointerOut={() => hover(false)}
+            onPointerOut={() => { hover(false); setOverEmail(false) }}
+            onPointerMove={(event: ThreeEvent<PointerEvent>) => { if (!dragged) setOverEmail(hitsEmail(event)) }}
             onPointerUp={(event: ThreeEvent<PointerEvent>) => {
               ;(event.target as Element).releasePointerCapture(event.pointerId)
               drag(false)
+              const start = press.current
+              press.current = null
+              if (start?.email && Math.hypot(event.nativeEvent.clientX - start.x, event.nativeEvent.clientY - start.y) < CLICK_SLOP) {
+                onEmailClickRef.current?.({ x: event.nativeEvent.clientX, y: event.nativeEvent.clientY })
+              }
             }}
             onPointerDown={(event: ThreeEvent<PointerEvent>) => {
               ;(event.target as Element).setPointerCapture(event.pointerId)
+              press.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY, email: hitsEmail(event) }
               drag(new THREE.Vector3().copy(event.point).sub(vec.copy(card.current.translation())))
             }}
           >
-            <mesh geometry={cardGeometry} material={cardMaterial} />
+            <mesh ref={cardMesh} geometry={cardGeometry} material={cardMaterial} />
             {holePatches.map((geometry, index) => <mesh key={index} geometry={geometry} material={cardMaterial} />)}
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
