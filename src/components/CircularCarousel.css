@@ -1,0 +1,51 @@
+/*
+ * 원본: React Bits Circular Carousel CSS(https://reactbits.dev/c/components/circular-carousel) — MIT + Commons Clause
+ * 바꾼 점: 사진 대신 카드 내용(__content)을 띠마다 잘라 보여 주고, 올라오기(rise)는 __lift를 카드 틀 안에서 밀어 올립니다.
+ * 주의: __camera, __ring, __card에는 overflow·opacity·filter를 넣지 마세요(3D가 납작해집니다).
+ */
+.circular-carousel {
+  --cc-fade: #000;
+  --cc-radius: 12px;
+  --cc-inner: .4;
+  --cc-inner-color: #000;
+  position: relative;
+  overflow: hidden;
+  outline: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.circular-carousel[data-dragging],
+.circular-carousel[data-dragging] * { cursor: grabbing; }
+.circular-carousel__stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circular-carousel__camera,
+.circular-carousel__ring,
+.circular-carousel__card {
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+.circular-carousel__camera { position: relative; }
+.circular-carousel__ring,
+.circular-carousel__card { position: absolute; left: 0; top: 0; }
+.circular-carousel__tile {
+  position: absolute;
+  outline: 1px solid transparent;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.circular-carousel__frame { position: absolute; left: 0; top: 0; width: 100%; overflow: hidden; }
+.circular-carousel__lift { position: absolute; inset: 0; transform: translateY(var(--cc-lift, 0px)); }
+.circular-carousel__content { position: absolute; top: 0; transform-origin: 0 0; }
+.circular-carousel__inner,
+.circular-carousel__shade { position: absolute; inset: 0; pointer-events: none; }
+.circular-carousel__inner { background: var(--cc-inner-color); opacity: var(--cc-inner); }
+.circular-carousel__shade { background: var(--cc-fade); opacity: var(--cc-depth, 0); }
+.circular-carousel img { -webkit-user-drag: none; pointer-events: none; }

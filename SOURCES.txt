@@ -194,7 +194,7 @@ ON STAGE hover artwork (2026-09-29)
 Stage Works carousel (2026-09-29)
 - Design: Figma 91q9GLdpPNhT5Xv6cDpKg6, node 346:295.
 - The spotlight, stage, shadows and footlights in src/assets/stage are direct SVG exports from the supplied Figma frame; future-preview.png is the frame's upcoming-project artwork export.
-- Cards loop left/right with drag, click and arrow-key controls. Depth is simulated with position, scale and opacity instead of WebGL 3D.
+- 2026-09-30: 카드 움직임을 React Bits Circular Carousel로 바꿈(아래 'Stage Works 둥근 카드' 참고). 예전 삼각기둥(stagePrismGeometry.ts)은 더 이상 쓰지 않음.
 
 자두야 작품 선택 화면 (2026-09-30)
 https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=358-244
@@ -205,4 +205,14 @@ https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=358-244
   호버 때 등장: 왼쪽 밖(-78%, 아래 16%, -24° 기울기, 92% 크기)에서 560ms cubic-bezier(.34, 1.56, .64, 1)로 '뿅'(끝에서 살짝 더 나왔다 자리 잡음), 나가면 거꾸로.
 - BACKSTAGE 사진(360:356 Mask group, 자두야팀 회의 사진 IMG_5964 + 타원 마스크): src/assets/backstage/jadu-backstage-choice-art.png = 피그마에서 432×192로 내보낸 그림(국순당 backstage-choice-art.png와 같은 방식·같은 마스크). 움직임은 국순당과 같음(React Bits ChromaGrid 방식).
 - 피그마 그림 파일은 사용자 PC의 Claude 앱 내장 브라우저에서 피그마 에셋 주소로 받아 그대로 옮겼습니다(SHA-256 비교로 원본과 같은지 확인).
-- 멈춰 있을 때 가운데 카드는 100% 정면(stagePrismGeometry.ts REST_YAW 0, 예전 -45), 내려다보는 각도는 -4deg(StageWorks.css --stage-tilt, 예전 -10deg).
+
+Stage Works 둥근 카드 (2026-09-30)
+https://reactbits.dev/c/components/circular-carousel?aspectRatio=1.333&autoplay=step&cardWidth=204&tilt=-4&interval=6.5&direction=right&momentum=0.56&parallax=0.35&stretch=0.58&depthFade=0.56&cornerRadius=8&innerShade=0.5
+https://github.com/DavidHDev/react-bits/tree/main/src/ts-default/Components/CircularCarousel (2026-09-30 main)
+React Bits Circular Carousel(TS + CSS)를 src/components/CircularCarousel.tsx/.css로 옮겼습니다(MIT + Commons Clause, src/licenses/React-Bits-LICENSE.md).
+- 그대로 쓴 값: tilt -4, autoplay step, interval 6.5, direction right, momentum 0.56, parallax 0.35, stretch 0.58, depthFade 0.56, cornerRadius 8, innerShade 0.5. 원기둥(cylinder) 모양, 카드마다 세로 띠 8장으로 휘게 그리기, 스프링 맞춤·관성·호버 멈춤도 원본 방식.
+- 바꾼 점: 사진 대신 피그마 카드(706.8 × 255.6)를 540 폭으로 줄여 그림(aspectRatio·cardWidth 대신 카드 비율 그대로), 작품 3개 × 2바퀴 = 6칸, 처음 가운데 카드 = 국순당.
+  원 크기는 무대(피그마 346-295, 폭 1079)에 맞춰 반지름 약 539, 원 중심은 무대 가운데(1266.5) 위, 카드 아래 끝이 무대 앞 끝보다 위에 뜨도록 배치.
+  안쪽 면 그늘 색 #6b3b36(원본 검정), 뒤쪽 흐림 색 #fafafa(페이지 배경), 올라오기(rise)는 카드 틀 안에서 아래→위로 차오르게, 휠 스크롤·캡션·fit 계산은 뺌.
+- 공연 순서 글(피그마 346-295): 안녕자두야 / 국순당 / 어린이대공원, 제목 칸 117px 말줄임, 지금 작품 상태 글자 #525252, 세로 가운데 정렬(50% + 0.25px).
+- 무대 앞 'DRAG ↔' 글자와 뒤 카드용 그림자 2개(side-shadow-left/right.svg)는 화면에서 뺌(파일은 남아 있음).
