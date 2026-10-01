@@ -85,7 +85,8 @@ export const projects: Project[] = [
     platform: 'Web',
     period: '2026.05 ~ 2026.08',
     url: 'https://jin0484.github.io/kooksoondang/',
-    planUrl: 'https://www.figma.com/deck/tB8up2pNJSwkgLm75pjrZp',
+    // 10/1: 피그마 덱은 로그인을 요구해서, 기획서 PDF(public/kooksoondang-plan.pdf, 원본 41MB → 9MB)를 사이트에 같이 올려 새 창으로 엽니다.
+    planUrl: `${import.meta.env.BASE_URL}kooksoondang-plan.pdf`,
   },
   {
     id: 'jadu',

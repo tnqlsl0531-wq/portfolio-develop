@@ -65,21 +65,23 @@
 }
 .stage-works__order li .stage-works__dot { background: color-mix(in srgb, #737373 calc(var(--effect, 0) * 100%), #d4d4d4); }
 
-/* '옆으로 드래그해보세요!' 안내(9/30 밤): 무대 앞면(검은 원통) 가운데에 은은한 흰 글씨로 붙어 있고, 양쪽 꺾쇠가 좌우로 살짝 흔들립니다.
+/* '옆으로 드래그해보세요!' 안내(9/30 밤): 양쪽 꺾쇠가 좌우로 살짝 흔들립니다.
    10/1: 동그란 테두리·바탕 없이 글자만. 화살표(← →)는 글자 획 굵기에 맞춘 꺾쇠(‹ ›) 아이콘으로 바꿈(StageWorks.tsx DragChevron).
-   카드를 한 번 끌면(StageWorks.tsx dragHint) 아래로 살짝 내려앉으며 사라집니다. 가로 가운데 = 무대 가운데(1266.5). */
+   10/1 오전: 무대 앞면에 있으면 '무대를 돌리라는 건가?' 싶다는 피드백 → 카드 줄 바로 위(뒤쪽 카드 윗선 위)로 옮기고, 밝은 바탕에 맞게 진한 회색 글씨로.
+   카드를 한 번 끌면(StageWorks.tsx dragHint) 아래로 살짝 내려앉으며 사라집니다. 가로 가운데 = 무대·카드 원 가운데(1266.5). */
 .stage-works__drag-hint {
-  position: absolute; z-index: 6; left: 1266.5px; top: 912px; margin: 0;
+  position: absolute; z-index: 6; left: 1266.5px; top: 402px; margin: 0;
   display: flex; align-items: center; gap: 12px;
-  color: rgb(250 250 250 / 88%); font: 500 20px/1.4 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; letter-spacing: .01em; white-space: nowrap;
+  color: #525252; font: 500 20px/1.4 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; letter-spacing: .01em; white-space: nowrap;
+  text-shadow: 0 0 12px rgb(250 250 250 / 90%);
   transform: translateX(-50%); pointer-events: none;
   transition: opacity 600ms ease, transform 600ms cubic-bezier(.22, .61, .36, 1), filter 600ms ease;
 }
 .stage-works__drag-hint[data-hidden] { opacity: 0; transform: translate(-50%, 10px); filter: blur(4px); }
 /* 사라진 뒤에는 꺾쇠 흔들림도 멈춥니다(보이지 않는데 계속 움직이지 않게). */
 .stage-works__drag-hint[data-hidden] .stage-works__drag-arrow { animation-play-state: paused; }
-/* 꺾쇠 크기: 글자 크기 기준(0.5em × 0.8em = 20px 글자에서 10 × 16). 색은 예전 화살표와 같은 연분홍. */
-.stage-works__drag-arrow { display: block; flex: none; width: .5em; height: .8em; color: #ffc7c3; overflow: visible; }
+/* 꺾쇠 크기: 글자 크기 기준(0.5em × 0.8em = 20px 글자에서 10 × 16). 색은 밝은 바탕에서도 보이는 코랄. */
+.stage-works__drag-arrow { display: block; flex: none; width: .5em; height: .8em; color: #f8574f; overflow: visible; }
 .stage-works__drag-arrow--left { animation: stage-drag-left 1.6s ease-in-out infinite; }
 .stage-works__drag-arrow--right { animation: stage-drag-right 1.6s ease-in-out infinite; }
 @keyframes stage-drag-left { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-7px); } }
@@ -118,6 +120,8 @@
    예전에는 .stage-card에 grabbing이 박혀 있어서 가운데 카드 위에서도 주먹만 떠, 누를 수 있다는 걸 알 수 없었습니다. */
 .stage-works__carousel .circular-carousel__card { cursor: grab; }
 .stage-works__carousel .circular-carousel__card[data-active] { cursor: pointer; }
+/* 카드 두께 면(StageWorks.tsx CARD_THICKNESS): 카드 테두리(#ffe3e1)와 어울리는 따뜻한 회분홍. 위는 조명을 받아 밝게, 아래는 그늘져 어둡게. */
+.stage-works__carousel { --cc-edge: #ecd9d6; --cc-edge-top: #f7ecea; --cc-edge-bottom: #dcc5c1; }
 /* 원 뒤쪽으로 돌아간 카드의 뒷면: 앞 카드 위에 회색 띠처럼 보이지 않도록 옅게 둡니다. */
 .stage-works__carousel .stage-card--back { opacity: .3; }
 /* Do not add opacity, filter, overflow clipping or paint containment to these
@@ -212,5 +216,5 @@
   .stage-works__status { display: none; }
   .stage-works__dot { flex-basis: 7px; width: 7px; height: 7px; }
   /* 폰에서는 무대 전체가 작게 줄어들어서, 안내 글씨는 줄어든 뒤에도 읽히도록 크게 잡아 둡니다. */
-  .stage-works__drag-hint { top: 905px; gap: 16px; font-size: 32px; }
+  .stage-works__drag-hint { top: 382px; gap: 16px; font-size: 32px; }
 }

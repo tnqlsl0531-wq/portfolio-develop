@@ -55,3 +55,15 @@
 .circular-carousel__inner { background: var(--cc-inner-color); opacity: var(--cc-inner); }
 .circular-carousel__shade { background: var(--cc-fade); opacity: var(--cc-depth, 0); }
 .circular-carousel img { -webkit-user-drag: none; pointer-events: none; }
+/* 카드 두께 면(thickness): 위·아래·옆 테두리. 색은 쓰는 쪽에서 --cc-edge(옆) · --cc-edge-top · --cc-edge-bottom으로 정합니다.
+   원 뒤쪽으로 갈수록 앞면처럼 배경색(--cc-fade)으로 흐려집니다. */
+.circular-carousel__edge {
+  position: absolute;
+  background: var(--cc-edge, #d9d9d9);
+  backface-visibility: visible;
+  pointer-events: none;
+  opacity: var(--cc-shown, 1);
+}
+.circular-carousel__edge--top { background: var(--cc-edge-top, var(--cc-edge, #e5e5e5)); }
+.circular-carousel__edge--bottom { background: var(--cc-edge-bottom, var(--cc-edge, #cfcfcf)); }
+.circular-carousel__edge::after { content: ''; position: absolute; inset: 0; background: var(--cc-fade); opacity: var(--cc-depth, 0); }

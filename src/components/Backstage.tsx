@@ -102,7 +102,7 @@ function CueSheet({ navRef, active, hidden, onJump }: {
 
 /* ── CUE 02: 예전 웹사이트 캡처 두 장(피그마 447-394 '카드교체') ──────────
    두 장이 카드처럼 겹쳐 있고, 앞 카드를 누르거나 브라우저 줄의 '01 / 02 ›'를 누르면 앞 카드가 왼쪽으로 빠져 뒤로 들어가고
-   뒤 카드가 앞으로 나옵니다. 오른쪽 목표 01·02는 첫 번째 캡처의 핀 1·2, 목표 03은 두 번째 캡처의 핀 3과 짝입니다.
+   뒤 카드가 앞으로 나옵니다. 삐져나온 뒤 카드를 직접 눌러도 앞으로 나옵니다(10/1, 다들 뒤 카드를 누르게 돼서). 오른쪽 목표 01·02는 첫 번째 캡처의 핀 1·2, 목표 03은 두 번째 캡처의 핀 3과 짝입니다.
    목표 위에 마우스를 올리면 짝인 핀이 퍼져 나가며 반짝이고, 목표를 누르면 그 핀이 있는 캡처로 바뀝니다. */
 type Capture = { src: string; alt: string; height: number; pins: { n: number; x: number; y: number }[] }
 const CAPTURES: Capture[] = [
@@ -142,7 +142,8 @@ function CaptureDeck() {
           const clip = pose === 'front' ? 0 : Math.max(0, capture.height - frontHeight)
           return (
             <figure key={capture.src} className="backstage__capture" data-pose={pose}
-              style={{ '--clip': clip } as CSSProperties} aria-hidden={pose !== 'front'}>
+              style={{ '--clip': clip } as CSSProperties} aria-hidden={pose !== 'front'}
+              onClick={pose === 'back' ? () => show(index) : undefined}>
               <div className="backstage__browser-bar">
                 <i /><i /><i />
                 <button type="button" className="backstage__deck-next" tabIndex={pose === 'front' ? 0 : -1}
@@ -185,11 +186,12 @@ function CaptureDeck() {
 
 /* ── CUE 04: 인트로 영상 두 칸 ──────────────────────────
    썸네일을 누르면 그 자리에서 재생되고(재생·멈춤·전체화면 버튼 표시), 끝나면 다시 썸네일로 돌아옵니다.
-   poster = 영상 첫 장면 그림. 왼쪽 = 기존 인트로영상, 오른쪽 = 최종 인트로영상(첫 장면이 흰 화면). */
-type IntroVideo = { label: string; poster: string; video: string }
+   poster = 영상 첫 장면 그림. 왼쪽 = 기존 인트로영상, 오른쪽 = 최종 인트로영상(첫 장면이 흰 화면).
+   10/1: 전후 비교가 한눈에 보이게 영상 왼쪽 위에 BEFORE / AFTER 표시, 두 영상 사이에 주황 화살표 동그라미를 둡니다. */
+type IntroVideo = { label: string; tag: 'before' | 'after'; poster: string; video: string }
 const INTRO_VIDEOS: IntroVideo[] = [
-  { label: '기존 인트로영상', poster: introBefore, video: introBeforeVideo },
-  { label: '최종 인트로영상', poster: introAfter, video: introAfterVideo },
+  { label: '기존 인트로영상', tag: 'before', poster: introBefore, video: introBeforeVideo },
+  { label: '최종 인트로영상', tag: 'after', poster: introAfter, video: introAfterVideo },
 ]
 
 function IntroClip({ item }: { item: IntroVideo }) {
@@ -210,6 +212,7 @@ function IntroClip({ item }: { item: IntroVideo }) {
           <span className="backstage__play" aria-hidden="true" />
         </button>
       )}
+      <span className="backstage__clip-tag" data-tag={item.tag} aria-hidden="true">{item.tag.toUpperCase()}</span>
     </figure>
   )
 }
@@ -583,6 +586,9 @@ export default function Backstage({ project, onClose }: { project: Project | nul
               <CueHead index={4} title="REHEARSAL → MAIN SHOW" sub="시안에서 최종 화면이 완성되기까지" />
               <div className="backstage__clips" data-appear="">
                 {INTRO_VIDEOS.map(item => <IntroClip item={item} key={item.label} />)}
+                <span className="backstage__clips-arrow" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5" /></svg>
+                </span>
               </div>
               <div className="backstage__notes">
                 <div className="backstage__note" data-appear="">

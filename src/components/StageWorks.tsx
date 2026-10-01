@@ -59,6 +59,8 @@ const CARD_CONTENT_HEIGHT = 255.6
 const CARD_WIDTH = 540
 const CARD_GAP = 24
 const CARD_RADIUS = 8
+// 카드 두께(px, 10/1): 종이쪼가리처럼 보이지 않게 얇은 카드 정도로만. 옆·위·아래 테두리 색은 StageWorks.css의 --cc-edge*.
+const CARD_THICKNESS = 5
 const SLOTS = stageItems.length * 2
 const START_SLOT = 1
 const contentRadius = CARD_RADIUS * CARD_CONTENT_WIDTH / CARD_WIDTH
@@ -244,6 +246,7 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
           depthFade={.56}
           fadeColor="#fafafa"
           cornerRadius={CARD_RADIUS}
+          thickness={CARD_THICKNESS}
           innerShade={.5}
           innerColor="#6b3b36"
           cardLabel={(slot, isActive) => {
@@ -278,9 +281,9 @@ export default function StageWorks({ onSelect }: { onSelect: (project: Project) 
 
         <p className="stage-works__notice" data-visible={notice ? 'true' : 'false'} aria-hidden="true"><span>{notice || REHEARSAL_NOTICE}</span></p>
         <img className="stage-works__asset stage-works__footlights" src={footlights} width={1000} height={76} alt="" />
-        {/* 무대 앞면(검은 원통)에 붙은 안내 — 처음 보는 사람이 카드를 끌어 돌릴 수 있다는 걸 알 수 있게(선생님 피드백, 9/30 밤).
-            10/1: 동그란 테두리 없이 글자만, 화살표는 글자 굵기에 맞춘 꺾쇠(‹ ›) 아이콘으로. 꺾쇠가 좌우로 살짝 흔들리고,
-            카드를 한 번 끌면 스르륵 사라집니다(StageWorks.css .stage-works__drag-hint). */}
+        {/* 카드 줄 바로 위에 뜬 안내 — 처음 보는 사람이 카드를 끌어 돌릴 수 있다는 걸 알 수 있게(선생님 피드백, 9/30 밤).
+            10/1: 동그란 테두리 없이 글자만, 화살표는 글자 굵기에 맞춘 꺾쇠(‹ ›) 아이콘으로. 무대 앞면에 있으면 무대를 돌리라는 것처럼 보여서 카드 위로 옮김.
+            꺾쇠가 좌우로 살짝 흔들리고, 카드를 한 번 끌면 스르륵 사라집니다(StageWorks.css .stage-works__drag-hint). */}
         <p className="stage-works__drag-hint" data-hidden={!dragHint || undefined} aria-hidden="true">
           <DragChevron side="left" />
           옆으로 드래그해보세요!

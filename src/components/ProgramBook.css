@@ -219,8 +219,8 @@
 
 /* ── 지금 보고 있는 섹션: 항목 위 가운데에 아래를 가리키는 겹꺾쇠(피그마 Vector 1813·1814) ──
    꺾쇠 묶음 23 × 18(위 작은 꺾쇠 18 × 10은 x 2, 아래 큰 꺾쇠 23 × 12는 y 6), 글자 윗선보다 1 위.
-   등장: 펼칠 때(또는 보고 있는 섹션이 바뀔 때) 아래 큰 꺾쇠 → 위 작은 꺾쇠 순서로 위에서 톡 떨어집니다(here-drop).
-   그다음 펼쳐 둔 동안 아래로 살랑 흔들리고, 위 꺾쇠가 조금 늦게 따라와 '이쪽이에요' 하고 흐르는 느낌을 줍니다(here-bob).
+   등장: 펼칠 때(또는 보고 있는 섹션이 바뀔 때) 위에서 톡 떨어지고(here-drop), 펼쳐 둔 동안 아래로 살랑 흔들립니다(here-bob).
+   10/1: 두 꺾쇠가 따로 움직여 보여서, 묶음(__here) 하나로 같이 움직이게 바꿨습니다.
    transform·opacity만 움직여서 가볍고, 책이 닫혀 있으면 멈춥니다. */
 .program-book__here {
   position: absolute; left: 50%; bottom: calc(100% + 1 * var(--s));
@@ -230,15 +230,11 @@
 .program-book__chev { position: absolute; display: block; overflow: visible; }
 .program-book__chev--top { left: calc(2 * var(--s)); top: 0; width: calc(18 * var(--s)); height: calc(10 * var(--s)); }
 .program-book__chev--bottom { left: 0; top: calc(6 * var(--s)); width: calc(23 * var(--s)); height: calc(12 * var(--s)); }
-.program-book__leaf .program-book__chev,
-.program-book__page--right > .program-book__list .program-book__chev {
+.program-book__leaf .program-book__here,
+.program-book__page--right > .program-book__list .program-book__here {
   animation: here-drop 460ms cubic-bezier(.34, 1.56, .64, 1) both, here-bob 1.8s ease-in-out 700ms infinite;
 }
-.program-book__leaf .program-book__chev--top,
-.program-book__page--right > .program-book__list .program-book__chev--top {
-  animation-delay: 90ms, 820ms;
-}
-.program-book:not([data-open]) .program-book__chev { animation-play-state: paused; }
+.program-book:not([data-open]) .program-book__here { animation-play-state: paused; }
 @keyframes here-drop {
   from { opacity: 0; transform: translateY(calc(-9 * var(--s))); }
   to { opacity: 1; transform: none; }
@@ -299,5 +295,5 @@
 /* 동작 줄이기 설정: 넘어가는 움직임 없이 바로 펼쳐집니다(ProgramBook.tsx에서 처리). */
 @media (prefers-reduced-motion: reduce) {
   .program-book__item { transition: none; }
-  .program-book .program-book__chev { animation: none !important; }
+  .program-book .program-book__here { animation: none !important; }
 }

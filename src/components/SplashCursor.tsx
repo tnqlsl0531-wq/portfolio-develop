@@ -12,6 +12,7 @@
  * 원본에서 바꾼 점
  * - 효과가 나오는 곳: startBelow 요소(히어로 아래 물결) 아래부터. startEdge를 주면 그 요소 안의 경계선(물결의 검은 부분 아래 선)을 따라
  *   흰 부분부터 나옵니다. 그 위(히어로·검은 물결)에서는 물감을 만들지 않고, 번진 물감도 경계선 위로는 안 보이게 잘라 냅니다.
+ *   10/1: 경계선에서 칼로 자른 듯 끊겨 보여서, 경계선 아래 SOFT_EDGE만큼은 마스크로 서서히 보이게(은근히 스며들게) 바꿨습니다.
  * - fadeInto 요소(Contact)가 화면에 들어오면 스크롤한 만큼 서서히 투명해지고(FADE), 다 들어오면 사라집니다. 그 안에서는 물감을 만들지 않습니다.
  * - 시작 요소(지금은 Stage Works)가 끝나 갈 때부터 스크롤한 만큼 서서히 나타납니다(FADE_IN).
  * - data-cursor-quiet 표시가 있는 곳(목차 프로그램북) 위에서는 물감을 만들지 않습니다.
@@ -51,6 +52,10 @@ const FADE = { start: 1, end: 0.3 }
 // 1 = Stage Works 아랫선이 화면 아래 끝에 닿을 때부터 나타나기 시작, 0.45 = 화면 위에서 45% 지점까지 올라오면 다 나타남.
 // Stage Works 안(아랫선 위)에서는 물감을 만들지 않고 보이지도 않습니다.
 const FADE_IN = { start: 1, end: 0.45 }
+
+// 시작 요소(Stage Works) 아랫선에서 칼로 자른 듯 끊겨 보이지 않게(10/1), 아랫선부터 화면 높이의 이 비율만큼 내려가며 서서히 보이게 합니다.
+// 숫자가 클수록 더 은근하게(길게) 나타납니다.
+const SOFT_EDGE = 0.24
 
 // 물감 전체 불투명도(0~1). 마우스를 한곳에서 오래 움직여 물감이 짙게 쌓여도 뒤 내용이 비쳐 보이도록 낮췄습니다(원래 1).
 // 더 옅게 하려면 숫자를 줄이고, 더 진하게 하려면 늘리세요.
@@ -790,6 +795,7 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
     // box: 시작 요소(물결)의 화면 위치, top: 경계선 중 가장 높은 곳(화면 기준)
     const region = { box: new DOMRect(0, 0, window.innerWidth, 0), top: 0, bottom: window.innerHeight, fade: 1 }
     let appliedClip = ''
+    let appliedMask = ''
     let appliedOpacity = ''
     const quiet = (target: EventTarget | null) => target instanceof Element && !!target.closest('[data-cursor-quiet]')
     const edgeY = (clientX: number) => {
@@ -818,12 +824,21 @@ export default function SplashCursor({ startBelow, startEdge, fadeInto }: {
       }
       region.top = top
       const floor = Math.max(height, lowest) + 1
-      // 경계선이 화면 위로 완전히 올라가 있으면 자를 곳이 없으니 자르지 않습니다(스크롤할 때마다 모양을 다시 만들지 않게).
-      const clip = lowest <= 0 ? 'none'
+      // 물결 모양 경계선(startEdge)일 때만 그 모양대로 자릅니다. 경계선이 화면 위로 완전히 올라가 있으면 자를 곳이 없으니 자르지 않습니다.
+      const clip = !startEdge || lowest <= 0 ? 'none'
         : `polygon(${points.join(', ')}, ${box.right.toFixed(1)}px ${floor}px, ${box.left.toFixed(1)}px ${floor}px)`
       if (clip !== appliedClip) {
         appliedClip = clip
         overlay!.style.clipPath = clip
+      }
+      // 경계선(가장 높은 곳)에서는 투명 → SOFT_EDGE만큼 아래에서 다 보이게: 물감이 경계선 쪽으로 번져도 뚝 끊기지 않고 스며들듯 사라집니다.
+      const soft = SOFT_EDGE * height
+      const mask = top + soft <= 0 ? 'none'
+        : `linear-gradient(to bottom, transparent ${top.toFixed(0)}px, rgb(0 0 0 / 22%) ${(top + soft * .45).toFixed(0)}px, #000 ${(top + soft).toFixed(0)}px)`
+      if (mask !== appliedMask) {
+        appliedMask = mask
+        overlay!.style.setProperty('mask-image', mask)
+        overlay!.style.setProperty('-webkit-mask-image', mask)
       }
       // 전체 불투명도(OPACITY) × Stage Works가 끝나 갈수록 나타나게(FADE_IN) × Contact가 들어올수록 투명하게(FADE)
       const opacity = String(region.fade * OPACITY)

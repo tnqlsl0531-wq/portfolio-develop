@@ -1,4 +1,4 @@
 /* 커서 물감 효과(React Bits Splash Cursor): 화면 전체를 덮는 투명 캔버스. 클릭·스크롤은 아래 페이지로 그대로 전달됩니다.
-   보이는 범위(히어로 아래)와 투명도(Contact에서 서서히 사라짐)는 SplashCursor.tsx가 clip-path·opacity로 정합니다. */
+   보이는 범위(히어로 아래)와 투명도(Contact에서 서서히 사라짐)는 SplashCursor.tsx가 mask-image(경계선 아래 부드럽게)·opacity로 정합니다. */
 .splash-cursor { position: fixed; inset: 0; z-index: 50; pointer-events: none; transition: opacity 300ms linear; }
 .splash-cursor__canvas { display: block; width: 100%; height: 100%; }

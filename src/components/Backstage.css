@@ -220,7 +220,12 @@
   transition: transform 760ms cubic-bezier(.6, .05, .25, 1), filter 760ms ease, clip-path 760ms cubic-bezier(.6, .05, .25, 1), box-shadow 760ms ease;
 }
 .backstage__capture[data-pose='front'] { z-index: 2; box-shadow: 0 calc(24 * var(--cu)) calc(48 * var(--cu)) rgb(0 0 0 / 35%); }
-.backstage__capture[data-pose='back'] { z-index: 1; transform: translate3d(calc(26 * var(--cu)), calc(-18 * var(--cu)), 0) rotate(1.6deg) scale(.965); filter: brightness(.42) saturate(.6); pointer-events: none; }
+.backstage__capture[data-pose='back'] { z-index: 1; transform: translate3d(calc(26 * var(--cu)), calc(-18 * var(--cu)), 0) rotate(1.6deg) scale(.965); filter: brightness(.42) saturate(.6); cursor: pointer; }
+.backstage__capture[data-pose='back'] * { cursor: pointer; }
+/* 삐져나온 뒤 카드도 누르면 앞으로 나옵니다(10/1). 마우스를 올리면 조금 더 고개를 내밀고 밝아져서 '누를 수 있다'가 보입니다. */
+@media (hover: hover) {
+  .backstage__capture[data-pose='back']:hover { transform: translate3d(calc(32 * var(--cu)), calc(-30 * var(--cu)), 0) rotate(2.4deg) scale(.965); filter: brightness(.62) saturate(.8); transition-duration: 320ms; }
+}
 .backstage__capture[data-pose='leaving'] { z-index: 1; pointer-events: none; animation: backstage-card-tuck 760ms cubic-bezier(.55, .05, .3, 1) both; }
 @keyframes backstage-card-tuck {
   0% { z-index: 3; transform: none; filter: none; }
@@ -301,7 +306,7 @@
 .backstage__log--final[data-lit='true'] .backstage__log-trophy { transform: none; opacity: 1; }
 
 /* ── CUE 04 · REHEARSAL → MAIN SHOW: 영상 두 칸(510×287) + 노트 두 개 ── */
-.backstage__clips { display: flex; justify-content: space-between; width: calc(1062 * var(--bu)); }
+.backstage__clips { position: relative; display: flex; justify-content: space-between; width: calc(1062 * var(--bu)); }
 .backstage__clip { position: relative; flex: none; width: calc(510 * var(--bu)); height: calc(287 * var(--bu)); margin: 0; border-radius: calc(7.56 * var(--bu)); overflow: hidden; background: #1c1a1a; }
 .backstage__clip video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; background: #1c1a1a; }
 /* 썸네일(누르면 재생). 재생 중에는 사라지고 영상의 재생 버튼들이 보입니다. */
@@ -314,6 +319,25 @@
 }
 .backstage__play::before { content: ''; position: absolute; left: 38%; top: 30%; width: 34%; height: 40%; background: #fafafa; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 .backstage__clip-thumb:hover .backstage__play, .backstage__clip-thumb:focus-visible .backstage__play { background: var(--bs-orange); transform: scale(1.08); }
+/* 전후 표시(10/1): 영상 왼쪽 위 BEFORE(어두운 회색) / AFTER(주황) + 두 영상 사이 화살표 동그라미.
+   화살표는 배경색 테두리로 두 영상 모서리를 살짝 파고들어 '왼쪽 → 오른쪽으로 바뀌었다'가 한눈에 보이고, 오른쪽으로 살짝 밀리기를 반복합니다. */
+.backstage__clip-tag {
+  position: absolute; z-index: 2; left: calc(14 * var(--bu)); top: calc(14 * var(--bu)); padding: calc(6 * var(--bu)) calc(12 * var(--bu));
+  border-radius: 999px; background: rgb(28 26 26 / 82%); color: #c9bdb6; pointer-events: none;
+  font: 700 max(10px, calc(14 * var(--bu)))/1 'Min Sans VF', 'Noto Sans KR Variable', sans-serif; letter-spacing: .12em;
+}
+.backstage__clip-tag[data-tag='after'] { background: var(--bs-orange); color: #fff; box-shadow: 0 calc(4 * var(--bu)) calc(14 * var(--bu)) rgb(242 149 86 / 40%); }
+.backstage__clips-arrow {
+  position: absolute; z-index: 3; left: 50%; top: 50%; display: grid; place-items: center;
+  width: max(40px, calc(64 * var(--bu))); height: max(40px, calc(64 * var(--bu))); border-radius: 50%;
+  background: var(--bs-orange); box-shadow: 0 0 0 max(4px, calc(7 * var(--bu))) var(--bs-bg), 0 calc(6 * var(--bu)) calc(20 * var(--bu)) rgb(0 0 0 / 35%);
+  transform: translate(-50%, -50%); pointer-events: none;
+}
+.backstage__clips-arrow svg {
+  width: 46%; height: 46%; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+  animation: backstage-arrow-nudge 1.6s ease-in-out infinite;
+}
+@keyframes backstage-arrow-nudge { 0%, 100% { transform: translateX(-8%); } 50% { transform: translateX(10%); } }
 .backstage__notes { display: flex; gap: calc(40 * var(--bu)); width: calc(1062 * var(--bu)); }
 .backstage__note { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .backstage__note + .backstage__note { transition-delay: 150ms; }
@@ -540,6 +564,9 @@
   .backstage__clips { flex-direction: column; gap: 14px; width: 100%; }
   .backstage__clip { width: 100%; height: auto; aspect-ratio: 510 / 287; border-radius: 8px; }
   .backstage__play { right: 10px; bottom: 10px; }
+  .backstage__clip-tag { left: 10px; top: 10px; padding: 5px 9px; }
+  /* 폰에서는 영상이 위아래로 쌓여서 화살표가 아래를 가리킵니다. */
+  .backstage__clips-arrow { transform: translate(-50%, -50%) rotate(90deg); }
   .backstage__notes { flex-direction: column; gap: 32px; width: 100%; }
   .backstage__note-kicker { font-size: 13px; }
   .backstage__note-title { margin: 6px 0 12px; font-size: 21px; white-space: normal; }
@@ -575,7 +602,7 @@
   [data-appear], .backstage__goal, .backstage__quote-line, .backstage__next li { opacity: 1; transform: none; transition: none; }
   .backstage__eyebrow, .backstage__hero-cover, .backstage__hero-info { animation: none; }
   .backstage__bulbs i::after { animation: none; opacity: 1; }
-  .backstage__pin::after, .backstage__wheel-hint i::after { animation: none; }
+  .backstage__pin::after, .backstage__wheel-hint i::after, .backstage__clips-arrow svg { animation: none; }
   .backstage__pin { transform: scale(1); transition: none; }
   .backstage__cuesheet, .backstage__cuesheet-text, .backstage__lamp { transition: none; }
   .backstage__cuesheet-item[data-state='current'] .backstage__lamp { animation: none; }

@@ -15,7 +15,7 @@
  * - 원본은 사진을 전부 같은 크기 세로 타일로 잘라 넣지만, 여기서는 피그마(334-2) 사진 크기를 그대로 씁니다.
  *   그래서 판마다 크기가 달라, 둥근 모서리를 판 크기에 맞춰 진짜 원에 가깝게 깎습니다(원본은 판이 길쭉하면 모서리도 늘어남).
  * - 사진 채도(흑백 정도)를 셰이더에서 처리합니다. 9/30 밤(피그마 334-2 조명 수정본): 평소 채도는 낮게(base),
- *   위에서 내려오는 조명(사다리꼴) 안에 들어온 부분만 채도를 올리고(lit), 마우스를 올린 사진은 원래 색(1)으로 돌아옵니다.
+ *   조명(사다리꼴, 10/1부터 위·아래 두 개) 안에 들어온 부분만 채도를 올리고(lit), 마우스를 올린 사진은 원래 색(1)으로 돌아옵니다.
  *   조명 모양은 화면 좌표로 받아(GalleryLight) 사진의 픽셀마다 계산하므로, 사진이 조명 아래로 흘러 들어가면 들어간 만큼만 색이 살아납니다.
  * - 그림은 이 캔버스가 그리고, 누르기·키보드 이동은 위에 겹쳐 둔 원래 버튼이 그대로 맡습니다.
  *   그래서 사진을 눌러 원본을 크게 보는 기능과 화면 읽기 프로그램 지원이 그대로 남습니다.
@@ -39,8 +39,8 @@ export type GalleryTile = {
   phase: number
 }
 
-/** 위에서 내려오는 조명(사다리꼴)과 채도. 좌표는 CSS 픽셀(캔버스 왼쪽 위 기준). */
-export type GalleryLight = {
+/** 조명 하나(사다리꼴). 좌표는 CSS 픽셀(캔버스 왼쪽 위 기준). 위아래로 뒤집힌 조명도 윗변·아랫변 그대로 적으면 됩니다. */
+export type GallerySpot = {
   /** 윗변 y · 왼쪽 x · 오른쪽 x */
   top: number
   topLeft: number
@@ -49,10 +49,16 @@ export type GalleryLight = {
   bottom: number
   bottomLeft: number
   bottomRight: number
-  /** 조명 가장자리를 부드럽게 넘어가는 폭(px) */
+  /** 윗변 · 아랫변에서 조명 안쪽으로 서서히 밝아지는 높이(px). 빛이 나오는 쪽은 짧게, 빛이 사그라드는 쪽은 길게 */
+  fadeTop: number
+  fadeBottom: number
+}
+
+/** 조명(최대 2개: 위에서 내려오는 것 + 아래에서 올라오는 것)과 채도. */
+export type GalleryLight = {
+  spots: GallerySpot[]
+  /** 조명 옆 가장자리를 부드럽게 넘어가는 폭(px) */
   feather: number
-  /** 아래쪽 끝에서 서서히 사라지는 높이(px) */
-  fade: number
   /** 채도: 조명 밖(base) · 조명 안(lit). 1 = 원래 색, 0 = 흑백 */
   base: number
   lit: number
@@ -110,21 +116,30 @@ uniform vec2 uImageSize;
 uniform vec2 uPlaneSize;
 uniform float uRadius;
 uniform float uHover;
-uniform vec4 uLight;       // 윗변 y, 아랫변 y, 가장자리 폭, 아래 끝 사라지는 높이 (캔버스 픽셀)
-uniform vec4 uLightEdges;  // 윗변 왼쪽 x, 윗변 오른쪽 x, 아랫변 왼쪽 x, 아랫변 오른쪽 x
+uniform vec4 uLight1;      // 조명 1: 윗변 y, 아랫변 y, 윗변에서 밝아지는 높이, 아랫변에서 밝아지는 높이 (캔버스 픽셀)
+uniform vec4 uEdges1;      // 조명 1: 윗변 왼쪽 x, 윗변 오른쪽 x, 아랫변 왼쪽 x, 아랫변 오른쪽 x
+uniform vec4 uLight2;      // 조명 2(없으면 높이 0)
+uniform vec4 uEdges2;
+uniform float uFeather;    // 옆 가장자리 폭
 uniform vec2 uSat;         // 조명 밖 채도, 조명 안 채도
 varying vec2 vUv;
 varying vec2 vScreen;
 
 // 조명(사다리꼴) 안이면 1, 밖이면 0, 가장자리는 부드럽게
-float lightMask(vec2 p) {
-  float t = clamp((p.y - uLight.x) / max(uLight.y - uLight.x, 1.0), 0.0, 1.0);
-  float left = mix(uLightEdges.x, uLightEdges.z, t);
-  float right = mix(uLightEdges.y, uLightEdges.w, t);
-  float f = uLight.z;
+float spotMask(vec2 p, vec4 light, vec4 edges) {
+  if (light.y <= light.x) return 0.0;
+  float t = clamp((p.y - light.x) / (light.y - light.x), 0.0, 1.0);
+  float left = mix(edges.x, edges.z, t);
+  float right = mix(edges.y, edges.w, t);
+  float f = uFeather;
   float across = smoothstep(left - f, left + f, p.x) * (1.0 - smoothstep(right - f, right + f, p.x));
-  float down = smoothstep(uLight.x - f, uLight.x + f, p.y) * (1.0 - smoothstep(uLight.y - uLight.w, uLight.y, p.y));
+  float down = smoothstep(light.x - f, light.x + light.z, p.y) * (1.0 - smoothstep(light.y - light.w, light.y + f, p.y));
   return across * down;
+}
+
+// 조명 두 개 중 더 밝은 쪽
+float lightMask(vec2 p) {
+  return max(spotMask(p, uLight1, uEdges1), spotMask(p, uLight2, uEdges2));
 }
 
 float roundedBoxSDF(vec2 point, vec2 halfSize, float radius) {
@@ -242,7 +257,7 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
 
     const at = Object.fromEntries(
       ['uCanvas', 'uCenter', 'uSize', 'uTime', 'uSpeed', 'uIdle', 'uDrag', 'uMax', 'uPhase',
-        'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uHover', 'uLight', 'uLightEdges', 'uSat']
+        'uTexture', 'uImageSize', 'uPlaneSize', 'uRadius', 'uHover', 'uLight1', 'uEdges1', 'uLight2', 'uEdges2', 'uFeather', 'uSat']
         .map(name => [name, gl.getUniformLocation(program, name)]),
     )
 
@@ -321,8 +336,14 @@ const CircularGallery = forwardRef<CircularGalleryHandle, {
       gl.uniform1f(at.uTime, current.time)
       gl.uniform1f(at.uRadius, borderRadius)
       gl.uniform1i(at.uTexture, 0)
-      gl.uniform4f(at.uLight, light.top * dpr, light.bottom * dpr, light.feather * dpr, light.fade * dpr)
-      gl.uniform4f(at.uLightEdges, light.topLeft * dpr, light.topRight * dpr, light.bottomLeft * dpr, light.bottomRight * dpr)
+      const lightSlots = [[at.uLight1, at.uEdges1], [at.uLight2, at.uEdges2]] as const
+      lightSlots.forEach(([where, edges], index) => {
+        const spot = light.spots[index]
+        if (!spot) { gl.uniform4f(where, 0, 0, 0, 0); gl.uniform4f(edges, 0, 0, 0, 0); return }
+        gl.uniform4f(where, spot.top * dpr, spot.bottom * dpr, spot.fadeTop * dpr, spot.fadeBottom * dpr)
+        gl.uniform4f(edges, spot.topLeft * dpr, spot.topRight * dpr, spot.bottomLeft * dpr, spot.bottomRight * dpr)
+      })
+      gl.uniform1f(at.uFeather, light.feather * dpr)
       gl.uniform2f(at.uSat, light.base, light.lit)
       gl.activeTexture(gl.TEXTURE0)
       // 움직인 거리를 원본 카메라의 단위로 바꿔야 물결이 커지는 정도가 원본과 같아집니다.

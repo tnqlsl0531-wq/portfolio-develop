@@ -3,7 +3,7 @@ import type { CSSProperties, FocusEvent, MouseEvent, PointerEvent, WheelEvent } 
 import { archiveRows } from '../archivePhotos'
 import type { ArchivePhoto } from '../archivePhotos'
 import CircularGallery from './CircularGallery'
-import type { CircularGalleryHandle, GalleryLight, GalleryTile } from './CircularGallery'
+import type { CircularGalleryHandle, GalleryLight, GallerySpot, GalleryTile } from './CircularGallery'
 import spotlight from '../assets/design/gallery-spotlight.svg'
 import './GalleryArchive.css'
 
@@ -23,7 +23,8 @@ import './GalleryArchive.css'
 export type ArchiveOrigin = { x: number; y: number }
 
 const GAP = 34 // 사진 사이 간격
-// 조명 SVG(피그마 334-43, 978×653)의 사다리꼴 자리. feather = 조명 가장자리에서 채도가 서서히 바뀌는 폭, fade = 아래 끝에서 서서히 사라지는 높이.
+// 조명 SVG(피그마 334-43, 978×653)의 사다리꼴 자리. feather = 조명 가장자리에서 채도가 서서히 바뀌는 폭, fade = 넓은 쪽 끝(빛이 사그라드는 쪽)에서 서서히 사라지는 높이.
+// 10/1: 아랫줄도 조명을 받게 같은 조명을 위아래로 뒤집어 아래 가운데에도 하나 더 둡니다(모래시계 모양, GalleryArchive.css).
 const SPOT = { width: 978, top: 15, topLeft: 288.718, topRight: 682.606, bottom: 638, bottomLeft: 15, bottomRight: 963, feather: 28, fade: 140 }
 const SPEED = 40 // 저절로 흐르는 속도(1초에 40px). 숫자가 작을수록 느려집니다.
 
@@ -110,7 +111,8 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
   const hoverIndex = useRef<number[]>(rows.map(() => -1))
   // 조명 모양(화면 좌표)과 채도 — 창 크기가 바뀔 때마다 다시 잽니다(measureRows).
   const spotlightRef = useRef<HTMLImageElement>(null)
-  const light = useRef<GalleryLight>({ top: 0, topLeft: 0, topRight: 0, bottom: 0, bottomLeft: 0, bottomRight: 0, feather: 1, fade: 1, base: .15, lit: .9 })
+  const spotlightBottomRef = useRef<HTMLImageElement>(null)
+  const light = useRef<GalleryLight>({ spots: [], feather: 1, base: .15, lit: .9 })
   const gallery = useRef<CircularGalleryHandle>(null)
   const [webglReady, setWebglReady] = useState(false)
   const suppressClick = useRef(false)
@@ -128,17 +130,31 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
       return Number.isFinite(value) ? value : fallback
     }
     // 조명(피그마 SVG 978×653 안의 사다리꼴: 윗변 y 15, x 288.718~682.606 / 아랫변 y 638, x 15~963)을 화면 좌표로 옮깁니다.
-    const spot = spotlightRef.current
-    const box = spot?.getBoundingClientRect()
+    // 아래 조명은 위아래로 뒤집혀 있어서(scaleY(-1)) SVG의 y를 거꾸로 셉니다: 넓은 변이 위, 좁은 변이 아래.
     const home = dialog.getBoundingClientRect()
-    if (box && box.width > 0) {
+    const measureSpot = (image: HTMLImageElement | null, flipped: boolean): GallerySpot | null => {
+      const box = image?.getBoundingClientRect()
+      if (!box || box.width <= 0) return null
       const scale = box.width / SPOT.width
       const x = (value: number) => box.left - home.left + value * scale
-      const y = (value: number) => box.top - home.top + value * scale
+      const y = (value: number) => box.top - home.top + (flipped ? box.height / scale - value : value) * scale
+      const narrow = { y: y(SPOT.top), left: x(SPOT.topLeft), right: x(SPOT.topRight) }
+      const wide = { y: y(SPOT.bottom), left: x(SPOT.bottomLeft), right: x(SPOT.bottomRight) }
+      const [upper, lower] = flipped ? [wide, narrow] : [narrow, wide]
+      return {
+        top: upper.y, topLeft: upper.left, topRight: upper.right,
+        bottom: lower.y, bottomLeft: lower.left, bottomRight: lower.right,
+        fadeTop: (flipped ? SPOT.fade : SPOT.feather) * scale,
+        fadeBottom: (flipped ? SPOT.feather : SPOT.fade) * scale,
+      }
+    }
+    const top = measureSpot(spotlightRef.current, false)
+    if (top) {
+      const bottom = measureSpot(spotlightBottomRef.current, true)
       light.current = {
-        top: y(SPOT.top), topLeft: x(SPOT.topLeft), topRight: x(SPOT.topRight),
-        bottom: y(SPOT.bottom), bottomLeft: x(SPOT.bottomLeft), bottomRight: x(SPOT.bottomRight),
-        feather: SPOT.feather * scale, fade: SPOT.fade * scale,
+        spots: bottom ? [top, bottom] : [top],
+        // 조명이 화면에서 커지고 작아진 비율(아랫변 폭 비교)만큼 가장자리 폭도 맞춥니다.
+        feather: SPOT.feather * (top.bottomRight - top.bottomLeft) / (SPOT.bottomRight - SPOT.bottomLeft),
         base: number('--archive-saturate', .15), lit: number('--archive-saturate-lit', .9),
       }
     }
@@ -374,8 +390,10 @@ export default function GalleryArchive({ origin, onClose }: { origin: ArchiveOri
         </svg>
       </button>
 
-      {/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale). 사진을 가리지 않게 맨 뒤에 깔고, 이 안에 들어온 사진만 채도가 살아납니다. */}
+      {/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale)과, 아랫줄을 비추는 아래에서 올라오는 조명(같은 그림을 뒤집음, 10/1).
+          사진을 가리지 않게 맨 뒤에 깔고, 이 안에 들어온 사진만 채도가 살아납니다. */}
       <img ref={spotlightRef} className="archive__spotlight" src={spotlight} alt="" width={978} height={653} />
+      <img ref={spotlightBottomRef} className="archive__spotlight archive__spotlight--bottom" src={spotlight} alt="" width={978} height={653} />
       {/* 사진 그림은 이 캔버스가 그립니다(React Bits Circular Gallery). 아래 버튼들은 그대로 겹쳐 두어 누르기·키보드 이동을 맡습니다. */}
       <CircularGallery ref={gallery} photos={ALL_PHOTOS} borderRadius={.06} className="archive__canvas" />
 

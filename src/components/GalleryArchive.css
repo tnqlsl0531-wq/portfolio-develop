@@ -109,13 +109,15 @@
 .archive__photo:focus-visible { transform: scale(1.04); outline: 2px solid #171717; outline-offset: 0; }
 .archive__photo:focus-visible img { filter: none; }
 
-/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale, 9/30 밤 수정본)과 가운데 제목
+/* 위에서 내려오는 조명(피그마 334-2 Spotlight · Grayscale, 9/30 밤 수정본) · 아래에서 올라오는 조명(10/1)과 가운데 제목
    조명은 폭 948 · 높이 623의 사다리꼴(흐림 7.5, 가장자리 포함 SVG 978×653)이고, 사진을 가리지 않게 맨 뒤(캔버스보다 아래)에 깝니다. */
 .archive__spotlight {
   position: absolute; z-index: 0; top: calc(-15 * var(--gu)); left: 50%;
   width: calc(978 * var(--gu)); height: calc(653 * var(--gu)); max-width: none;
   transform: translateX(-50%); pointer-events: none;
 }
+/* 10/1: 아랫줄은 위 조명이 닿지 않아서, 같은 조명을 위아래로 뒤집어 아래 가운데에서 올려 비춥니다(위 조명과 거울처럼 마주 봄). */
+.archive__spotlight--bottom { top: auto; bottom: calc(-15 * var(--gu)); transform: translateX(-50%) scaleY(-1); }
 .archive__title {
   position: absolute;
   z-index: 1;

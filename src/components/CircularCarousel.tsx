@@ -50,6 +50,8 @@ type Props = {
   /** 안쪽 면을 어둡게 할 색(원본은 검정 고정) */
   innerColor?: string
   cornerRadius?: number
+  /** 카드 두께(px). 0이면 종이처럼 두께 없음. 앞면과 안쪽 면 사이를 띄우고 옆·위·아래 테두리 면을 붙입니다. */
+  thickness?: number
   initialIndex?: number
   label?: string
   /** 사용법 설명 문장의 id(화면 읽기 프로그램용) */
@@ -105,6 +107,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
   innerShade = 0.6,
   innerColor = '#000000',
   cornerRadius = 12,
+  thickness = 0,
   initialIndex = 0,
   label = '카드 회전목마',
   describedBy,
@@ -125,6 +128,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
   }, [])
 
   const cardW = Math.max(40, cardWidth)
+  const depth = Math.max(0, thickness)
   const cardH = cardW * contentHeight / contentWidth
   const contentScale = cardW / contentWidth
   const step = 360 / count
@@ -314,6 +318,9 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         card.style.transform = `rotateY(${base}deg) translateZ(${R}px) scale(var(--cc-scale, 1))`
         const liftValue = `${lift.toFixed(2)}px`
         if (card.style.getPropertyValue('--cc-lift') !== liftValue) card.style.setProperty('--cc-lift', liftValue)
+        // 두께 면은 카드 얼굴이 다 올라온 만큼만 보이게(0 = 숨음, 1 = 다 올라옴) — 올라오기 전에 테두리만 떠 보이지 않게.
+        const shownValue = (1 - Math.min(1, lift / drop)).toFixed(3)
+        if (card.style.getPropertyValue('--cc-shown') !== shownValue) card.style.setProperty('--cc-shown', shownValue)
         const facing = Math.cos(wrap(base + state.angle) * TO_RAD)
         const fade = s.depthFade * Math.pow((1 - facing) / 2, 1.25)
         const depthValue = fade.toFixed(3)
@@ -372,6 +379,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         if (!card) continue
         card.style.transform = `rotateY(${index * settingsRef.current.step}deg) translateZ(${settingsRef.current.radius}px) scale(var(--cc-scale, 1))`
         card.style.setProperty('--cc-lift', `${(settingsRef.current.cardH * 1.04).toFixed(2)}px`)
+        card.style.setProperty('--cc-shown', '0')
       }
       camera.style.transform = `translate3d(0, 0, ${-settingsRef.current.radius}px) rotateX(${settingsRef.current.tilt}deg)`
       ring.style.transform = `rotateY(${state.angle}deg)`
@@ -537,7 +545,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
       <div
         key={`${back ? 'b' : 'f'}${tile.index}`}
         className="circular-carousel__tile"
-        style={{ left: -tile.size / 2, top: -cardH / 2, width: tile.size, height: cardH, transform: tile.move + (back ? ' rotateY(180deg)' : '') }}
+        style={{ left: -tile.size / 2, top: -cardH / 2, width: tile.size, height: cardH, transform: tile.move + (back ? ` translateZ(${-depth}px) rotateY(180deg)` : '') }}
         aria-hidden="true"
       >
         <div className="circular-carousel__frame" style={{ height: cardH, borderRadius: frameRadius }}>
@@ -551,6 +559,45 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
         </div>
       </div>
     )
+  }
+
+  // 카드 두께: 앞면 띠마다 위·아래 테두리 면, 카드 양 끝에 옆 테두리 면을 붙입니다(앞면에서 안쪽으로 depth만큼).
+  // 둥근 모서리 자리(cornerRadius)는 비워 두어 테두리 면이 모서리 밖으로 삐져나오지 않게 합니다.
+  const corner = Math.max(0, Math.min(cornerRadius, cardH / 2))
+  const renderEdges = () => {
+    if (depth <= 0) return null
+    const firstTile = tiles[0]
+    const lastTile = tiles[tiles.length - 1]
+    const rims = tiles.flatMap(tile => {
+      const inLeft = tile.index === 0 ? corner : 0
+      const inRight = tile.index === tile.total - 1 ? corner : 0
+      const width = Math.max(0, tile.size - inLeft - inRight)
+      const shift = (inLeft - inRight) / 2
+      return (['top', 'bottom'] as const).map(side => (
+        <div
+          key={`${side}${tile.index}`}
+          className={`circular-carousel__edge circular-carousel__edge--${side}`}
+          style={{
+            left: -width / 2, top: -depth / 2, width, height: depth,
+            transform: `${tile.move} translate3d(${shift}px, ${side === 'top' ? -cardH / 2 : cardH / 2}px, ${-depth / 2}px) rotateX(90deg)`,
+          }}
+          aria-hidden="true"
+        />
+      ))
+    })
+    const sideHeight = Math.max(0, cardH - corner * 2)
+    const sides = ([['left', firstTile, -1], ['right', lastTile, 1]] as const).map(([side, tile, sign]) => (
+      <div
+        key={side}
+        className={`circular-carousel__edge circular-carousel__edge--side`}
+        style={{
+          left: -depth / 2, top: -sideHeight / 2, width: depth, height: sideHeight,
+          transform: `${tile.move} translate3d(${sign * tile.size / 2}px, 0px, ${-depth / 2}px) rotateY(${sign * 90}deg)`,
+        }}
+        aria-hidden="true"
+      />
+    ))
+    return [...rims, ...sides]
   }
 
   return (
@@ -596,6 +643,7 @@ const CircularCarousel = forwardRef<CircularCarouselHandle, Props>(function Circ
               >
                 {tiles.map(tile => renderTile(index, tile, false))}
                 {tiles.map(tile => renderTile(index, tile, true))}
+                {renderEdges()}
               </div>
             ))}
           </div>
