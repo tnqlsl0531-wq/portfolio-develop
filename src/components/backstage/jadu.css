@@ -71,6 +71,19 @@
 .backstage[data-project='jadu'] .backstage__goal-text > span { color: #c7b7ac; }
 .backstage[data-project='jadu'] .backstage__goal[data-linked] button { border-color: rgb(201 82 79 / 38%); }
 .backstage[data-project='jadu'] .backstage__goal button:hover, .backstage[data-project='jadu'] .backstage__goal button:focus-visible { border-color: var(--bs-orange); box-shadow: 0 0 calc(28 * var(--bu)) rgb(201 82 79 / 12%); }
+/* 자두야는 아직 '움직임 끔'(data-static) 상태라서 위 8번째 줄 규칙이 모든 움직임을 막습니다.
+   CUE 02 카드 교체와 목표 카드 hover만 국순당과 똑같이 다시 켭니다(값은 Backstage.css와 같게). '동작 줄이기' 설정에서는 그대로 꺼 둡니다. */
+@media (prefers-reduced-motion: no-preference) {
+  .backstage[data-static] .backstage__capture { transition: transform 760ms cubic-bezier(.6, .05, .25, 1), filter 760ms ease, clip-path 760ms cubic-bezier(.6, .05, .25, 1), box-shadow 760ms ease !important; }
+  .backstage[data-static] .backstage__capture[data-pose='leaving'] { animation: backstage-card-tuck 760ms cubic-bezier(.55, .05, .3, 1) both !important; }
+  .backstage[data-static] .backstage__goal button { transition: border-color 400ms ease, transform 400ms cubic-bezier(.2, .7, .2, 1), box-shadow 400ms ease !important; }
+  .backstage[data-static] .backstage__goal-no { transition: color 400ms ease !important; }
+  .backstage[data-static] .backstage__deck-next { transition: color 180ms ease !important; }
+  .backstage[data-static] .backstage__deck-next svg { transition: transform 220ms ease !important; }
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .backstage[data-static] .backstage__capture[data-pose='back']:hover { transition-duration: 320ms !important; }
+}
 
 /* CUE 03 */
 .backstage[data-project='jadu'] .jadu-development { position: absolute; left: calc(1060 * var(--bu)); top: calc(278.3418 * var(--bu)); display: flex; flex-direction: column; gap: calc(21.6 * var(--bu)); width: calc(639 * var(--bu)); margin: 0; padding: calc(28.8 * var(--bu)); border-radius: calc(21.6 * var(--bu)); background: #262626; }
