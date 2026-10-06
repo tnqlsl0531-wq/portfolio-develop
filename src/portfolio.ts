@@ -95,8 +95,10 @@ export const projects: Project[] = [
     team: 'Team',
     platform: 'App',
     period: '2026.08 ~ 2026.09',
-    // ON STAGE · GO ONSTAGE → 실제 자두야 앱(10/6). 기획서 PDF가 생기면 public/에 넣고 planUrl을 국순당처럼 추가하면 됩니다.
+    // ON STAGE · GO ONSTAGE → 실제 자두야 앱(10/6)
     url: 'https://jaduya.vercel.app/',
+    // 기획서 PDF(public/jadu-plan.pdf · 49쪽, 피그마 슬라이드에서 뽑은 원본 154MB → 15MB로 줄임). 국순당처럼 새 창으로 엽니다.
+    planUrl: `${import.meta.env.BASE_URL}jadu-plan.pdf`,
   },
 ]
 

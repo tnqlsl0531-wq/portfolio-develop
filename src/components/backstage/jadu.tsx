@@ -57,10 +57,11 @@ const GOALS: Goal[] = [
 // - 왼쪽 기록: 지금 기록만 다 펼쳐지고, 지나온 기록은 '해결' 한 줄만 남고, 남은 기록은 제목만 흐리게 보입니다.
 //   세로선은 스크롤한 만큼 차오릅니다(--seg). 기록을 누르면 그 기록으로 이동합니다.
 // - 폰·터치 태블릿에서는 화면에 붙지 않고, 기록 아래에 그림이 하나씩 이어집니다(같은 내용 · jadu.css 맨 아래).
-// 값 조절: LOG_STARTS = 각 기록이 켜지는 스크롤 위치(1 = jadu.css의 --log-step, 화면 높이의 44%), LOG_SPAN = 붙어 있는 전체 길이.
+// 값 조절: LOG_STARTS = 각 기록이 켜지는 스크롤 위치(1 = jadu.css의 --log-step, 화면 높이의 72%), LOG_SPAN = 붙어 있는 전체 길이.
+// (10/6: 기록이 너무 빨리 넘어가서 한 기록당 44% → 72%로 늘리고, 다섯 기록의 간격을 똑같이 맞춤)
 const COMPACT = '(max-width: 700px), (max-width: 1200px) and (pointer: coarse)'
-const LOG_STARTS = [0, 0.55, 1.55, 2.55, 3.55]
-const LOG_SPAN = 4.35
+const LOG_STARTS = [0, 1, 2, 3, 4]
+const LOG_SPAN = 4.7
 
 // 그림 안의 조각이 차례로 나타나는 순서(--d). 지금 기록이 될 때마다 다시 차례로 나옵니다.
 const pop = (d: number) => ({ '--d': d } as CSSProperties)
@@ -304,17 +305,23 @@ const DESIGN: AiItem[] = [
 
 function AiCrew() {
   const [tab, setTab] = useState(0)
+  // 아직 안 눌러 본 탭에는 작은 점이 깜빡입니다('여기도 탭이에요'). 한 번 누르면 사라집니다.
+  const [seen, setSeen] = useState([true, false])
   const tabs = ['기획 · 분석', '디자인 · 개발']
+  const pick = (next: number) => {
+    setTab(next)
+    setSeen(current => (current[next] ? current : current.map((value, index) => value || index === next)))
+  }
   const keyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? 1 - tab : null
     if (next === null) return
     event.preventDefault()
-    setTab(next)
+    pick(next)
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next].focus()
   }
   return <div className="jadu-ai" data-appear="">
     <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야" style={{ '--tab': tab } as CSSProperties}>
-      {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} onClick={() => setTab(index)} onKeyDown={keyDown}>{label}</button>)}
+      {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} data-new={!seen[index] || undefined} onClick={() => pick(index)} onKeyDown={keyDown}>{label}</button>)}
       <i className="jadu-ai__ink" aria-hidden="true" />
     </div>
     <div className="jadu-ai__panel" role="tabpanel" id={`jadu-ai-panel-${tab}`} aria-labelledby={`jadu-ai-tab-${tab}`} tabIndex={0} data-design={tab === 1 || undefined}>
