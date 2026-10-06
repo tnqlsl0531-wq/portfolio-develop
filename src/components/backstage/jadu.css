@@ -1,0 +1,291 @@
+/* 자두야 전용 디자인: Figma 507:185 (1920 × 9969).
+   --bu는 공통 틀의 1920px 기준 단위. 국순당의 스타일은 변경하지 않습니다. */
+
+.backstage[data-project='jadu'] {
+  --bs-orange: #c9524f;
+  --bs-gothic: 'Min Sans VF', sans-serif;
+}
+.backstage[data-static], .backstage[data-static] *, .backstage[data-static] *::before, .backstage[data-static] *::after { animation: none !important; transition: none !important; }
+.backstage[data-static] [data-appear], .backstage[data-static] .backstage__quote-line, .backstage[data-static] .backstage__next li { opacity: 1; transform: none; }
+.backstage[data-static] .backstage__cue-label i { transform: none; }
+.backstage[data-static] .backstage__cast-photo { transform: none; }
+.backstage[data-static] .backstage__cast-photo::after { display: none; }
+.backstage[data-project='jadu'] .backstage__page { padding-bottom: calc(148.3418 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__floor { background: linear-gradient(to top, #c9524f 14.485%, #272625); }
+.backstage[data-project='jadu'] .backstage__plan { width: calc(250 * var(--bu)); height: calc(53 * var(--bu)); padding: 0; font-size: calc(22 * var(--bu)); background: #b43936; }
+.backstage[data-project='jadu'] .backstage__plan:hover { background: #c9524f; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__cuesheet-text { transform: none; }
+.backstage[data-project='jadu'] .backstage__cuesheet-list { gap: calc(28.5 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cuesheet-text { gap: calc(5 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cuesheet-no { line-height: calc(20 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cuesheet-name { line-height: calc(28 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-no { color: #5d504a; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-name { color: var(--bs-sub); }
+.backstage[data-project='jadu'] .backstage__cuesheet-rail i { display: none; }
+.backstage[data-project='jadu'] .backstage__lamp { width: calc(11.4 * var(--bu)); height: calc(13.3 * var(--bu)); margin-top: 0; border: 0; background: none; box-shadow: none !important; }
+.backstage[data-project='jadu'] .backstage__lamp img { width: calc(11.4 * var(--bu)); height: auto; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__lamp img { position: absolute; left: calc(-13.3 * var(--bu)); top: calc(-11.4 * var(--bu)); width: calc(38 * var(--bu)); height: auto; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item:nth-last-child(2) .backstage__cuesheet-text { font-family: 'Min Sans VF', sans-serif; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item:last-child .backstage__cuesheet-no { font-family: 'Min Sans VF', sans-serif; }
+
+/* CUE 00 */
+.backstage[data-project='jadu'] .backstage__hero { padding-top: calc(110 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__eyebrow { font-family: var(--bs-gothic); line-height: calc(30 * var(--bu)); padding: 0; white-space: pre; }
+.jadu-bulbs { position: relative; display: grid; place-items: center; width: calc(472.98 * var(--bu)); height: calc(65 * var(--bu)); border: calc(1.14 * var(--bu)) solid #4c3b33; border-radius: calc(18.24 * var(--bu)); background: #1e1d1c; }
+.jadu-bulbs img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(451.56 * var(--bu)); height: auto; }
+.backstage[data-project='jadu'] .backstage__hero-cover .project-cover { border-radius: calc(7.5 * var(--bu)); box-shadow: inset 0 0 0 calc(2 * var(--bu)) #acacac; }
+.backstage[data-project='jadu'] .backstage__hero-title { line-height: calc(40 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__hero-meta { align-items: center; justify-content: space-between; width: calc(491 * var(--bu)); height: calc(176 * var(--bu)); gap: 0; }
+.backstage[data-project='jadu'] .backstage__award { gap: calc(10 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__award-text { gap: calc(3.15 * var(--bu)); padding: calc(8.4 * var(--bu)) 0; }
+.backstage[data-project='jadu'] .backstage__award-text strong { font-size: calc(46.2 * var(--bu)); font-weight: 600; line-height: calc(62 * var(--bu)); background-image: linear-gradient(#fae499, #fbdd78); }
+.backstage[data-project='jadu'] .backstage__award-text small { margin: 0; font-size: calc(25 * var(--bu)); font-weight: 500; line-height: calc(33 * var(--bu)); background-image: linear-gradient(#fae499, #fbdd78); }
+.backstage[data-project='jadu'] .backstage__chips { gap: calc(12 * var(--bu)); width: auto; }
+.backstage[data-project='jadu'] .backstage__chips li { font-family: var(--bs-gothic); line-height: calc(20 * var(--bu)); padding: calc(10 * var(--bu)) calc(20 * var(--bu)); border-width: calc(1 * var(--bu)); }
+
+/* 공통 섹션 제목의 Figma 텍스트 박스 높이 */
+.backstage[data-project='jadu'] .backstage__cue-label { line-height: calc(22 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue-label i { height: calc(.81 * var(--bu)); width: calc(38.88 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue-title { line-height: calc(48 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue-sub { font-size: calc(17.82 * var(--bu)); line-height: calc(24 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-label { margin-bottom: calc(10.08 * var(--bu)); gap: calc(9.36 * var(--bu)); font-size: calc(14.4 * var(--bu)); line-height: calc(19 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-label i { width: calc(34.56 * var(--bu)); height: calc(.72 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-title { font-size: calc(32 * var(--bu)); line-height: calc(43 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-sub { margin-top: calc(4.32 * var(--bu)); font-size: calc(16 * var(--bu)); line-height: calc(21 * var(--bu)); }
+
+/* CUE 01 */
+.backstage[data-project='jadu'] .backstage__playbill { border-color: #4c3433; background: linear-gradient(174.724deg, #211f1e 54.886%, #1c1a1a 89.811%); box-shadow: calc(-13 * var(--bu)) calc(4 * var(--bu)) calc(10 * var(--bu)) rgb(0 0 0 / 25%); }
+.backstage[data-project='jadu'] .backstage__playbill-border rect { stroke: #4c3333; }
+.backstage[data-project='jadu'] .backstage__kicker { line-height: calc(17 * var(--bu)); white-space: pre; }
+.backstage[data-project='jadu'] .backstage__playbill-title { line-height: calc(40 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__playbill-text { min-height: calc(88 * var(--bu)); color: #dbc3c3; }
+.backstage[data-project='jadu'] .backstage__credits dt { line-height: calc(20 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__credits dd { line-height: calc(23 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__role-tags { min-height: calc(44 * var(--bu)); color: #ddb3b2; font-family: 'Min Sans VF', sans-serif; white-space: pre; }
+
+/* CUE 02: 설문 원본의 두 영역을 각각 Figma crop 그대로 표시 */
+.jadu-research { width: calc(1320 * var(--bu)); gap: calc(40 * var(--bu)); }
+.jadu-research__browser { flex: none; width: calc(597 * var(--bu)); margin: 0; border: calc(1 * var(--bu)) solid #312b28; border-radius: calc(12 * var(--bu)); overflow: hidden; }
+.jadu-research__browser .backstage__browser-bar { gap: calc(7 * var(--bu)); }
+.jadu-research__browser .backstage__browser-bar img { width: calc(11 * var(--bu)); height: auto; }
+.jadu-research__captures { display: flex; flex-direction: column; gap: calc(14 * var(--bu)); padding: calc(24 * var(--bu)); border: calc(1 * var(--bu)) dashed #8d7b7b; border-radius: 0 0 calc(11 * var(--bu)) calc(11 * var(--bu)); background: #211f1e; }
+.jadu-research__crop { position: relative; overflow: hidden; width: 100%; border-radius: calc(6 * var(--bu)); }
+.jadu-research__crop--chart { aspect-ratio: 609 / 246; }
+.jadu-research__crop--responses { aspect-ratio: 609 / 391; }
+.jadu-research__crop img { position: absolute; max-width: none; width: 457.14%; left: -177.54%; }
+.jadu-research__crop--chart img { height: 637.19%; top: -178.47%; }
+.jadu-research__crop--responses img { height: 400.89%; top: -173.41%; }
+.jadu-objectives { display: flex; flex-direction: column; gap: calc(20 * var(--bu)); width: calc(500 * var(--bu)); list-style: none; padding: 0; margin: 0; }
+.jadu-objectives li { display: flex; gap: calc(16 * var(--bu)); width: 100%; height: calc(152 * var(--bu)); padding: calc(28 * var(--bu)); border: calc(1 * var(--bu)) solid #21201e; border-radius: calc(20 * var(--bu)); background: linear-gradient(-55.96255deg, #121111 13.581%, #1c1a1a 85.358%); }
+.jadu-objectives li > span { flex: none; width: calc(30 * var(--bu)); color: #faf8f7; text-align: center; font-size: calc(24 * var(--bu)); font-weight: 700; line-height: calc(24 * var(--bu)); }
+.jadu-objectives h4 { margin: 0 0 calc(12 * var(--bu)); color: #faf8f7; font-size: calc(22 * var(--bu)); font-weight: 700; line-height: calc(29 * var(--bu)); }
+.jadu-objectives p { font-size: calc(15 * var(--bu)); font-weight: 300; line-height: 1.45; color: #dbc3c3; }
+
+/* CUE 03 */
+.backstage[data-project='jadu'] .jadu-development { position: absolute; left: calc(1060 * var(--bu)); top: calc(278.3418 * var(--bu)); display: flex; flex-direction: column; gap: calc(21.6 * var(--bu)); width: calc(639 * var(--bu)); margin: 0; padding: calc(28.8 * var(--bu)); border-radius: calc(21.6 * var(--bu)); background: #262626; }
+.jadu-development__pair { display: flex; align-items: center; gap: calc(15.3 * var(--bu)); height: calc(478.8 * var(--bu)); }
+.jadu-development__card { flex: none; width: calc(264.6 * var(--bu)); height: 100%; padding: calc(14.4 * var(--bu)); border: calc(.9 * var(--bu)) solid #383838; border-radius: calc(14.4 * var(--bu)); background: #171717; }
+.jadu-development__card--after { border-color: #c9524f; }
+.jadu-development__card p { margin: 0; font-size: calc(10.8 * var(--bu)); font-weight: 600; letter-spacing: .08em; line-height: calc(14.4 * var(--bu)); color: #a3a3a3; }
+.jadu-development__card--after p { color: #c9524f; }
+.jadu-development__card h4 { margin: calc(3.6 * var(--bu)) 0 calc(14.4 * var(--bu)); font-size: calc(19.8 * var(--bu)); font-weight: 500; line-height: calc(27 * var(--bu)); color: #fafafa; }
+.jadu-development__arrow { flex: none; width: calc(21.6 * var(--bu)); color: #c9524f; text-align: center; font: 400 calc(21.6 * var(--bu))/1.333 'Min Sans VF', sans-serif; }
+.jadu-development__crop { position: relative; height: calc(390.6 * var(--bu)); overflow: hidden; border-radius: calc(7.2 * var(--bu)); }
+.jadu-development__crop--before { width: calc(185.831 * var(--bu)); }
+.jadu-development__crop--after { width: calc(164.144 * var(--bu)); }
+.jadu-development__crop img { position: absolute; max-width: none; }
+.jadu-development__crop--before img { width: 127.39%; height: 100.84%; left: 0; top: -.07%; }
+.jadu-development__crop--after img { width: 110.5%; height: 102.04%; left: -9.39%; top: -1.53%; }
+.jadu-development figcaption { display: flex; align-items: center; gap: calc(10.8 * var(--bu)); height: calc(36 * var(--bu)); color: #a3a3a3; font-size: calc(12.6 * var(--bu)); line-height: calc(18 * var(--bu)); }
+.jadu-development figcaption::before { content: ''; flex: none; width: calc(2.7 * var(--bu)); height: calc(28.8 * var(--bu)); background: #c9524f; border-radius: calc(1.35 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__timeline { height: calc(914 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__timeline-line { background: linear-gradient(#c9524f 22.361%, #fbdd78); }
+.backstage[data-project='jadu'] .backstage__timeline-line i { display: none; }
+.backstage[data-project='jadu'] .backstage__log { opacity: 1; }
+.backstage[data-project='jadu'] .backstage__log::before { display: none; }
+.jadu-log-node { position: absolute; left: 0; top: 0; width: calc(32 * var(--bu)); height: auto; }
+.jadu-log-node--opening { left: calc(-22 * var(--bu)); top: calc(-22 * var(--bu)); width: calc(76 * var(--bu)); height: auto; }
+.backstage[data-project='jadu'] .backstage__log-head { line-height: calc(24 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log-arrow { line-height: calc(26 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log-action { line-height: calc(32 * var(--bu)); white-space: nowrap; }
+.backstage[data-project='jadu'] .backstage__log:nth-child(2) .backstage__log-action { font-size: calc(25 * var(--bu)); line-height: calc(33 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log--final .backstage__log-head { color: #fbdd78; }
+.backstage[data-project='jadu'] .backstage__log-result { font-size: calc(26 * var(--bu)); line-height: calc(35 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log-award { color: #fbdd78; font-size: calc(37.8 * var(--bu)); line-height: calc(63 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log-award strong { font-size: calc(46.8 * var(--bu)); font-weight: 700; }
+.backstage[data-project='jadu'] .backstage__log-trophy { left: calc(604 * var(--bu)); top: calc(28.14 * var(--bu)); transform: none; opacity: 1; }
+
+/* CUE 04: 휴대폰 3 → 2. 화면 안에서만 스크롤 가능 */
+.jadu-phones { --phone-unit: var(--bu); display: flex; align-items: center; justify-content: space-between; width: calc(1062 * var(--bu)); }
+.jadu-phones__panel { flex: none; padding: calc(16 * var(--bu)); border-radius: calc(12 * var(--bu)); background: #211f1e; overflow: hidden; }
+.jadu-phones__panel--after { border: calc(1 * var(--bu)) solid rgb(201 82 79 / 45%); padding: calc(15 * var(--bu)); }
+.jadu-phones__panel > p { margin: 0 0 calc(14 * var(--bu)); font: 600 calc(13 * var(--bu))/calc(16 * var(--bu)) var(--bs-gothic); letter-spacing: .12em; color: #8d7e77; }
+.jadu-phones__panel--after > p { color: #c9524f; }
+.jadu-phones__panel > div { display: flex; gap: calc(14 * var(--phone-unit)); }
+.jadu-phones__arrow { font: 700 calc(28 * var(--bu))/normal var(--bs-gothic); color: #c9524f; }
+.jadu-phone { flex: none; width: calc(180 * var(--phone-unit)); display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--bu)); margin: 0; }
+.jadu-phone__screen { position: relative; width: 100%; height: calc(390 * var(--phone-unit)); border-radius: calc(18 * var(--phone-unit)); overflow-x: hidden; overflow-y: auto; background: #272625; scrollbar-width: none; }
+.jadu-phone__screen::-webkit-scrollbar { display: none; }
+.jadu-phone__screen:focus-visible { outline-color: #c9524f; outline-offset: -2px; }
+.jadu-phone__screen img { display: block; max-width: none; width: calc(var(--image-w) * var(--phone-unit)); height: calc(var(--image-h) * var(--phone-unit)); margin-left: calc((180 - var(--image-w)) * .5 * var(--phone-unit)); object-fit: cover; }
+.jadu-phone figcaption { color: #8d7e77; font: 500 calc(13 * var(--bu))/calc(16 * var(--bu)) var(--bs-gothic); }
+.backstage[data-project='jadu'] .backstage__notes { width: calc(1062 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__note { flex: none; width: calc(515 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__note-text { width: calc(507 * var(--bu)); color: #dbc3c3; }
+.backstage[data-project='jadu'] .backstage__note-title { line-height: calc(43 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__note-text { min-height: calc(160 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__note-text strong { color: #e29a98; font-weight: 600; }
+.backstage[data-project='jadu'] .backstage__cue--show .backstage__cue-sub { font-family: var(--bs-gothic); line-height: calc(22 * var(--bu)); }
+
+/* CUE 05: 빈 화면은 추후 추가 */
+.jadu-stage-set { display: flex; flex-direction: column; width: calc(924 * var(--bu)); height: calc(532 * var(--bu)); margin: 0; overflow: hidden; border: calc(.7 * var(--bu)) dashed #5d504a; background: #211f1e; }
+.jadu-stage-set__bar { position: relative; display: flex; align-items: center; height: calc(28 * var(--bu)); flex: none; padding: 0 calc(12.6 * var(--bu)); background: #2e2c2a; }
+.jadu-stage-set__bar img { width: calc(36.4 * var(--bu)); height: auto; }
+.jadu-stage-set__bar p { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: calc(336 * var(--bu)); height: calc(12.6 * var(--bu)); border-radius: calc(6.3 * var(--bu)); color: #8d7e77; background: #211f1e; font: 500 calc(7.7 * var(--bu))/normal var(--bs-gothic); }
+.jadu-stage-set__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(7 * var(--bu)); color: #8d7e77; font: 500 calc(12.6 * var(--bu))/normal var(--bs-gothic); }
+.jadu-stage-set__empty p:first-child { font-size: calc(9.1 * var(--bu)); font-weight: 600; letter-spacing: .3em; }
+
+/* CUE 06: AI 협업 탭 */
+.backstage[data-project='jadu'] .backstage__cue--ai { gap: calc(48 * var(--bu)); padding-bottom: calc(60 * var(--bu)); }
+.jadu-ai { width: calc(860 * var(--bu)); }
+.jadu-ai__tabs { display: flex; gap: calc(32 * var(--bu)); height: calc(56 * var(--bu)); }
+.jadu-ai__tabs button { position: relative; width: calc(182 * var(--bu)); height: calc(56 * var(--bu)); padding: 0; border: 0; background: none; color: #a3a3a3; font-size: calc(20 * var(--bu)); font-weight: 400; line-height: calc(26 * var(--bu)); }
+.jadu-ai__tabs button:nth-child(2) { font-family: 'Min Sans VF', sans-serif; }
+.jadu-ai__tabs button::after { content: ''; position: absolute; left: 0; right: 0; top: calc(54 * var(--bu)); height: calc(1 * var(--bu)); background: #383838; }
+.jadu-ai__tabs button[aria-selected='true'] { color: #fafafa; }
+.jadu-ai__tabs button[aria-selected='true']::after { height: calc(2 * var(--bu)); background: #c9524f; }
+.jadu-ai__panel { height: calc(532 * var(--bu)); margin-top: calc(36 * var(--bu)); padding-top: calc(24 * var(--bu)); }
+.jadu-ai__panel > h4 { margin: 0 0 calc(40 * var(--bu)); color: #fafafa; font-size: calc(28 * var(--bu)); font-weight: 600; line-height: calc(40 * var(--bu)); }
+.jadu-ai__panel[data-design] > h4 { font-family: 'Min Sans VF', sans-serif; }
+.jadu-ai__list { display: flex; flex-direction: column; gap: calc(12 * var(--bu)); padding: 0; margin: 0; list-style: none; }
+.jadu-ai__item { width: 100%; height: calc(128 * var(--bu)); padding: calc(20 * var(--bu)) calc(28 * var(--bu)); border: calc(1 * var(--bu)) solid rgb(255 255 255 / 5%); border-radius: calc(12 * var(--bu)); background: linear-gradient(-78.53955deg, #302f2e 20.508%, #3d3c3b 97.89%); }
+.jadu-ai__head { display: flex; align-items: center; justify-content: space-between; height: calc(40 * var(--bu)); }
+.jadu-ai__head h5 { display: flex; align-items: center; gap: calc(19 * var(--bu)); margin: 0; color: #c9524f; font-size: calc(22 * var(--bu)); font-weight: 500; line-height: calc(32 * var(--bu)); }
+.jadu-ai__head h5 > span { font-weight: 600; }
+.jadu-ai__tools { display: flex; align-items: flex-start; gap: calc(12 * var(--bu)); height: calc(40 * var(--bu)); }
+.jadu-ai__tools > span { color: #a3a3a3; font-size: calc(13 * var(--bu)); font-weight: 500; line-height: calc(20 * var(--bu)); }
+.jadu-ai__tools > div { display: flex; align-items: center; gap: calc(6 * var(--bu)); }
+.jadu-ai__tools img, .jadu-ai__mask { display: block; flex: none; width: calc(40 * var(--bu)); height: calc(40 * var(--bu)); object-fit: cover; }
+.jadu-ai__mask { background: #fafafa; mask-repeat: no-repeat; mask-size: contain; mask-position: center; }
+.jadu-ai__item > p { margin-top: calc(10 * var(--bu)); font-size: calc(18 * var(--bu)); font-weight: 400; line-height: calc(34 * var(--bu)); color: #d4d4d4; }
+.jadu-ai__panel[data-design] .jadu-ai__item > p { font-size: calc(20 * var(--bu)); line-height: 1.4; }
+.jadu-ai__footnote { margin-top: calc(48 * var(--bu)); font-size: calc(13 * var(--bu)); font-weight: 500; line-height: calc(20 * var(--bu)); color: #a3a3a3; }
+
+/* 커튼콜 / 마지막 사진 */
+.backstage[data-project='jadu'] .backstage__cue--call .backstage__cue-label { color: #f29556; }
+.backstage[data-project='jadu'] .backstage__cue--call .backstage__cue-label i { background: #f29556; }
+.backstage[data-project='jadu'] .jadu-call-photo { position: absolute; left: calc(960 * var(--bu)); top: calc(24 * var(--bu)); width: calc(642 * var(--bu)); height: calc(580 * var(--bu)); pointer-events: none; }
+.jadu-call-photo img { width: 100%; height: 100%; object-position: bottom; }
+.jadu-call-photo::after { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 642 580' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(22.63 22.696 -25.122 20.444 321 290)'><stop stop-color='rgba(0,0,0,0)' offset='0'/><stop stop-color='rgba(20,19,19,0.5)' offset='0.5'/><stop stop-color='rgba(39,38,37,1)' offset='1'/></radialGradient></defs></svg>"), linear-gradient(90deg, rgb(39 38 37 / 40%), rgb(39 38 37 / 40%)); }
+.backstage[data-project='jadu'] .backstage__call { position: relative; }
+.backstage[data-project='jadu'] .backstage__quote-line { line-height: 1.45; }
+.backstage[data-project='jadu'] .backstage__quote { min-height: calc(140 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__call-text { width: calc(700 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__next .backstage__kicker { line-height: calc(21 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__next li { height: calc(68 * var(--bu)); }
+.jadu-finale-photo { position: relative; flex: none; width: calc(550 * var(--bu)); height: calc(550 * var(--bu)); }
+.jadu-finale-photo img { position: absolute; left: calc(-43 * var(--bu)); top: calc(-43 * var(--bu)); width: calc(636 * var(--bu)); height: calc(636 * var(--bu)); border-radius: calc(30 * var(--bu)); object-fit: cover; mask-repeat: no-repeat; mask-position: calc(-12.7 * var(--bu)) calc(-12.699 * var(--bu)); mask-size: calc(661.4 * var(--bu)) calc(661.398 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__finale-body > p { line-height: calc(27 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__onstage { color: #c9524f; box-shadow: none; }
+.backstage[data-project='jadu'] .backstage__onstage { width: calc(302 * var(--bu)); height: calc(56 * var(--bu)); }
+
+/* 좁은 화면에는 Figma 데스크톱 구조를 읽기 쉬운 세로 흐름으로 배치 */
+@media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
+  .backstage[data-project='jadu'] .backstage__page { padding-bottom: 90px; }
+  .backstage[data-project='jadu'] .backstage__plan { width: auto; height: 42px; padding: 0 18px; font-size: 15px; }
+  .backstage[data-project='jadu'] .backstage__hero { padding-top: 90px; height: auto; min-height: 660px; }
+  .backstage[data-project='jadu'] .backstage__eyebrow { font-size: 15px; line-height: 22px; }
+  .jadu-bulbs { width: min(76vw, 330px); height: 46px; border-width: 1px; border-radius: 13px; }
+  .jadu-bulbs img { width: 96%; }
+  .backstage[data-project='jadu'] .backstage__hero-title { font-size: 19px; line-height: 1.5; white-space: normal; text-align: center; }
+  .backstage[data-project='jadu'] .backstage__hero-meta { width: 100%; height: auto; gap: 22px; }
+  .backstage[data-project='jadu'] .backstage__award-text { padding: 5px 0; gap: 2px; }
+  .backstage[data-project='jadu'] .backstage__award-text strong { font-size: 34px; line-height: 46px; }
+  .backstage[data-project='jadu'] .backstage__award-text small { font-size: 17px; line-height: 24px; }
+  .backstage[data-project='jadu'] .backstage__chips { justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .backstage[data-project='jadu'] .backstage__chips li { padding: 8px 12px; font-size: 11px; line-height: 16px; border-width: 1px; }
+  .backstage[data-project='jadu'] .backstage__cue-label, .backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-label { font-size: 13px; line-height: 18px; gap: 8px; margin-bottom: 8px; }
+  .backstage[data-project='jadu'] .backstage__cue-label i, .backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-label i { width: 28px; height: 1px; }
+  .backstage[data-project='jadu'] .backstage__cue-title, .backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-title { font-size: 26px; line-height: 1.333; }
+  .backstage[data-project='jadu'] .backstage__cue-sub, .backstage[data-project='jadu'] .backstage__cue--cast .backstage__cue-sub { font-size: 15px; line-height: 1.5; margin-top: 4px; }
+  .backstage[data-project='jadu'] .backstage__kicker { line-height: 17px; }
+  .backstage[data-project='jadu'] .backstage__playbill-title { line-height: 1.4; }
+  .backstage[data-project='jadu'] .backstage__playbill-text, .backstage[data-project='jadu'] .backstage__role-tags { min-height: 0; }
+  .backstage[data-project='jadu'] .backstage__role-tags { white-space: normal; }
+  .backstage[data-project='jadu'] .backstage__credits dt { line-height: 20px; }
+  .backstage[data-project='jadu'] .backstage__credits dd { line-height: 23px; }
+  .jadu-research { width: 100%; gap: 28px; }
+  .jadu-research__browser { width: 100%; border-width: 1px; border-radius: 12px; }
+  .jadu-research__browser .backstage__browser-bar img { width: 9px; }
+  .jadu-research__captures { gap: 10px; padding: 14px; border-width: 1px; border-radius: 0 0 11px 11px; }
+  .jadu-objectives { width: 100%; gap: 12px; }
+  .jadu-objectives li { height: auto; padding: 20px; gap: 14px; border-width: 1px; border-radius: 14px; }
+  .jadu-objectives li > span { width: 24px; font-size: 18px; line-height: 24px; }
+  .jadu-objectives h4 { font-size: 18px; line-height: 24px; margin-bottom: 8px; }
+  .jadu-objectives p { font-size: 14px; }
+  .backstage[data-project='jadu'] .jadu-development { position: relative; left: auto; top: auto; order: 2; width: 100%; padding: 16px; gap: 14px; border-radius: 16px; --tree-unit: calc((100cqw - 32px) / 581.4); }
+  .backstage[data-project='jadu'] .backstage__cue--log { container-type: inline-size; }
+  .jadu-development__pair { gap: calc(15.3 * var(--tree-unit)); height: calc(478.8 * var(--tree-unit)); }
+  .jadu-development__card { width: calc(264.6 * var(--tree-unit)); padding: calc(14.4 * var(--tree-unit)); border-width: 1px; border-radius: 10px; }
+  .jadu-development__card p { font-size: 9px; line-height: 12px; }
+  .jadu-development__card h4 { font-size: 12px; line-height: 18px; margin: 3px 0 8px; }
+  .jadu-development__arrow { width: calc(21.6 * var(--tree-unit)); font-size: 17px; }
+  .jadu-development__crop { height: calc(360 * var(--tree-unit)); }
+  .jadu-development__crop--before { width: calc(185.831 * var(--tree-unit)); }
+  .jadu-development__crop--after { width: calc(164.144 * var(--tree-unit)); }
+  .jadu-development figcaption { height: auto; font-size: 11px; line-height: 1.5; gap: 8px; }
+  .jadu-development figcaption::before { width: 2px; height: 25px; }
+  .backstage[data-project='jadu'] .backstage__timeline { height: auto; }
+  .jadu-log-node { width: 24px; }
+  .jadu-log-node--opening { left: -16px; top: -16px; width: 56px; }
+  .backstage[data-project='jadu'] .backstage__log-head { line-height: 20px; }
+  .backstage[data-project='jadu'] .backstage__log-action, .backstage[data-project='jadu'] .backstage__log:nth-child(2) .backstage__log-action { font-size: 18px; line-height: 1.4; white-space: normal; }
+  .backstage[data-project='jadu'] .backstage__log-result { font-size: 20px; line-height: 1.4; }
+  .backstage[data-project='jadu'] .backstage__log-award { font-size: 18px; line-height: 1.5; }
+  .backstage[data-project='jadu'] .backstage__log-award strong { font-size: 25px; }
+  .jadu-phones { flex-direction: column; width: 100%; gap: 18px; }
+  .jadu-phones__panel { width: 100%; padding: 14px; border-radius: 12px; container-type: inline-size; --phone-unit: calc((100cqw - 20px) / 540); }
+  .jadu-phones__panel--after { border-width: 1px; padding: 14px; --phone-unit: calc((100cqw - 14px) / 360); }
+  .jadu-phones__panel > p { font-size: 11px; line-height: 16px; margin-bottom: 12px; }
+  .jadu-phones__panel > div { gap: 10px; }
+  .jadu-phones__panel--after > div { gap: 14px; }
+  .jadu-phone { gap: 8px; }
+  .jadu-phone figcaption { font-size: 10px; line-height: 15px; }
+  .jadu-phones__arrow { font-size: 24px; transform: rotate(90deg); }
+  .backstage[data-project='jadu'] .backstage__notes, .backstage[data-project='jadu'] .backstage__note, .backstage[data-project='jadu'] .backstage__note-text { width: 100%; }
+  .backstage[data-project='jadu'] .backstage__note-text, .backstage[data-project='jadu'] .backstage__quote { min-height: 0; }
+  .backstage[data-project='jadu'] .backstage__note-title { line-height: 1.333; }
+  .backstage[data-project='jadu'] .backstage__cue--show .backstage__cue-sub { line-height: 1.5; }
+  .jadu-stage-set { width: 100%; height: auto; aspect-ratio: 924 / 532; border-width: 1px; }
+  .jadu-stage-set__bar { height: 28px; padding: 0 12px; }
+  .jadu-stage-set__bar img { width: 36.4px; }
+  .jadu-stage-set__bar p { width: 52%; height: 14px; font-size: 9px; border-radius: 7px; }
+  .jadu-stage-set__empty { font-size: 12px; gap: 7px; }
+  .jadu-stage-set__empty p:first-child { font-size: 9px; }
+  .backstage[data-project='jadu'] .backstage__cue--ai { gap: 28px; padding-bottom: 0; }
+  .jadu-ai { width: 100%; }
+  .jadu-ai__tabs { height: 48px; gap: 16px; }
+  .jadu-ai__tabs button { width: 145px; height: 48px; font-size: 16px; line-height: 24px; }
+  .jadu-ai__tabs button::after { top: 46px; height: 1px; }
+  .jadu-ai__tabs button[aria-selected='true']::after { height: 2px; }
+  .jadu-ai__panel { height: auto; margin-top: 28px; padding-top: 8px; }
+  .jadu-ai__panel > h4 { font-size: 21px; line-height: 1.5; margin-bottom: 24px; }
+  .jadu-ai__list { gap: 12px; }
+  .jadu-ai__item { height: auto; padding: 18px; border-width: 1px; border-radius: 12px; }
+  .jadu-ai__head { height: auto; align-items: flex-start; gap: 12px; }
+  .jadu-ai__head h5 { font-size: 16px; line-height: 24px; gap: 10px; }
+  .jadu-ai__tools { height: auto; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .jadu-ai__tools > span { font-size: 10px; line-height: 14px; }
+  .jadu-ai__tools > div { gap: 4px; }
+  .jadu-ai__tools img, .jadu-ai__mask { width: 24px; height: 24px; }
+  .jadu-ai__item > p, .jadu-ai__panel[data-design] .jadu-ai__item > p { margin-top: 12px; font-size: 14px; line-height: 1.65; }
+  .jadu-ai__footnote { margin-top: 28px; font-size: 11px; line-height: 1.6; }
+  .backstage[data-project='jadu'] .jadu-call-photo { left: auto; right: -20%; top: 30px; width: 90%; height: auto; aspect-ratio: 642 / 580; opacity: .6; }
+  .backstage[data-project='jadu'] .backstage__call-text { width: 100%; }
+  .backstage[data-project='jadu'] .backstage__next .backstage__kicker { line-height: 20px; }
+  .backstage[data-project='jadu'] .backstage__next li { height: auto; border-radius: 10px; }
+  .jadu-finale-photo { width: min(72vw, 420px); height: auto; aspect-ratio: 1; }
+  .jadu-finale-photo img { left: -7.818%; top: -7.818%; width: 115.636%; height: auto; border-radius: 20px; mask-position: -2% -2%; mask-size: 104% 104%; }
+  .backstage[data-project='jadu'] .backstage__finale-body > p { line-height: 27px; }
+  .backstage[data-project='jadu'] .backstage__onstage { width: 250px; height: 52px; }
+}

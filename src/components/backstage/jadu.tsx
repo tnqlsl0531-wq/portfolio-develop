@@ -1,178 +1,210 @@
-import type { CSSProperties } from 'react'
-import { Blank, CaptureDeck, ClipsArrow, Line, LiveStage, Todo } from './parts'
-import type { BackstageContent, Capture, Goal } from './parts'
-import livePoster from '../../assets/backstage/jadu-cue05-poster.webp'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent } from 'react'
+import { Line } from './parts'
+import type { BackstageContent } from './parts'
+import bulbs from '../../assets/backstage/jadu/imgFrame1707486977.svg'
+import trophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid.svg'
+import logTrophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid1.svg'
+import teamPhoto from '../../assets/backstage/jadu/imgImg60931.png'
+import survey from '../../assets/backstage/jadu/imgImage1421.png'
+import browserDot from '../../assets/backstage/jadu/imgEllipse.svg'
+import beforeTree from '../../assets/backstage/jadu/imgBefore.png'
+import afterTree from '../../assets/backstage/jadu/imgAfter.png'
+import logNode1 from '../../assets/backstage/jadu/imgNode.svg'
+import logNode2 from '../../assets/backstage/jadu/imgNode1.svg'
+import logNode3 from '../../assets/backstage/jadu/imgNode2.svg'
+import logNode4 from '../../assets/backstage/jadu/imgNode3.svg'
+import openingNode from '../../assets/backstage/jadu/imgNode4.svg'
+import beforeMonth from '../../assets/backstage/jadu/imgImage.png'
+import beforeSpending from '../../assets/backstage/jadu/imgImage1.png'
+import beforeFixed from '../../assets/backstage/jadu/imgImage2.png'
+import afterDefault from '../../assets/backstage/jadu/imgImage3.png'
+import afterCard from '../../assets/backstage/jadu/imgImage4.png'
+import stageDots from '../../assets/backstage/jadu/imgDots.svg'
+import chatgpt from '../../assets/backstage/jadu/imgFafafa.png'
+import comparisonAi from '../../assets/backstage/jadu/imgFafafa1.png'
+import gemini from '../../assets/backstage/jadu/imgGemini1.png'
+import claude from '../../assets/backstage/jadu/imgClaude1.png'
+import designChatgpt from '../../assets/backstage/jadu/ai2imgFafafa.png'
+import midjourney from '../../assets/backstage/jadu/ai2imgFafafa1.png'
+import designAi from '../../assets/backstage/jadu/ai2imgFafafa2.png'
+import designClaude from '../../assets/backstage/jadu/ai2imgClaude1.png'
+import callPhoto from '../../assets/backstage/jadu/img3.png'
+import finalePhoto from '../../assets/backstage/jadu/imgImg60943.png'
+import finaleMask from '../../assets/backstage/jadu/imgImg60942.svg'
+import lampOff from '../../assets/backstage/jadu/imgLamp2.svg'
+import lampCurrent from '../../assets/backstage/jadu/imgLamp1.svg'
 
-/* 안녕자두야 BACKSTAGE 내용 — 아직 '뼈대'입니다(10/5).
-   국순당과 같은 큐시트 틀에 자리만 잡아 둔 상태라서, 내용이 정해지면 이 파일만 채우면 됩니다.
-   - <Todo label="..." />  : 사진·영상이 들어갈 자리(점선 상자). 그림이 생기면 <img>나 영상 칸으로 바꿉니다.
-   - <Blank>...</Blank>    : 글이 들어갈 자리(점선 밑줄 회색 글자). 글이 정해지면 Blank를 지우고 글만 남깁니다.
-   - 다 채우면 맨 아래 draft: true 를 지웁니다(화면 왼쪽 아래 'DRAFT' 표시가 사라짐).
-   채우는 법은 ./kooksoondang.tsx(완성본)를 보면 됩니다. 이미 알고 있는 것(기간·기관·팀 프로젝트)은 portfolio.ts에 적힌 대로 넣었습니다. */
+// Figma 507:185, 1920 × 9969. 애니메이션은 다음 단계에서 추가합니다.
+// 사진 원본은 유지하고 Figma의 이미지 fill/crop을 CSS로 표현합니다.
+const LOGS = [
+  { node: logNode1, issue: '프로젝트에 맞지 않는 초기 개발 구조', action: 'React 기반으로 개발 환경 재구성' },
+  { node: logNode2, issue: '개별 화면 사이의 연결 필요', action: '사용자 상태와 기능을 하나의 흐름으로 연결' },
+  { node: logNode3, issue: '작은 화면에서 레이아웃 대응 필요', action: '360px 실기기 기준으로 이미지·여백 조정' },
+  { node: logNode4, issue: '공통 파일 충돌과 작업 통합 문제', action: '브랜치와 배포 방식 재정비' },
+]
 
-// CUE 02: 캡처(또는 기획 자료) 두 장 자리. 그림이 생기면 src를 넣고, 목표와 짝인 핀 자리(pins)를 정합니다.
-const CAPTURES: Capture[] = [
-  { alt: '첫 번째 그림 (예: 기획 배경 · 리서치 화면)', height: 696, pins: [] },
-  { alt: '두 번째 그림 (예: 참고한 서비스 · 초기 구조)', height: 511, pins: [] },
+function Research() {
+  return <div className="backstage__script jadu-research">
+    <figure className="jadu-research__browser">
+      <div className="backstage__browser-bar">{[0, 1, 2].map(n => <img key={n} src={browserDot} alt="" />)}</div>
+      <div className="jadu-research__captures">
+        <div className="jadu-research__crop jadu-research__crop--chart"><img src={survey} alt="자취생 설문조사: 생활 속 어려움과 식비 관리 응답" loading="lazy" decoding="async" /></div>
+        <div className="jadu-research__crop jadu-research__crop--responses"><img src={survey} alt="자취생 설문조사: 필요한 서비스와 생활비 관리 응답" loading="lazy" decoding="async" /></div>
+      </div>
+    </figure>
+    <ol className="jadu-objectives">
+      <li><span>01</span><div><h4>사용자 설문조사</h4><p><Line>자취생의 생활 속 어려움과</Line><Line>필요한 도움을 파악했습니다.</Line></p></div></li>
+      <li><span>02</span><div><h4>기존 서비스 비교</h4><p><Line>기존 서비스의 기능과 정보 제공 방식을 비교해</Line><Line>자두야의 기획 방향을 검토했습니다.</Line></p></div></li>
+    </ol>
+  </div>
+}
+
+function DevelopmentComparison() {
+  return <figure className="jadu-development">
+    <div className="jadu-development__pair">
+      <div className="jadu-development__card"><p>BEFORE</p><h4>바닐라 기반</h4><div className="jadu-development__crop jadu-development__crop--before"><img src={beforeTree} alt="바닐라 JavaScript 기반의 초기 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
+      <span className="jadu-development__arrow" aria-hidden="true">→</span>
+      <div className="jadu-development__card jadu-development__card--after"><p>AFTER</p><h4>React 기반</h4><div className="jadu-development__crop jadu-development__crop--after"><img src={afterTree} alt="React 기반으로 재구성한 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
+    </div>
+    <figcaption>AI를 활용해 기존 구조를 정리하고 React 기반으로 재구성했습니다.</figcaption>
+  </figure>
+}
+
+type Phone = { src: string; label: string; imageWidth: number; imageHeight: number; offset?: number }
+const BEFORE_PHONES: Phone[] = [
+  { src: beforeMonth, label: '이번 달', imageWidth: 234, imageHeight: 720, offset: 230.06 },
+  { src: beforeSpending, label: '소비', imageWidth: 234, imageHeight: 694, offset: 150.06 },
+  { src: beforeFixed, label: '고정비', imageWidth: 234, imageHeight: 689, offset: 104.06 },
 ]
-const GOALS: Goal[] = [
-  { title: <Blank>목표 01 제목</Blank>, lines: [<Blank>왜 필요했는지 한두 줄</Blank>], capture: 0 },
-  { title: <Blank>목표 02 제목</Blank>, lines: [<Blank>왜 필요했는지 한두 줄</Blank>], capture: 0 },
-  { title: <Blank>목표 03 제목</Blank>, lines: [<Blank>왜 필요했는지 한두 줄</Blank>], capture: 1 },
+const AFTER_PHONES: Phone[] = [
+  { src: afterDefault, label: '기본 화면', imageWidth: 180, imageHeight: 785 },
+  { src: afterCard, label: '카드 올림', imageWidth: 180, imageHeight: 390 },
 ]
+
+function PhoneShot({ phone }: { phone: Phone }) {
+  const screen = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const element = screen.current
+    if (!element || !phone.offset) return
+    const align = () => { element.scrollTop = phone.offset! * element.clientWidth / 180 }
+    const observer = new ResizeObserver(align)
+    observer.observe(element)
+    align()
+    return () => observer.disconnect()
+  }, [phone.offset])
+  return <figure className="jadu-phone">
+    <div ref={screen} className="jadu-phone__screen" tabIndex={0} aria-label={`${phone.label} 화면, 위아래로 스크롤해 보기`}>
+      <img src={phone.src} alt={`돈 관리 ${phone.label} ${phone.offset ? '초기 시안' : '최종 디자인'}`} loading="lazy" decoding="async" style={{ '--image-w': phone.imageWidth, '--image-h': phone.imageHeight } as CSSProperties} />
+    </div>
+    <figcaption>{phone.label}</figcaption>
+  </figure>
+}
+
+type AiLogo = { src: string; label: string; mask?: boolean }
+type AiItem = { title: string; text: string; logos: AiLogo[] }
+const GPT: AiLogo = { src: chatgpt, label: 'ChatGPT', mask: true }
+const GEMINI: AiLogo = { src: gemini, label: 'Gemini' }
+const PLANNING: AiItem[] = [
+  { title: '자료 탐색', text: 'AI로 1인 가구 관련 통계와 배경 자료를 탐색하고, 프로젝트의 기획 배경을 정리했습니다.', logos: [GPT, GEMINI] },
+  { title: '경쟁사 비교', text: 'AI에 당근·뱅크샐러드·숨고의 SWOT 분석을 요청해, 서비스별 차이를 비교했습니다.', logos: [GPT, { src: comparisonAi, label: '비교 분석 AI', mask: true }, GEMINI] },
+  { title: '설문 응답 분석', text: 'AI로 수집한 설문 응답의 주요 결과를 정리하고, 사용자에게 필요한 도움을 파악했습니다.', logos: [GPT, { src: claude, label: 'Claude' }] },
+]
+const DESIGN_GPT: AiLogo = { src: designChatgpt, label: 'ChatGPT', mask: true }
+const DESIGN_LOGOS: AiLogo[] = [DESIGN_GPT, { src: designAi, label: '디자인 검토 AI', mask: true }, { src: designClaude, label: 'Claude' }]
+// 같은 페이지에 있는 탭 전환 디자인 565:258의 문구·로고입니다.
+const DESIGN: AiItem[] = [
+  { title: '비주얼 소스 제작', text: '직접 정한 콘셉트에 맞춰 AI로 배경 이미지를 제작하고, 프로젝트 분위기에 맞게 선별했습니다.', logos: [DESIGN_GPT, { src: midjourney, label: 'Midjourney', mask: true }] },
+  { title: '디자인 오류 점검', text: '글자 크기·여백·색상 조건을 구체적으로 전달해, 정보 위계와 화면 분위기를 다듬었습니다.', logos: DESIGN_LOGOS },
+  { title: 'AI 활용 개발', text: 'AI로 디자인을 검토하며 놓칠 뻔한 오류를 발견하고 수정했습니다.', logos: DESIGN_LOGOS },
+]
+
+function AiCrew() {
+  const [tab, setTab] = useState(0)
+  const tabs = ['기획 · 분석', '디자인 · 개발']
+  const keyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : ['ArrowLeft', 'ArrowRight'].includes(event.key) ? 1 - tab : null
+    if (next === null) return
+    event.preventDefault()
+    setTab(next)
+    event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next].focus()
+  }
+  return <div className="jadu-ai">
+    <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야">
+      {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} onClick={() => setTab(index)} onKeyDown={keyDown}>{label}</button>)}
+    </div>
+    <div className="jadu-ai__panel" role="tabpanel" id={`jadu-ai-panel-${tab}`} aria-labelledby={`jadu-ai-tab-${tab}`} tabIndex={0} data-design={tab === 1 || undefined}>
+      <h4>{tab === 0 ? 'AI로 자료를 탐색하고 분석했습니다' : 'AI를 디자인과 개발에 활용했습니다'}</h4>
+      <ol className="jadu-ai__list">{(tab === 0 ? PLANNING : DESIGN).map((item, index) => <li key={item.title} className="jadu-ai__item">
+        <div className="jadu-ai__head"><h5><span>{String(index + 1).padStart(2, '0')}</span>{item.title}</h5><div className="jadu-ai__tools"><span>사용한 AI</span><div>{item.logos.map(logo => logo.mask ? <span key={logo.src} role="img" aria-label={logo.label} className="jadu-ai__mask" style={{ maskImage: `url("${logo.src}")` }} /> : <img key={logo.src} src={logo.src} alt={logo.label} loading="lazy" decoding="async" />)}</div></div></div>
+        <p>{item.text}</p>
+      </li>)}</ol>
+    </div>
+    <p className="jadu-ai__footnote">프로젝트 제작 과정에서의 AI 활용입니다. 앱 내 ‘자두 AI’ 기능과는 별개입니다.</p>
+  </div>
+}
 
 export const jaduBackstage: BackstageContent = {
-  eyebrow: 'BACKSTAGE — PROJECT 01',
-  // 히어로 제목 아래: 수상이 있으면 국순당처럼 backstage__award를 칩 위에 넣습니다.
-  heroMeta: (
-    <ul className="backstage__chips">
-      <li>팀 프로젝트</li>
-      <li>AI 챗봇 · 커뮤니티 웹앱</li>
-    </ul>
-  ),
+  eyebrow: 'BACKSTAGE  —  PROJECT 01',
+  heroTitle: 'AI 챗봇 & 커뮤니티 모바일 웹앱 프로젝트',
+  static: true,
+  cueLamps: { off: lampOff, current: lampCurrent },
+  bulbs: <div className="jadu-bulbs" aria-hidden="true"><img src={bulbs} alt="" /></div>,
+  heroMeta: <>
+    <p className="backstage__award"><img src={trophy} width={96} height={114} alt="" /><span className="backstage__award-text"><strong>최우수상</strong><small>프로젝트 전체 부문</small></span></p>
+    <ul className="backstage__chips"><li>팀 프로젝트</li><li>AI 챗봇 · 커뮤니티 웹앱</li><li>Mobile UX/UI</li></ul>
+  </>,
   cues: {
-    // CUE 01 · CAST & CREW: 팀 사진 + 프로젝트 소개 카드
     cast: {
       sub: '이번 프로젝트를 소개합니다',
-      body: (
-        <div className="backstage__cast">
-          <figure className="backstage__cast-photo">
-            <Todo label="팀 사진" hint="정사각형 · 511 × 511" />
-            <i className="backstage__cast-shade" aria-hidden="true" />
-          </figure>
-          <article className="backstage__playbill" data-appear="">
-            <svg className="backstage__playbill-border" aria-hidden="true"><rect x="0.5" y="0.5" rx="20" /></svg>
-            <div className="backstage__playbill-intro">
-              <p className="backstage__kicker">PLAYBILL · NO. 01</p>
-              <h4 className="backstage__playbill-title">AI 챗봇 커뮤니티 웹앱 : 안녕자두야</h4>
-              <p className="backstage__playbill-text">
-                <Line><Blank>어떤 서비스인지 한 줄</Blank></Line>
-                <Line><Blank>누구를 위한 것인지 한 줄</Blank></Line>
-                <Line><Blank>무엇을 목표로 했는지 한두 줄</Blank></Line>
-              </p>
-            </div>
-            <hr />
-            <dl className="backstage__credits">
-              <div><dt>기간</dt><dd>2026.08 ~ 2026.09</dd></div>
-              <div><dt>기관</dt><dd>이젠아카데미DX교육센터</dd></div>
-              <div><dt>팀원</dt><dd><Blank>몇 명</Blank></dd></div>
-            </dl>
-            <hr />
-            <div className="backstage__role">
-              <p className="backstage__kicker">MY ROLE</p>
-              <p className="backstage__role-tags">
-                <Line><Blank>내가 맡은 일 (예: 기획 · 디자인 · 발표)</Blank></Line>
-              </p>
-            </div>
-          </article>
-        </div>
-      ),
+      body: <div className="backstage__cast">
+        <figure className="backstage__cast-photo"><img src={teamPhoto} width={1024} height={1024} alt="안녕자두야 팀 프로젝트 최우수상 수상 단체 사진" loading="lazy" decoding="async" /></figure>
+        <article className="backstage__playbill">
+          <svg className="backstage__playbill-border" aria-hidden="true"><rect x="0.5" y="0.5" rx="20" /></svg>
+          <div className="backstage__playbill-intro"><p className="backstage__kicker">PLAYBILL  ·  NO. 01</p><h4 className="backstage__playbill-title">AI 챗봇 커뮤니티 웹앱 : 안녕자두야</h4><p className="backstage__playbill-text"><Line>AI 챗봇과 커뮤니티로 자취생활을 돕는</Line><Line>모바일 UX/UI 프로젝트입니다.</Line><Line>생활 정보와 복지혜택을 한곳에서 탐색하고,</Line><Line>자신의 상황에 맞는 선택을 돕도록 기획했습니다.</Line></p></div>
+          <hr />
+          <dl className="backstage__credits"><div><dt>기간</dt><dd>2026.08 ~ 2026.09</dd></div><div><dt>기관</dt><dd>이젠아카데미DX교육센터</dd></div><div><dt>팀원</dt><dd>5명</dd></div></dl>
+          <hr />
+          <div className="backstage__role"><p className="backstage__kicker">MY ROLE</p><p className="backstage__role-tags"><Line>브랜드 콘셉트  ·  네이밍 제안  ·  AI 챗봇·복지혜택 UI 디자인</Line><Line>  ·  자료 수집  ·  기획서 구성  ·  발표 슬라이드 디자인</Line></p></div>
+        </article>
+      </div>,
     },
-    // CUE 02 · SCRIPT READING: 왜 만들었는지 — 그림 두 장(카드 교체) + 목표 세 가지
-    script: {
-      sub: '무엇을, 왜 만들려 했나',
-      body: <CaptureDeck captures={CAPTURES} goals={GOALS} />,
-    },
-    // CUE 03 · REHEARSAL LOG: 문제 → 해결 기록 세 개 + 마지막 결과
+    script: { sub: '무엇을, 왜 만들려 했나', body: <Research /> },
     log: {
       sub: '문제를 발견하고 해결해 나간 과정',
-      body: (
-        <ol className="backstage__timeline">
-          <li className="backstage__timeline-line" aria-hidden="true"><i /></li>
-          <li className="backstage__log" style={{ '--node': '#f29556' } as CSSProperties}>
-            <p className="backstage__log-head">LOG 01</p>
-            <p className="backstage__log-issue"><Blank>첫 번째 문제</Blank></p>
-            <p className="backstage__log-arrow" aria-hidden="true">↓</p>
-            <p className="backstage__log-action"><Blank>어떻게 풀었는지</Blank></p>
-          </li>
-          <li className="backstage__log" style={{ '--node': '#eaa840' } as CSSProperties}>
-            <p className="backstage__log-head">LOG 02</p>
-            <p className="backstage__log-issue"><Blank>두 번째 문제</Blank></p>
-            <p className="backstage__log-arrow" aria-hidden="true">↓</p>
-            <p className="backstage__log-action"><Blank>어떻게 풀었는지</Blank></p>
-          </li>
-          <li className="backstage__log" style={{ '--node': '#e2c127' } as CSSProperties}>
-            <p className="backstage__log-head">LOG 03</p>
-            <p className="backstage__log-issue"><Blank>세 번째 문제</Blank></p>
-            <p className="backstage__log-arrow" aria-hidden="true">↓</p>
-            <p className="backstage__log-action"><Blank>어떻게 풀었는지</Blank></p>
-          </li>
-          <li className="backstage__log backstage__log--final">
-            <p className="backstage__log-head">OPENING NIGHT</p>
-            <p className="backstage__log-result"><Blank>마지막에 어떻게 마무리됐는지</Blank></p>
-          </li>
-        </ol>
-      ),
+      backdrop: <DevelopmentComparison />,
+      body: <ol className="backstage__timeline">
+        <li className="backstage__timeline-line" aria-hidden="true"><i /></li>
+        {LOGS.map((log, index) => <li key={log.issue} className="backstage__log"><img className="jadu-log-node" src={log.node} alt="" /><p className="backstage__log-head">LOG {String(index + 1).padStart(2, '0')}</p><p className="backstage__log-issue">{log.issue}</p><p className="backstage__log-arrow" aria-hidden="true">↓</p><p className="backstage__log-action">{log.action}</p></li>)}
+        <li className="backstage__log backstage__log--final"><img className="jadu-log-node jadu-log-node--opening" src={openingNode} alt="" /><p className="backstage__log-head">OPENING NIGHT</p><p className="backstage__log-result">기획부터 구현까지, 하나의 서비스로</p><p className="backstage__log-award">프로젝트 전체 부문 <strong>최우수상 </strong>수상</p><img className="backstage__log-trophy" src={logTrophy} alt="" width={96} height={114} /></li>
+      </ol>,
     },
-    // CUE 04 · REHEARSAL → MAIN SHOW: 시안(BEFORE) → 최종(AFTER) + 피드백과 방향
     show: {
       sub: '시안에서 최종 화면이 완성되기까지',
-      body: (
-        <>
-          <div className="backstage__clips" data-appear="">
-            <figure className="backstage__clip">
-              <Todo label="처음 시안" hint="영상 또는 그림 · 16:9" />
-              <span className="backstage__clip-tag" data-tag="before" aria-hidden="true">BEFORE</span>
-            </figure>
-            <figure className="backstage__clip">
-              <Todo label="최종 화면" hint="영상 또는 그림 · 16:9" />
-              <span className="backstage__clip-tag" data-tag="after" aria-hidden="true">AFTER</span>
-            </figure>
-            <ClipsArrow />
-          </div>
-          <div className="backstage__notes">
-            <div className="backstage__note" data-appear="">
-              <p className="backstage__note-kicker">FEEDBACK</p>
-              <p className="backstage__note-title"><Blank>받은 피드백 한 줄</Blank></p>
-              <p className="backstage__note-text">
-                <Line><Blank>어떤 피드백을 받았고</Blank></Line>
-                <Line><Blank>그래서 무엇을 바꿨는지 서너 줄</Blank></Line>
-              </p>
-            </div>
-            <div className="backstage__note" data-appear="">
-              <p className="backstage__note-kicker">DIRECTION</p>
-              <p className="backstage__note-title"><Blank>내가 잡은 방향 한 줄</Blank></p>
-              <p className="backstage__note-text">
-                <Line><Blank>디자인에서 지키려 한 것</Blank></Line>
-                <Line><Blank>직접 해낸 부분 서너 줄</Blank></Line>
-              </p>
-            </div>
-          </div>
-        </>
-      ),
+      body: <>
+        <div className="jadu-phones"><div className="jadu-phones__panel"><p>BEFORE · 초기 시안</p><div>{BEFORE_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div><span className="jadu-phones__arrow" aria-hidden="true">→</span><div className="jadu-phones__panel jadu-phones__panel--after"><p>AFTER · 최종</p><div>{AFTER_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div></div>
+        <div className="backstage__notes">
+          <div className="backstage__note"><p className="backstage__note-kicker">FEEDBACK</p><h4 className="backstage__note-title">"가독성은 13명 중 8명만"</h4><p className="backstage__note-text"><Line>1차 디자인을 13명에게 보여 주고 반응을 확인했습니다.</Line><Line>현재 레벨 이해와 AI 해결 방식은 92.3%(12명),</Line><Line>메인 탐색은 84.6%(11명)가 긍정적으로 답했습니다.</Line><Line><strong>반면 가독성은 61.5%(8명)로 가장 낮아,</strong></Line><Line>읽기 편한 화면이 가장 큰 숙제로 남았습니다.</Line></p></div>
+          <div className="backstage__note"><p className="backstage__note-kicker">DIRECTION</p><h4 className="backstage__note-title">귀여움은 지키고, 정보는 또렷하게</h4><p className="backstage__note-text"><Line>피드백을 바탕으로 네 가지 방향을 잡았습니다.</Line><Line><strong>핵심 기능 재정리 · 사용자 흐름 연결 ·</strong></Line><Line><strong>UI·인터랙션 통일 · 모바일 사용성 개선.</strong></Line><Line>‘자취하는 두더지’의 친근한 분위기는 살리되, 메인부터</Line><Line>모든 화면을 이 기준으로 다시 다듬었습니다.</Line></p></div>
+        </div>
+      </>,
     },
-    // CUE 05 · STAGE SET: 실제 자두야 사이트(데스크톱 화면 = 폰 안에 앱 + 오른쪽 '어떤 자취생활을 시작해볼까요?')를 틀 안에 그대로 띄웁니다(10/6).
-    // 폰 안에서 스크롤·클릭이 그대로 되고, 오른쪽에서 생활 유형을 고르고 '이 계정으로 시작하기'를 누르면 앱 홈으로 들어갑니다.
-    // poster = 사이트를 불러오기 전(그리고 못 불러올 때) 보이는 그림. 사이트 첫 화면을 1318 × 718로 찍은 것입니다.
     set: {
       sub: '관객 앞에 선보인 최종 무대',
-      body: <LiveStage src="https://jaduya.vercel.app/" label="jaduya.vercel.app" poster={livePoster} title="자두야 앱 데모 화면" />,
+      body: <figure className="jadu-stage-set"><div className="jadu-stage-set__bar"><img src={stageDots} alt="" /><p>안녕자두야</p></div><div className="jadu-stage-set__empty"><p>FINAL · DESKTOP</p><p>최종 화면 캡처가 들어갈 자리</p></div></figure>,
     },
-    // CUE 06 · CURTAIN CALL: 한 줄씩 떠오르는 인용문 + 느낀 점 + 다음 무대
+    ai: { sub: '기획부터 구현까지, AI와 함께한 제작 과정', body: <AiCrew /> },
     call: {
+      // 원본 화면은 CUE 06, 목차는 CUE 07로 표기되어 있어 그대로 보존합니다.
+      no: '06',
       sub: '프로젝트를 마치며',
-      body: (
-        <div className="backstage__call">
-          <blockquote className="backstage__quote" data-appear="">
-            <span className="backstage__quote-line" style={{ '--i': 0 } as CSSProperties}><Blank>“이 프로젝트에서</Blank></span>
-            <span className="backstage__quote-line" style={{ '--i': 1 } as CSSProperties}><Blank>가장 크게 배운 것</Blank></span>
-            <span className="backstage__quote-line" style={{ '--i': 2 } as CSSProperties}><Blank>한 문장.”</Blank></span>
-          </blockquote>
-          <p className="backstage__call-text" data-appear="">
-            <Line><Blank>프로젝트를 하며 느낀 점</Blank></Line>
-            <Line><Blank>어려웠던 것과 얻은 것 네댓 줄</Blank></Line>
-          </p>
-          <div className="backstage__next" data-appear="">
-            <p className="backstage__kicker backstage__kicker--next">NEXT STAGE</p>
-            <ol>
-              <li style={{ '--i': 0 } as CSSProperties}><span>01</span><Blank>다음에 더 잘하고 싶은 것</Blank></li>
-              <li style={{ '--i': 1 } as CSSProperties}><span>02</span><Blank>다음에 더 잘하고 싶은 것</Blank></li>
-            </ol>
-          </div>
-        </div>
-      ),
+      backdrop: <div className="jadu-call-photo" aria-hidden="true"><img src={callPhoto} alt="" loading="lazy" decoding="async" /></div>,
+      body: <div className="backstage__call">
+        <blockquote className="backstage__quote"><span className="backstage__quote-line">“아이디어를 넘어,</span><span className="backstage__quote-line"><em>함께 완성하는 과정</em>을 배웠습니다.”</span></blockquote>
+        <p className="backstage__call-text"><Line>서비스 이름과 아이디어를 제안하고 주요 화면과 기획서를 디자인하며,</Line><Line>생각을 구체적인 결과물로 만드는 경험을 했습니다.</Line><Line>의견이 다를 때는 공동의 목표를 돌아보고,</Line><Line>AI의 결과도 직접 판단하고 검토해야 한다는 것을 배웠습니다.</Line><Line>시안과 구현의 차이를 겪으며, 의도를 공유하고 함께 점검하는 일의 중요성을 느꼈습니다.</Line><Line>최우수상이라는 성과와 아쉬움 모두 다음 협업을 위한 기준이 되었습니다.</Line></p>
+        <div className="backstage__next"><p className="backstage__kicker backstage__kicker--next">NEXT STAGE</p><ol><li><span>01</span>디자인 의도와 구현 기준을 공유하고, 중간 검수 시점 합의하기</li><li><span>02</span>공동 목표에 맞춰 핵심 기능과 우선순위부터 정하기</li></ol></div>
+      </div>,
     },
   },
-  // stage: 커튼 뒤 단체 사진이 생기면 { src, alt, width, height }로 넣습니다.
-  draft: true,
+  finaleArt: <div className="jadu-finale-photo"><img src={finalePhoto} width={1024} height={1024} alt="안녕자두야 최우수상 수상팀 단체 사진" loading="lazy" decoding="async" style={{ maskImage: `url("${finaleMask}")` }} /></div>,
 }

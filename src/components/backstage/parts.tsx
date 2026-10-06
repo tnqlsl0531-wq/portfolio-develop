@@ -7,16 +7,22 @@ import type { CSSProperties, ReactNode } from 'react'
    모양은 전부 ../Backstage.css에 있습니다. */
 
 /* 작품 하나의 백스테이지 내용. 큐 제목(CAST & CREW 등)과 큐시트 목록은 틀에 있고, 여기에는 작품마다 다른 것만 넣습니다. */
-export type CueKind = 'cast' | 'script' | 'log' | 'show' | 'set' | 'call'
+export type CueKind = 'cast' | 'script' | 'log' | 'show' | 'set' | 'ai' | 'call'
 export type CuePart = {
+  no?: string // 디자인에서 목차와 다른 번호를 표시할 때
   sub: string // 큐 제목 아래 한 줄 설명
   backdrop?: ReactNode // 섹션 뒤에 깔리는 사진(없어도 됨)
   body: ReactNode // 섹션 내용
 }
 export type BackstageContent = {
   eyebrow: string // 맨 위 주황 글자(BACKSTAGE — PROJECT 02)
+  heroTitle?: string
+  bulbs?: ReactNode
+  static?: boolean // 레이아웃 구현 단계: 공통 등장·사진·커튼 애니메이션 제외
+  cueLamps?: { off: string; current: string }
+  finaleArt?: ReactNode
   heroMeta: ReactNode // 히어로 제목 아래(수상 · 칩)
-  cues: Record<CueKind, CuePart>
+  cues: Record<Exclude<CueKind, 'ai'>, CuePart> & { ai?: CuePart }
   stage?: { src: string; alt: string; width: number; height: number } // 마지막 커튼 뒤 단체 사진
   draft?: boolean // true면 화면 왼쪽 아래에 '내용 채우는 중' 표시가 뜹니다(내용이 다 차면 지우기)
 }

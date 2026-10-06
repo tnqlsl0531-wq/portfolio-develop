@@ -8,6 +8,7 @@ import type { BackstageContent, CueKind } from './backstage/parts'
 import { kooksoondangBackstage } from './backstage/kooksoondang'
 import { jaduBackstage } from './backstage/jadu'
 import './Backstage.css'
+import './backstage/jadu.css'
 
 /* BACKSTAGE 페이지 — 큐시트 구조(피그마 426-190, 10/1 교체): 작품 선택 화면의 BACKSTAGE를 누르면 열리는 어두운 페이지입니다.
    공연 큐시트처럼 CUE 00(막 오르기 전) → CUE 06(커튼콜) 순서로 내려가고, 맨 끝에 무대 커튼 + GO ONSTAGE가 있습니다.
@@ -48,12 +49,17 @@ const CUES: { no: string; label: string; kind?: CueKind; title?: string }[] = [
   { no: '05', label: '무대 세트', kind: 'set', title: 'STAGE SET' },
   { no: '06', label: '커튼콜', kind: 'call', title: 'CURTAIN CALL' },
 ]
+const JADU_CUES = [
+  ...CUES.slice(0, -1),
+  { no: '06', label: 'AI와의 협업', kind: 'ai' as const, title: 'AI CREW' },
+  { ...CUES[CUES.length - 1], no: '07' },
+]
 
 /* 섹션 제목 묶음(CUE 번호 + 가는 선 · 영문 제목 · 한 줄 설명). 화면에 들어오면 선이 그어지며 떠오릅니다. */
-function CueHead({ index, title, sub }: { index: number; title: string; sub: string }) {
+function CueHead({ index, no, title, sub }: { index: number; no: string; title: string; sub: string }) {
   return (
     <header className="backstage__cue-head" data-appear="">
-      <p className="backstage__cue-label"><span>CUE {CUES[index].no}</span><i aria-hidden="true" /></p>
+      <p className="backstage__cue-label"><span>CUE {no}</span><i aria-hidden="true" /></p>
       <h3 id={`backstage-cue-${index}`} className="backstage__cue-title">{title}</h3>
       <p className="backstage__cue-sub">{sub}</p>
     </header>
@@ -63,23 +69,27 @@ function CueHead({ index, title, sub }: { index: number; title: string; sub: str
 /* ── 큐시트(왼쪽 고정 목차) ─────────────────────────────
    램프: 지난 큐는 은은하게 켜진 채 남고(done), 지금 큐는 주황으로 환하게 켜지며 글자가 조금 앞으로 나오고(current), 남은 큐는 꺼져 있습니다(next).
    세로선은 지나온 만큼 주황으로 차오릅니다(--rail). 마지막 커튼(무대가 준비되었습니다)에 오면 조용히 사라집니다. */
-function CueSheet({ navRef, active, hidden, onJump }: {
+function CueSheet({ navRef, active, hidden, onJump, cues, lamps }: {
   navRef: RefObject<HTMLElement | null>
   active: number
   hidden: boolean
   onJump: (index: number) => void
+  cues: typeof CUES
+  lamps?: BackstageContent['cueLamps']
 }) {
   return (
     <nav ref={navRef} className="backstage__cuesheet" aria-label="큐시트" data-hidden={hidden || undefined}>
       <p className="backstage__cuesheet-title">CUE SHEET</p>
       <ol className="backstage__cuesheet-list">
         <li className="backstage__cuesheet-rail" aria-hidden="true"><i /></li>
-        {CUES.map((cue, index) => (
+        {cues.map((cue, index) => (
           <li key={cue.no} className="backstage__cuesheet-item" style={{ '--i': index } as CSSProperties}
             data-state={index < active ? 'done' : index === active ? 'current' : 'next'}>
             <a href={`#backstage-cue-${index}`} aria-current={index === active ? 'step' : undefined}
               onClick={event => { event.preventDefault(); onJump(index) }}>
-              <span className="backstage__lamp" aria-hidden="true" />
+              <span className="backstage__lamp" aria-hidden="true">
+                {lamps && <img src={index === active ? lamps.current : lamps.off} alt="" />}
+              </span>
               <span className="backstage__cuesheet-text">
                 <span className="backstage__cuesheet-no">CUE {cue.no}</span>
                 <span className="backstage__cuesheet-name">{cue.label}</span>
@@ -94,7 +104,7 @@ function CueSheet({ navRef, active, hidden, onJump }: {
 
 /* ── 스크롤에 맞춰 움직이는 것들을 한곳에서 계산합니다(스크롤 한 번에 한 프레임) ──
    큐시트 램프·세로선 · 맨 위 줄 배경(--intro-fade) · CUE 01 사진 나오기 · CUE 03·06 배경사진 패럴랙스 · CUE 03 기록 불 켜기 */
-function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean, onActive: (index: number, hidden: boolean) => void) {
+function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean, onActive: (index: number, hidden: boolean) => void, staticLayout = false) {
   const onActiveRef = useRef(onActive)
   useEffect(() => { onActiveRef.current = onActive }, [onActive])
   useEffect(() => {
@@ -106,9 +116,9 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
     const sections = [...page.querySelectorAll<HTMLElement>('[data-cue]')]
     const nav = page.querySelector<HTMLElement>('.backstage__cuesheet')
     const lamps = nav ? [...nav.querySelectorAll<HTMLElement>('.backstage__lamp')] : []
-    const cast = page.querySelector<HTMLElement>('.backstage__cast')
-    const backdrops = [...page.querySelectorAll<HTMLElement>('[data-parallax]')]
-    const timeline = page.querySelector<HTMLElement>('.backstage__timeline')
+    const cast = staticLayout ? null : page.querySelector<HTMLElement>('.backstage__cast')
+    const backdrops = staticLayout ? [] : [...page.querySelectorAll<HTMLElement>('[data-parallax]')]
+    const timeline = staticLayout ? null : page.querySelector<HTMLElement>('.backstage__timeline')
     const logs = timeline ? [...timeline.querySelectorAll<HTMLElement>('.backstage__log')] : []
     const finale = page.querySelector<HTMLElement>('.backstage__finale')
     const state = {
@@ -210,16 +220,16 @@ function useBackstageMotion(dialog: RefObject<HTMLDialogElement | null>, isOpen:
       scroller.removeEventListener('scroll', request)
       window.removeEventListener('resize', request)
     }
-  }, [dialog, isOpen])
+  }, [dialog, isOpen, staticLayout])
 }
 
 /* 화면에 들어오면 한 번 떠오르는 요소들([data-appear] → data-shown). 동작 줄이기 설정이면 처음부터 보입니다. */
-function useAppear(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean) {
+function useAppear(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean, staticLayout = false) {
   useEffect(() => {
     const scroller = dialog.current
     if (!scroller || !isOpen) return
     const items = [...scroller.querySelectorAll<HTMLElement>('[data-appear]')]
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (staticLayout || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       items.forEach(item => { item.dataset.shown = '' })
       return
     }
@@ -232,7 +242,7 @@ function useAppear(dialog: RefObject<HTMLDialogElement | null>, isOpen: boolean)
     }, { root: scroller, rootMargin: '0px 0px -12% 0px', threshold: 0.08 })
     items.forEach(item => observer.observe(item))
     return () => observer.disconnect()
-  }, [dialog, isOpen])
+  }, [dialog, isOpen, staticLayout])
 }
 
 export default function Backstage({ project, onClose }: { project: Project | null; onClose: () => void }) {
@@ -241,17 +251,18 @@ export default function Backstage({ project, onClose }: { project: Project | nul
   const [notice, setNotice] = useState('')
   const [cue, setCue] = useState({ active: 0, hidden: false })
   const content = project ? CONTENT[project.id] : undefined
+  const cues = content?.cues.ai ? JADU_CUES : CUES
   const isOpen = project !== null
   const handleActive = useCallback((active: number, hidden: boolean) => setCue({ active, hidden }), [])
-  useBackstageMotion(dialog, isOpen, handleActive)
-  useAppear(dialog, isOpen)
+  useBackstageMotion(dialog, isOpen, handleActive, content?.static)
+  useAppear(dialog, isOpen, content?.static)
 
   // 마지막 단체 사진 + 무대 커튼
   // - 3D 벨벳 커튼(봉·가림막·커튼 두 폭)이 동그란 단체 사진을 늘 덮고 있습니다.
   // - 마우스를 올리면 커서 주변 원(사진 크기의 32%) 안에서만 커튼 너머 단체 사진(원래 색)이 보이고, 커튼은 아주 살짝 찰랑거립니다.
   //   터치 기기는 누른 자리에 원이 나타났다가 1.5초 뒤 사라집니다.
   const stage = useRef<HTMLDivElement>(null)
-  useColorReveal(stage, stage, 0.32, isOpen, { touch: true })
+  useColorReveal(stage, stage, 0.32, isOpen && !content?.static, { touch: true })
   const [curtainHover, setCurtainHover] = useState(false)
   // 커튼 가운데 안내 문구: 처음 마우스를 올리면(터치는 누르면) 천천히 사라지고, 페이지를 닫기 전까지 다시 나오지 않습니다.
   const [hintGone, setHintGone] = useState(false)
@@ -292,14 +303,16 @@ export default function Backstage({ project, onClose }: { project: Project | nul
     const section = scroller?.querySelector<HTMLElement>(`[data-cue="${index}"]`)
     if (!scroller || !section) return
     const top = index === 0 ? 0 : section.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - scroller.clientHeight * 0.12
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = content?.static || window.matchMedia('(prefers-reduced-motion: reduce)').matches
     scroller.scrollTo({ top, behavior: reduced ? 'auto' : 'smooth' })
-  }, [])
+  }, [content?.static])
 
   return (
     <dialog
       ref={dialog}
       className="backstage"
+      data-project={project?.id}
+      data-static={content?.static || undefined}
       aria-labelledby="backstage-title"
       tabIndex={-1}
       onCancel={event => { event.preventDefault(); onClose() }}
@@ -321,33 +334,34 @@ export default function Backstage({ project, onClose }: { project: Project | nul
               </div>
             </div>
 
-            <CueSheet navRef={nav} active={cue.active} hidden={cue.hidden} onJump={jump} />
+            <CueSheet navRef={nav} active={cue.active} hidden={cue.hidden} onJump={jump} cues={cues} lamps={content.cueLamps} />
 
             {/* CUE 00 · 막 오르기 전(히어로): 전구 다섯 개가 차례로 켜지고, 작품 카드와 수상·정보가 떠오릅니다. */}
             <section className="backstage__hero" data-cue="0" aria-labelledby="backstage-title">
               <div className="backstage__hero-top">
                 <p className="backstage__eyebrow">{content.eyebrow}</p>
                 <div className="backstage__marquee">
-                  <div className="backstage__bulbs" aria-hidden="true">
+                  {content.bulbs ?? <div className="backstage__bulbs" aria-hidden="true">
                     {[0, 1, 2, 3, 4].map(index => <i key={index} style={{ '--i': index } as CSSProperties} />)}
-                  </div>
+                  </div>}
                   <ProjectCover project={project} className="backstage__hero-cover" />
                 </div>
               </div>
               <div className="backstage__hero-info">
-                <h2 id="backstage-title" className="backstage__hero-title">{project.title}</h2>
+                <h2 id="backstage-title" className="backstage__hero-title">{content.heroTitle ?? project.title}</h2>
                 <div className="backstage__hero-meta">{content.heroMeta}</div>
               </div>
             </section>
 
             {/* CUE 01~06: 섹션 뼈대(뒤 사진 → 제목 묶음 → 내용)는 같고, 안에 들어가는 내용만 작품마다 다릅니다. */}
-            {CUES.map((item, index) => {
+            {cues.map((item, index) => {
               if (!item.kind || !item.title) return null
               const part = content.cues[item.kind]
+              if (!part) return null
               return (
                 <section key={item.kind} className={`backstage__cue backstage__cue--${item.kind}`} data-cue={index} aria-labelledby={`backstage-cue-${index}`}>
                   {part.backdrop}
-                  <CueHead index={index} title={item.title} sub={part.sub} />
+                  <CueHead index={index} no={part.no ?? item.no} title={item.title} sub={part.sub} />
                   {part.body}
                 </section>
               )
@@ -355,7 +369,7 @@ export default function Backstage({ project, onClose }: { project: Project | nul
 
             {/* 마지막: 무대 커튼 너머의 단체 사진(커서 주변만 보임) + ON STAGE로 가는 버튼 */}
             <section className="backstage__finale" aria-label="무대가 준비되었습니다">
-              <div
+              {content.finaleArt ?? <div
                 ref={stage}
                 className="backstage__stage"
                 onPointerEnter={event => {
@@ -385,7 +399,7 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                   <span className="backstage__curtain-hint-mouse">마우스를 올려보세요 !</span>
                   <span className="backstage__curtain-hint-touch">눌러보세요 !</span>
                 </p>
-              </div>
+              </div>}
               <div className="backstage__finale-body">
                 <p>무대가 준비되었습니다.</p>
                 {project.url ? (

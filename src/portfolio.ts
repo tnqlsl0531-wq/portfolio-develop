@@ -95,6 +95,7 @@ export const projects: Project[] = [
     team: 'Team',
     platform: 'App',
     period: '2026.08 ~ 2026.09',
+    url: 'https://portfolio-develop-ten.vercel.app/',
   },
 ]
 

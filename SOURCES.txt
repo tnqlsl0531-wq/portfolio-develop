@@ -381,3 +381,11 @@ BACKSTAGE 큐시트 구조로 교체 (2026-10-01, 피그마 426-190 · 447-394)
 - 프로그램북 지금 위치 꺾쇠: 꺾쇠마다 따로(지연 90ms) 걸던 애니메이션을 묶음(.program-book__here) 하나에 걸어 같이 움직임.
 - 국순당 기획서 PDF(public/kooksoondang-plan.pdf): 사용자가 준 '국순당 기획서.pdf'(40쪽, 1920×1080pt, 41MB)를 pdftoppm 120dpi(3200×1800) JPEG 품질 84로
   쪽마다 그림으로 바꿔 pikepdf로 다시 묶음(9.2MB). 12쪽 출처 링크 6개(URI)는 같은 자리에 다시 넣음, 제목 '국순당 기획서'. BACKSTAGE '기획서 보러가기' = 이 파일(피그마 덱은 로그인 요구).
+
+자두야 BACKSTAGE React 구현 (2026-10-06)
+- 디자인: https://www.figma.com/design/91q9GLdpPNhT5Xv6cDpKg6?node-id=507-185 (1920 × 9969).
+- AI CREW 두 번째 탭: 같은 파일의 565:258. 첫 번째 탭은 581:1724.
+- src/assets/backstage/jadu/: Figma 디자인 컨텍스트에서 받은 원본 PNG·SVG 32개. 이미지 바이트는 수정하지 않고 원본 위치·crop·마스크를 CSS로 재현.
+- 히어로 두더지: 기존 src/assets/design/jadu-cover-mascot.svg가 같은 그림이므로 ProjectCover를 재사용.
+- 사용자 요청에 따라 페이지의 모든 텍스트는 기존 Min Sans VF로 통일. Gothic A1·Asta Sans 파일은 추가하지 않음.
+- 자두야 전용 CSS와 정적 레이아웃 옵션 사용. STAGE SET 빈 자리와 애니메이션은 추후 추가.

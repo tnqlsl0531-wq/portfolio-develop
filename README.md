@@ -81,7 +81,8 @@ macOS와 Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다.
 | `src/components/StrokePresenter.tsx` | 히어로 오른쪽 위 빨간 테두리 글자(CHOI-SUBIN PRESENTS), 히어로가 멈춘 동안 스크롤한 만큼 그려짐 |
 | `src/components/GalleryArchive.tsx` | Artist Gallery 아카이브 화면·사진 크게 보기 |
 | `src/components/Backstage.tsx` | BACKSTAGE 페이지의 공통 틀(맨 위 줄·큐시트·섹션 뼈대·커튼). 모든 작품이 같이 씀 |
-| `src/components/backstage/kooksoondang.tsx` · `jadu.tsx` | 작품별 BACKSTAGE 내용(글·사진·영상). 국순당은 완성본(고치지 않기), 자두야는 뼈대 |
+| `src/components/backstage/kooksoondang.tsx` · `jadu.tsx` | 작품별 BACKSTAGE 내용. 자두야는 Figma 507:185 구현본(소개·설문·로그·시안 비교·AI 탭·커튼콜) |
+| `src/components/backstage/jadu.css` | 자두야 전용 배치·색상·반응형. 페이지 텍스트는 Min Sans로 통일 |
 | `src/components/backstage/parts.tsx` | BACKSTAGE에서 같이 쓰는 조각(캡처 카드·영상 칸·최종 화면 틀·빈 자리 표시) |
 | `src/hooks/useColorReveal.ts` | 커서 주변 원 안에서만 색이 보이는 효과(히어로·BACKSTAGE 공용) |
 | `src/components/ProjectCover.tsx` | 작품 선택 화면·BACKSTAGE 맨 위의 흰 작품 카드 |
@@ -98,6 +99,8 @@ macOS와 Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다.
 | `src/index.css` | 공통 스타일과 글꼴 |
 
 프로젝트 상세 링크와 일부 사진·소개는 준비 중인 자리입니다. 문의 폼은 기본 메일 앱을 열며, 메일 앱에서 직접 보내야 전송됩니다. 자동 발송 서버는 연결하지 않았습니다.
+
+자두야 BACKSTAGE는 `#backstage-jadu` 주소로 열 수 있습니다. 애니메이션은 추후 추가하도록 `jaduBackstage.static`을 켰고, STAGE SET은 디자인의 빈 캡처 자리를 유지합니다. AI CREW 탭은 Figma의 두 상태(581:1724 · 565:258)를 전환합니다. 기획서 링크는 준비 중이며, GO ONSTAGE 주소는 `src/portfolio.ts`에서 바꿉니다. 원본 디자인에서 커튼콜 본문은 CUE 06, 목차는 CUE 07로 되어 있어 그 표기를 유지했습니다.
 
 ## 확인 명령
 
