@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
-import { Line } from './parts'
-import type { BackstageContent } from './parts'
+import { CaptureDeck, Line } from './parts'
+import type { BackstageContent, Capture, Goal } from './parts'
 import bulbs from '../../assets/backstage/jadu/imgFrame1707486977.svg'
 import trophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid.svg'
 import logTrophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid1.svg'
 import teamPhoto from '../../assets/backstage/jadu/imgImg60931.png'
-import survey from '../../assets/backstage/jadu/imgImage1421.png'
-import browserDot from '../../assets/backstage/jadu/imgEllipse.svg'
+import surveyCard from '../../assets/backstage/jadu/cue02-survey.webp'
+import servicesCard from '../../assets/backstage/jadu/cue02-services.webp'
 import beforeTree from '../../assets/backstage/jadu/imgBefore.png'
 import afterTree from '../../assets/backstage/jadu/imgAfter.png'
 import logNode1 from '../../assets/backstage/jadu/imgNode.svg'
@@ -44,21 +44,16 @@ const LOGS = [
   { node: logNode4, issue: '공통 파일 충돌과 작업 통합 문제', action: '브랜치와 배포 방식 재정비' },
 ]
 
-function Research() {
-  return <div className="backstage__script jadu-research">
-    <figure className="jadu-research__browser">
-      <div className="backstage__browser-bar">{[0, 1, 2].map(n => <img key={n} src={browserDot} alt="" />)}</div>
-      <div className="jadu-research__captures">
-        <div className="jadu-research__crop jadu-research__crop--chart"><img src={survey} alt="자취생 설문조사: 생활 속 어려움과 식비 관리 응답" loading="lazy" decoding="async" /></div>
-        <div className="jadu-research__crop jadu-research__crop--responses"><img src={survey} alt="자취생 설문조사: 필요한 서비스와 생활비 관리 응답" loading="lazy" decoding="async" /></div>
-      </div>
-    </figure>
-    <ol className="jadu-objectives">
-      <li><span>01</span><div><h4>사용자 설문조사</h4><p><Line>자취생의 생활 속 어려움과</Line><Line>필요한 도움을 파악했습니다.</Line></p></div></li>
-      <li><span>02</span><div><h4>기존 서비스 비교</h4><p><Line>기존 서비스의 기능과 정보 제공 방식을 비교해</Line><Line>자두야의 기획 방향을 검토했습니다.</Line></p></div></li>
-    </ol>
-  </div>
-}
+// CUE 02: 국순당과 같은 카드 2장(parts.tsx의 CaptureDeck). 목표를 누르면 짝인 카드가 앞으로 나옵니다.
+// 카드 그림은 피그마 CUE 02 카드 내용(595 × 634)을 2배로 뽑은 것 — 01 설문조사, 02 기존 서비스 비교.
+const CAPTURES: Capture[] = [
+  { src: surveyCard, alt: '자취생 설문조사 결과: 식비 관리에서 가장 어려운 점과 있었으면 하는 기능', height: 634, pins: [] },
+  { src: servicesCard, alt: '기존 서비스 화면 모음: 동네 커뮤니티 · 집 꾸미기 · 생활 서비스 앱', height: 634, pins: [] },
+]
+const GOALS: Goal[] = [
+  { title: '사용자 설문조사', lines: ['자취생의 생활 속 어려움과', '필요한 도움을 파악했습니다.'], capture: 0 },
+  { title: '기존 서비스 비교', lines: ['기존 서비스의 기능과 정보 제공 방식을 비교해', '자두야의 기획 방향을 검토했습니다.'], capture: 1 },
+]
 
 function DevelopmentComparison() {
   return <figure className="jadu-development">
@@ -169,7 +164,7 @@ export const jaduBackstage: BackstageContent = {
         </article>
       </div>,
     },
-    script: { sub: '무엇을, 왜 만들려 했나', body: <Research /> },
+    script: { sub: '무엇을, 왜 만들려 했나', body: <CaptureDeck captures={CAPTURES} goals={GOALS} /> },
     log: {
       sub: '문제를 발견하고 해결해 나간 과정',
       backdrop: <DevelopmentComparison />,
