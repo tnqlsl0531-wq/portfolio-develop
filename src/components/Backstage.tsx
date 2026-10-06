@@ -394,7 +394,7 @@ export default function Backstage({ project, onClose }: { project: Project | nul
                     <div className="backstage__stage-photo backstage__stage-photo--todo" data-reveal=""><span>TO DO</span>커튼 뒤 단체 사진</div>
                   )}
                 </div>
-                <StageCurtain hover={curtainHover} scroller={dialog} />
+                <StageCurtain hover={curtainHover} scroller={dialog} palette={content.curtain} />
                 <p className="backstage__curtain-hint" data-gone={hintGone} aria-hidden="true">
                   <span className="backstage__curtain-hint-mouse">마우스를 올려보세요 !</span>
                   <span className="backstage__curtain-hint-touch">눌러보세요 !</span>

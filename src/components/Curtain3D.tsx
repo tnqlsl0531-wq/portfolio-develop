@@ -25,6 +25,9 @@ export const CURTAIN = {
   rippleOut: 1.1, // 마우스를 뗀 뒤 잦아드는 데 걸리는 시간(초, 대략)
 }
 
+// 작품마다 커튼 색만 바꿀 수 있습니다(안 주면 위 CURTAIN 색 = 국순당). 모양·움직임은 모든 작품이 같습니다.
+export type CurtainPalette = { color: string; sheen: string; valance: string; rod: string }
+
 // 캔버스 = 사진 틀(550 × 550)보다 사방 70씩 큰 690 × 690, 가운데가 사진 틀 가운데 (디자인 px ÷ 100 = 3D 단위)
 const VIEW = { w: 6.9, h: 6.9 }
 const FOV = 30
@@ -174,23 +177,24 @@ function Rod({ material }: { material: THREE.Material }) {
   )
 }
 
-function Scene({ hover, onReady }: { hover: boolean; onReady?: () => void }) {
+function Scene({ hover, onReady, palette }: { hover: boolean; onReady?: () => void; palette?: CurtainPalette }) {
+  const tone = palette ?? CURTAIN
   const level = useRef(0) // 지금 찰랑거리는 정도(0~1), 부드럽게 따라갑니다.
   const target = useRef(0)
   const readySent = useRef(false)
   useEffect(() => { target.current = hover ? 1 : 0 }, [hover])
 
   const velvet = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: CURTAIN.color, roughness: 0.9, metalness: 0,
-    sheen: 1, sheenRoughness: 0.6, sheenColor: new THREE.Color(CURTAIN.sheen),
+    color: tone.color, roughness: 0.9, metalness: 0,
+    sheen: 1, sheenRoughness: 0.6, sheenColor: new THREE.Color(tone.sheen),
     side: THREE.DoubleSide,
-  }), [])
+  }), [tone.color, tone.sheen])
   const valanceMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
-    color: CURTAIN.valance, roughness: 0.85, metalness: 0,
-    sheen: 1, sheenRoughness: 0.5, sheenColor: new THREE.Color(CURTAIN.sheen),
+    color: tone.valance, roughness: 0.85, metalness: 0,
+    sheen: 1, sheenRoughness: 0.5, sheenColor: new THREE.Color(tone.sheen),
     side: THREE.DoubleSide,
-  }), [])
-  const rodMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: CURTAIN.rod, roughness: 0.42, metalness: 0.45 }), [])
+  }), [tone.valance, tone.sheen])
+  const rodMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: tone.rod, roughness: 0.42, metalness: 0.45 }), [tone.rod])
   useEffect(() => () => { velvet.dispose(); valanceMaterial.dispose(); rodMaterial.dispose() }, [velvet, valanceMaterial, rodMaterial])
 
   useFrame((_, rawDelta) => {
@@ -219,7 +223,7 @@ function Scene({ hover, onReady }: { hover: boolean; onReady?: () => void }) {
   )
 }
 
-export default function Curtain3D({ hover, active, onReady }: { hover: boolean; active: boolean; onReady?: () => void }) {
+export default function Curtain3D({ hover, active, onReady, palette }: { hover: boolean; active: boolean; onReady?: () => void; palette?: CurtainPalette }) {
   return (
     <Canvas
       className="backstage__curtain-canvas"
@@ -229,7 +233,7 @@ export default function Curtain3D({ hover, active, onReady }: { hover: boolean; 
       camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
       aria-hidden="true"
     >
-      <Scene hover={hover} onReady={onReady} />
+      <Scene hover={hover} onReady={onReady} palette={palette} />
     </Canvas>
   )
 }

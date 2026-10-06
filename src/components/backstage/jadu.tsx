@@ -21,6 +21,9 @@ import beforeFixed from '../../assets/backstage/jadu/imgImage2.png'
 import afterDefault from '../../assets/backstage/jadu/imgImage3.png'
 import afterCard from '../../assets/backstage/jadu/imgImage4.png'
 import stageDots from '../../assets/backstage/jadu/imgDots.svg'
+import stageShot from '../../assets/backstage/jadu-cue05-stage.webp'
+import stageSheet from '../../assets/backstage/jadu-cue05-sheet.webp'
+import stageTab from '../../assets/backstage/jadu-cue05-tabbar.webp'
 import chatgpt from '../../assets/backstage/jadu/imgFafafa.png'
 import comparisonAi from '../../assets/backstage/jadu/imgFafafa1.png'
 import gemini from '../../assets/backstage/jadu/imgGemini1.png'
@@ -31,11 +34,10 @@ import designAi from '../../assets/backstage/jadu/ai2imgFafafa2.png'
 import designClaude from '../../assets/backstage/jadu/ai2imgClaude1.png'
 import callPhoto from '../../assets/backstage/jadu/img3.png'
 import finalePhoto from '../../assets/backstage/jadu/imgImg60943.png'
-import finaleMask from '../../assets/backstage/jadu/imgImg60942.svg'
 import lampOff from '../../assets/backstage/jadu/imgLamp2.svg'
 import lampCurrent from '../../assets/backstage/jadu/imgLamp1.svg'
 
-// Figma 507:185, 1920 × 9969. 애니메이션은 다음 단계에서 추가합니다.
+// Figma 507:185, 1920 × 9969. 움직임은 국순당과 같은 방식(data-appear · --i · 스크롤 훅)으로 켰습니다(10/6).
 // 사진 원본은 유지하고 Figma의 이미지 fill/crop을 CSS로 표현합니다.
 const LOGS = [
   { node: logNode1, issue: '프로젝트에 맞지 않는 초기 개발 구조', action: 'React 기반으로 개발 환경 재구성' },
@@ -56,7 +58,7 @@ const GOALS: Goal[] = [
 ]
 
 function DevelopmentComparison() {
-  return <figure className="jadu-development">
+  return <figure className="jadu-development" data-appear="">
     <div className="jadu-development__pair">
       <div className="jadu-development__card"><p>BEFORE</p><h4>바닐라 기반</h4><div className="jadu-development__crop jadu-development__crop--before"><img src={beforeTree} alt="바닐라 JavaScript 기반의 초기 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
       <span className="jadu-development__arrow" aria-hidden="true">→</span>
@@ -96,6 +98,31 @@ function PhoneShot({ phone }: { phone: Phone }) {
   </figure>
 }
 
+// CUE 05: 자두야 사이트 첫 화면 그림(1918 × 958) 위에, 폰 화면 자리에만 '내 메뉴' 시트 그림을 얹어 위아래로 스크롤되게 한 무대.
+// 진짜 앱이 아니라 그림 세 장(배경 · 시트 · 탭바)입니다. 실제 앱처럼 시트를 올리면 아래 탭바가 내려가 사라집니다.
+// 숫자는 배경 그림 기준 px — screen: 폰 화면 상자, sheetTop: 접힌 시트의 위쪽, tabTop: 탭바 그림의 위쪽.
+const STAGE = { w: 1918, h: 958, screen: { x: 786.14, y: 133.45, w: 345.72, h: 751.63 }, sheetTop: 627.94, tabTop: 775.5 }
+
+function PhoneScrollStage() {
+  const [up, setUp] = useState(false)
+  const [touched, setTouched] = useState(false)
+  const { screen } = STAGE
+  const box: CSSProperties = { left: `${screen.x / STAGE.w * 100}%`, top: `${screen.y / STAGE.h * 100}%`, width: `${screen.w / STAGE.w * 100}%`, height: `${screen.h / STAGE.h * 100}%` }
+  return <figure className="jadu-stage-set" data-appear="" onPointerEnter={() => setTouched(true)}>
+    <div className="jadu-stage-set__bar"><img src={stageDots} alt="" /><p>안녕자두야</p><a href="https://jaduya.vercel.app/" target="_blank" rel="noreferrer">실제 앱 열기 ↗</a></div>
+    <div className="jadu-stage-set__view">
+      <img className="jadu-stage-set__bg" src={stageShot} width={STAGE.w} height={STAGE.h} alt="안녕자두야 데스크톱 첫 화면. 가운데 폰 안에 앱 홈 화면이 보입니다" loading="lazy" decoding="async" draggable={false} />
+      <div className="jadu-stage-set__screen" style={box}>
+        <div className="jadu-stage-set__scroll" tabIndex={0} aria-label="앱 홈 화면, 위아래로 스크롤해 보기" onScroll={event => { setUp(event.currentTarget.scrollTop > 6); setTouched(true) }}>
+          <img src={stageSheet} width={692} height={1292} alt="홈 화면의 내 메뉴와 추천 카드" loading="lazy" decoding="async" draggable={false} style={{ marginTop: `${(STAGE.sheetTop - screen.y) / screen.w * 100}%` }} />
+        </div>
+        <img className="jadu-stage-set__tab" src={stageTab} width={692} height={219} alt="" aria-hidden="true" data-away={up || undefined} draggable={false} style={{ top: `${(STAGE.tabTop - screen.y) / screen.h * 100}%` }} />
+      </div>
+    </div>
+    <p className="backstage__wheel-hint jadu-stage-set__hint" data-gone={touched || undefined} aria-hidden="true"><i />폰 안에서 스크롤해 보세요</p>
+  </figure>
+}
+
 type AiLogo = { src: string; label: string; mask?: boolean }
 type AiItem = { title: string; text: string; logos: AiLogo[] }
 const GPT: AiLogo = { src: chatgpt, label: 'ChatGPT', mask: true }
@@ -124,7 +151,7 @@ function AiCrew() {
     setTab(next)
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next].focus()
   }
-  return <div className="jadu-ai">
+  return <div className="jadu-ai" data-appear="">
     <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야">
       {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} onClick={() => setTab(index)} onKeyDown={keyDown}>{label}</button>)}
     </div>
@@ -142,7 +169,6 @@ function AiCrew() {
 export const jaduBackstage: BackstageContent = {
   eyebrow: 'BACKSTAGE  —  PROJECT 01',
   heroTitle: 'AI 챗봇 & 커뮤니티 모바일 웹앱 프로젝트',
-  static: true,
   cueLamps: { off: lampOff, current: lampCurrent },
   bulbs: <div className="jadu-bulbs" aria-hidden="true"><img src={bulbs} alt="" /></div>,
   heroMeta: <>
@@ -154,7 +180,7 @@ export const jaduBackstage: BackstageContent = {
       sub: '이번 프로젝트를 소개합니다',
       body: <div className="backstage__cast">
         <figure className="backstage__cast-photo"><img src={teamPhoto} width={1024} height={1024} alt="안녕자두야 팀 프로젝트 최우수상 수상 단체 사진" loading="lazy" decoding="async" /></figure>
-        <article className="backstage__playbill">
+        <article className="backstage__playbill" data-appear="">
           <svg className="backstage__playbill-border" aria-hidden="true"><rect x="0.5" y="0.5" rx="20" /></svg>
           <div className="backstage__playbill-intro"><p className="backstage__kicker">PLAYBILL  ·  NO. 01</p><h4 className="backstage__playbill-title">AI 챗봇 커뮤니티 웹앱 : 안녕자두야</h4><p className="backstage__playbill-text"><Line>AI 챗봇과 커뮤니티로 자취생활을 돕는</Line><Line>모바일 UX/UI 프로젝트입니다.</Line><Line>생활 정보와 복지혜택을 한곳에서 탐색하고,</Line><Line>자신의 상황에 맞는 선택을 돕도록 기획했습니다.</Line></p></div>
           <hr />
@@ -177,29 +203,32 @@ export const jaduBackstage: BackstageContent = {
     show: {
       sub: '시안에서 최종 화면이 완성되기까지',
       body: <>
-        <div className="jadu-phones"><div className="jadu-phones__panel"><p>BEFORE · 초기 시안</p><div>{BEFORE_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div><span className="jadu-phones__arrow" aria-hidden="true">→</span><div className="jadu-phones__panel jadu-phones__panel--after"><p>AFTER · 최종</p><div>{AFTER_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div></div>
+        <div className="jadu-phones" data-appear=""><div className="jadu-phones__panel"><p>BEFORE · 초기 시안</p><div>{BEFORE_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div><span className="jadu-phones__arrow" aria-hidden="true">→</span><div className="jadu-phones__panel jadu-phones__panel--after"><p>AFTER · 최종</p><div>{AFTER_PHONES.map(phone => <PhoneShot key={phone.src} phone={phone} />)}</div></div></div>
         <div className="backstage__notes">
-          <div className="backstage__note"><p className="backstage__note-kicker">FEEDBACK</p><h4 className="backstage__note-title">"가독성은 13명 중 8명만"</h4><p className="backstage__note-text"><Line>1차 디자인을 13명에게 보여 주고 반응을 확인했습니다.</Line><Line>현재 레벨 이해와 AI 해결 방식은 92.3%(12명),</Line><Line>메인 탐색은 84.6%(11명)가 긍정적으로 답했습니다.</Line><Line><strong>반면 가독성은 61.5%(8명)로 가장 낮아,</strong></Line><Line>읽기 편한 화면이 가장 큰 숙제로 남았습니다.</Line></p></div>
-          <div className="backstage__note"><p className="backstage__note-kicker">DIRECTION</p><h4 className="backstage__note-title">귀여움은 지키고, 정보는 또렷하게</h4><p className="backstage__note-text"><Line>피드백을 바탕으로 네 가지 방향을 잡았습니다.</Line><Line><strong>핵심 기능 재정리 · 사용자 흐름 연결 ·</strong></Line><Line><strong>UI·인터랙션 통일 · 모바일 사용성 개선.</strong></Line><Line>‘자취하는 두더지’의 친근한 분위기는 살리되, 메인부터</Line><Line>모든 화면을 이 기준으로 다시 다듬었습니다.</Line></p></div>
+          <div className="backstage__note" data-appear=""><p className="backstage__note-kicker">FEEDBACK</p><h4 className="backstage__note-title">"가독성은 13명 중 8명만"</h4><p className="backstage__note-text"><Line>1차 디자인을 13명에게 보여 주고 반응을 확인했습니다.</Line><Line>현재 레벨 이해와 AI 해결 방식은 92.3%(12명),</Line><Line>메인 탐색은 84.6%(11명)가 긍정적으로 답했습니다.</Line><Line><strong>반면 가독성은 61.5%(8명)로 가장 낮아,</strong></Line><Line>읽기 편한 화면이 가장 큰 숙제로 남았습니다.</Line></p></div>
+          <div className="backstage__note" data-appear=""><p className="backstage__note-kicker">DIRECTION</p><h4 className="backstage__note-title">귀여움은 지키고, 정보는 또렷하게</h4><p className="backstage__note-text"><Line>피드백을 바탕으로 네 가지 방향을 잡았습니다.</Line><Line><strong>핵심 기능 재정리 · 사용자 흐름 연결 ·</strong></Line><Line><strong>UI·인터랙션 통일 · 모바일 사용성 개선.</strong></Line><Line>‘자취하는 두더지’의 친근한 분위기는 살리되, 메인부터</Line><Line>모든 화면을 이 기준으로 다시 다듬었습니다.</Line></p></div>
         </div>
       </>,
     },
     set: {
       sub: '관객 앞에 선보인 최종 무대',
-      body: <figure className="jadu-stage-set"><div className="jadu-stage-set__bar"><img src={stageDots} alt="" /><p>안녕자두야</p></div><div className="jadu-stage-set__empty"><p>FINAL · DESKTOP</p><p>최종 화면 캡처가 들어갈 자리</p></div></figure>,
+      body: <PhoneScrollStage />,
     },
     ai: { sub: '기획부터 구현까지, AI와 함께한 제작 과정', body: <AiCrew /> },
     call: {
       // 원본 화면은 CUE 06, 목차는 CUE 07로 표기되어 있어 그대로 보존합니다.
       no: '06',
       sub: '프로젝트를 마치며',
-      backdrop: <div className="jadu-call-photo" aria-hidden="true"><img src={callPhoto} alt="" loading="lazy" decoding="async" /></div>,
+      backdrop: <div className="jadu-call-photo" aria-hidden="true" data-parallax="0.6"><img src={callPhoto} alt="" loading="lazy" decoding="async" /></div>,
       body: <div className="backstage__call">
-        <blockquote className="backstage__quote"><span className="backstage__quote-line">“아이디어를 넘어,</span><span className="backstage__quote-line"><em>함께 완성하는 과정</em>을 배웠습니다.”</span></blockquote>
-        <p className="backstage__call-text"><Line>서비스 이름과 아이디어를 제안하고 주요 화면과 기획서를 디자인하며,</Line><Line>생각을 구체적인 결과물로 만드는 경험을 했습니다.</Line><Line>의견이 다를 때는 공동의 목표를 돌아보고,</Line><Line>AI의 결과도 직접 판단하고 검토해야 한다는 것을 배웠습니다.</Line><Line>시안과 구현의 차이를 겪으며, 의도를 공유하고 함께 점검하는 일의 중요성을 느꼈습니다.</Line><Line>최우수상이라는 성과와 아쉬움 모두 다음 협업을 위한 기준이 되었습니다.</Line></p>
-        <div className="backstage__next"><p className="backstage__kicker backstage__kicker--next">NEXT STAGE</p><ol><li><span>01</span>디자인 의도와 구현 기준을 공유하고, 중간 검수 시점 합의하기</li><li><span>02</span>공동 목표에 맞춰 핵심 기능과 우선순위부터 정하기</li></ol></div>
+        <blockquote className="backstage__quote" data-appear=""><span className="backstage__quote-line" style={{ '--i': 0 } as CSSProperties}>“아이디어를 넘어,</span><span className="backstage__quote-line" style={{ '--i': 1 } as CSSProperties}><em>함께 완성하는 과정</em>을 배웠습니다.”</span></blockquote>
+        <p className="backstage__call-text" data-appear=""><Line>서비스 이름과 아이디어를 제안하고 주요 화면과 기획서를 디자인하며,</Line><Line>생각을 구체적인 결과물로 만드는 경험을 했습니다.</Line><Line>의견이 다를 때는 공동의 목표를 돌아보고,</Line><Line>AI의 결과도 직접 판단하고 검토해야 한다는 것을 배웠습니다.</Line><Line>시안과 구현의 차이를 겪으며, 의도를 공유하고 함께 점검하는 일의 중요성을 느꼈습니다.</Line><Line>최우수상이라는 성과와 아쉬움 모두 다음 협업을 위한 기준이 되었습니다.</Line></p>
+        <div className="backstage__next" data-appear=""><p className="backstage__kicker backstage__kicker--next">NEXT STAGE</p><ol><li style={{ '--i': 0 } as CSSProperties}><span>01</span>디자인 의도와 구현 기준을 공유하고, 중간 검수 시점 합의하기</li><li style={{ '--i': 1 } as CSSProperties}><span>02</span>공동 목표에 맞춰 핵심 기능과 우선순위부터 정하기</li></ol></div>
       </div>,
     },
   },
-  finaleArt: <div className="jadu-finale-photo"><img src={finalePhoto} width={1024} height={1024} alt="안녕자두야 최우수상 수상팀 단체 사진" loading="lazy" decoding="async" style={{ maskImage: `url("${finaleMask}")` }} /></div>,
+  // 마지막 무대: 국순당과 같은 3D 벨벳 커튼(마우스를 올리면 커서 주변만 사진이 보임). 모양·움직임·안내 문구는 공통이고 색만 다릅니다.
+  // 커튼 색 = 자두야 빨강(#c9524f)을 깊게 가라앉힌 버건디(와인빛) 벨벳 + 장밋빛 광택 + 앤티크 골드 봉(수상 글자의 금빛 #fbdd78과 같은 계열).
+  stage: { src: finalePhoto, alt: '안녕자두야 최우수상 수상팀 단체 사진', width: 1024, height: 1024 },
+  curtain: { color: '#47111f', sheen: '#db8f9b', valance: '#330b16', rod: '#b0915a' },
 }

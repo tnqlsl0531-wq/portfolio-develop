@@ -71,19 +71,6 @@
 .backstage[data-project='jadu'] .backstage__goal-text > span { color: #c7b7ac; }
 .backstage[data-project='jadu'] .backstage__goal[data-linked] button { border-color: rgb(201 82 79 / 38%); }
 .backstage[data-project='jadu'] .backstage__goal button:hover, .backstage[data-project='jadu'] .backstage__goal button:focus-visible { border-color: var(--bs-orange); box-shadow: 0 0 calc(28 * var(--bu)) rgb(201 82 79 / 12%); }
-/* 자두야는 아직 '움직임 끔'(data-static) 상태라서 위 8번째 줄 규칙이 모든 움직임을 막습니다.
-   CUE 02 카드 교체와 목표 카드 hover만 국순당과 똑같이 다시 켭니다(값은 Backstage.css와 같게). '동작 줄이기' 설정에서는 그대로 꺼 둡니다. */
-@media (prefers-reduced-motion: no-preference) {
-  .backstage[data-static] .backstage__capture { transition: transform 760ms cubic-bezier(.6, .05, .25, 1), filter 760ms ease, clip-path 760ms cubic-bezier(.6, .05, .25, 1), box-shadow 760ms ease !important; }
-  .backstage[data-static] .backstage__capture[data-pose='leaving'] { animation: backstage-card-tuck 760ms cubic-bezier(.55, .05, .3, 1) both !important; }
-  .backstage[data-static] .backstage__goal button { transition: border-color 400ms ease, transform 400ms cubic-bezier(.2, .7, .2, 1), box-shadow 400ms ease !important; }
-  .backstage[data-static] .backstage__goal-no { transition: color 400ms ease !important; }
-  .backstage[data-static] .backstage__deck-next { transition: color 180ms ease !important; }
-  .backstage[data-static] .backstage__deck-next svg { transition: transform 220ms ease !important; }
-}
-@media (prefers-reduced-motion: no-preference) and (hover: hover) {
-  .backstage[data-static] .backstage__capture[data-pose='back']:hover { transition-duration: 320ms !important; }
-}
 
 /* CUE 03 */
 .backstage[data-project='jadu'] .jadu-development { position: absolute; left: calc(1060 * var(--bu)); top: calc(278.3418 * var(--bu)); display: flex; flex-direction: column; gap: calc(21.6 * var(--bu)); width: calc(639 * var(--bu)); margin: 0; padding: calc(28.8 * var(--bu)); border-radius: calc(21.6 * var(--bu)); background: #262626; }
@@ -105,7 +92,6 @@
 .backstage[data-project='jadu'] .backstage__timeline { height: calc(914 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__timeline-line { background: linear-gradient(#c9524f 22.361%, #fbdd78); }
 .backstage[data-project='jadu'] .backstage__timeline-line i { display: none; }
-.backstage[data-project='jadu'] .backstage__log { opacity: 1; }
 .backstage[data-project='jadu'] .backstage__log::before { display: none; }
 .jadu-log-node { position: absolute; left: 0; top: 0; width: calc(32 * var(--bu)); height: auto; }
 .jadu-log-node--opening { left: calc(-22 * var(--bu)); top: calc(-22 * var(--bu)); width: calc(76 * var(--bu)); height: auto; }
@@ -117,7 +103,7 @@
 .backstage[data-project='jadu'] .backstage__log-result { font-size: calc(26 * var(--bu)); line-height: calc(35 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__log-award { color: #fbdd78; font-size: calc(37.8 * var(--bu)); line-height: calc(63 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__log-award strong { font-size: calc(46.8 * var(--bu)); font-weight: 700; }
-.backstage[data-project='jadu'] .backstage__log-trophy { left: calc(604 * var(--bu)); top: calc(28.14 * var(--bu)); transform: none; opacity: 1; }
+.backstage[data-project='jadu'] .backstage__log-trophy { left: calc(604 * var(--bu)); top: calc(28.14 * var(--bu)); }
 
 /* CUE 04: 휴대폰 3 → 2. 화면 안에서만 스크롤 가능 */
 .jadu-phones { --phone-unit: var(--bu); display: flex; align-items: center; justify-content: space-between; width: calc(1062 * var(--bu)); }
@@ -142,12 +128,24 @@
 .backstage[data-project='jadu'] .backstage__cue--show .backstage__cue-sub { font-family: var(--bs-gothic); line-height: calc(22 * var(--bu)); }
 
 /* CUE 05: 빈 화면은 추후 추가 */
-.jadu-stage-set { display: flex; flex-direction: column; width: calc(924 * var(--bu)); height: calc(532 * var(--bu)); margin: 0; overflow: hidden; border: calc(.7 * var(--bu)) dashed #5d504a; background: #211f1e; }
+.jadu-stage-set { display: flex; flex-direction: column; width: calc(924 * var(--bu)); margin: 0; overflow: hidden; border: calc(.7 * var(--bu)) solid #5d504a; background: #211f1e; }
 .jadu-stage-set__bar { position: relative; display: flex; align-items: center; height: calc(28 * var(--bu)); flex: none; padding: 0 calc(12.6 * var(--bu)); background: #2e2c2a; }
 .jadu-stage-set__bar img { width: calc(36.4 * var(--bu)); height: auto; }
 .jadu-stage-set__bar p { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: calc(336 * var(--bu)); height: calc(12.6 * var(--bu)); border-radius: calc(6.3 * var(--bu)); color: #8d7e77; background: #211f1e; font: 500 calc(7.7 * var(--bu))/normal var(--bs-gothic); }
-.jadu-stage-set__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(7 * var(--bu)); color: #8d7e77; font: 500 calc(12.6 * var(--bu))/normal var(--bs-gothic); }
-.jadu-stage-set__empty p:first-child { font-size: calc(9.1 * var(--bu)); font-weight: 600; letter-spacing: .3em; }
+.jadu-stage-set { position: relative; }
+.jadu-stage-set__bar a { position: relative; margin-left: auto; color: #8d7e77; font: 500 calc(11 * var(--bu))/1 var(--bs-gothic); letter-spacing: .02em; text-decoration: none; transition: color 180ms ease; }
+.jadu-stage-set__bar a:hover, .jadu-stage-set__bar a:focus-visible { color: #faf8f7; }
+/* 배경 그림 위에 폰 화면 상자(둥근 모서리로 자름) → 그 안에서 시트 그림이 스크롤, 탭바 그림은 스크롤 밖에 따로 */
+.jadu-stage-set__view { position: relative; aspect-ratio: 1918 / 958; overflow: hidden; background: #96d4f9; }
+.jadu-stage-set__bg { display: block; width: 100%; height: 100%; }
+.jadu-stage-set__screen { position: absolute; overflow: hidden; border-radius: 12.19% / 5.61%; }
+.jadu-stage-set__scroll { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+.jadu-stage-set__scroll::-webkit-scrollbar { display: none; }
+.jadu-stage-set__scroll:focus-visible { outline: 2px solid #c9524f; outline-offset: -2px; }
+.jadu-stage-set__scroll img { display: block; width: 100%; height: auto; max-width: none; }
+.jadu-stage-set__tab { position: absolute; left: 0; width: 100%; height: auto; max-width: none; pointer-events: none; transition: transform 380ms cubic-bezier(.3, .7, .2, 1), opacity 380ms ease; }
+.jadu-stage-set__tab[data-away] { transform: translate3d(0, 105%, 0); opacity: 0; }
+.backstage__wheel-hint.jadu-stage-set__hint { left: 21%; bottom: 8%; }
 
 /* CUE 06: AI 협업 탭 */
 .backstage[data-project='jadu'] .backstage__cue--ai { gap: calc(48 * var(--bu)); padding-bottom: calc(60 * var(--bu)); }
@@ -187,8 +185,8 @@
 .backstage[data-project='jadu'] .backstage__call-text { width: calc(700 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__next .backstage__kicker { line-height: calc(21 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__next li { height: calc(68 * var(--bu)); }
-.jadu-finale-photo { position: relative; flex: none; width: calc(550 * var(--bu)); height: calc(550 * var(--bu)); }
-.jadu-finale-photo img { position: absolute; left: calc(-43 * var(--bu)); top: calc(-43 * var(--bu)); width: calc(636 * var(--bu)); height: calc(636 * var(--bu)); border-radius: calc(30 * var(--bu)); object-fit: cover; mask-repeat: no-repeat; mask-position: calc(-12.7 * var(--bu)) calc(-12.699 * var(--bu)); mask-size: calc(661.4 * var(--bu)) calc(661.398 * var(--bu)); }
+/* 마지막 무대: 공통 커튼 무대(.backstage__stage)를 씁니다. 자두야 단체 사진은 정사각형이라 피그마 자리(636 × 636, 틀 가운데)에만 맞춥니다. */
+.backstage[data-project='jadu'] .backstage__stage-art img { inset: auto; left: calc(21.96 * var(--su)); top: calc(49.39 * var(--su)); width: calc(636 * var(--su)); height: calc(636 * var(--su)); object-fit: cover; }
 .backstage[data-project='jadu'] .backstage__finale-body > p { line-height: calc(27 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__onstage { color: #c9524f; box-shadow: none; }
 .backstage[data-project='jadu'] .backstage__onstage { width: calc(302 * var(--bu)); height: calc(56 * var(--bu)); }
@@ -251,12 +249,13 @@
   .backstage[data-project='jadu'] .backstage__note-text, .backstage[data-project='jadu'] .backstage__quote { min-height: 0; }
   .backstage[data-project='jadu'] .backstage__note-title { line-height: 1.333; }
   .backstage[data-project='jadu'] .backstage__cue--show .backstage__cue-sub { line-height: 1.5; }
-  .jadu-stage-set { width: 100%; height: auto; aspect-ratio: 924 / 532; border-width: 1px; }
+  .jadu-stage-set { width: 100%; height: auto; border-width: 1px; }
+  .jadu-stage-set__bar a { font-size: 10px; }
+  .jadu-stage-set__screen { pointer-events: none; }
+  .jadu-stage-set__hint { display: none; }
   .jadu-stage-set__bar { height: 28px; padding: 0 12px; }
   .jadu-stage-set__bar img { width: 36.4px; }
   .jadu-stage-set__bar p { width: 52%; height: 14px; font-size: 9px; border-radius: 7px; }
-  .jadu-stage-set__empty { font-size: 12px; gap: 7px; }
-  .jadu-stage-set__empty p:first-child { font-size: 9px; }
   .backstage[data-project='jadu'] .backstage__cue--ai { gap: 28px; padding-bottom: 0; }
   .jadu-ai { width: 100%; }
   .jadu-ai__tabs { height: 48px; gap: 16px; }
@@ -279,8 +278,34 @@
   .backstage[data-project='jadu'] .backstage__call-text { width: 100%; }
   .backstage[data-project='jadu'] .backstage__next .backstage__kicker { line-height: 20px; }
   .backstage[data-project='jadu'] .backstage__next li { height: auto; border-radius: 10px; }
-  .jadu-finale-photo { width: min(72vw, 420px); height: auto; aspect-ratio: 1; }
-  .jadu-finale-photo img { left: -7.818%; top: -7.818%; width: 115.636%; height: auto; border-radius: 20px; mask-position: -2% -2%; mask-size: 104% 104%; }
   .backstage[data-project='jadu'] .backstage__finale-body > p { line-height: 27px; }
   .backstage[data-project='jadu'] .backstage__onstage { width: 250px; height: 52px; }
 }
+
+/* ── 움직임(10/6): 자두야도 국순당과 같은 방식으로 켭니다 ──
+   공통 틀이 해 주는 것: [data-appear] 떠오르기 · CUE 01 사진 나오기 · CUE 03 기록 불 켜기 · 인용문/NEXT 차례로.
+   아래는 자두야에만 있는 조각의 움직임입니다. '동작 줄이기' 설정에서는 전부 꺼지고 처음부터 다 보입니다. */
+.jadu-call-photo img { transform: translate3d(0, var(--parallax, 0px), 0); will-change: transform; }
+@keyframes jadu-item-in { from { opacity: 0; transform: translate3d(0, calc(14 * var(--bu)), 0); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* 히어로 전구: 한 장짜리 그림이라 통째로 깜빡이며 켜집니다 */
+  .backstage[open] .jadu-bulbs img { animation: backstage-bulb-on 1400ms ease 350ms both; }
+  /* CUE 04: BEFORE 판 → 폰 3개가 차례로 → 화살표 → AFTER 판 → 폰 2개 */
+  .jadu-phones[data-appear] { opacity: 1; transform: none; }
+  .jadu-phones[data-appear] .jadu-phones__panel, .jadu-phones[data-appear] .jadu-phones__arrow { opacity: 0; transition: opacity 700ms ease; }
+  .jadu-phones[data-appear] .jadu-phone { opacity: 0; transform: translate3d(0, calc(22 * var(--bu)), 0); transition: opacity 700ms ease, transform 900ms cubic-bezier(.2, .7, .2, 1); }
+  .jadu-phones[data-shown] .jadu-phones__panel, .jadu-phones[data-shown] .jadu-phones__arrow, .jadu-phones[data-shown] .jadu-phone { opacity: 1; transform: none; }
+  .jadu-phones .jadu-phone:nth-child(1) { transition-delay: 140ms; }
+  .jadu-phones .jadu-phone:nth-child(2) { transition-delay: 260ms; }
+  .jadu-phones .jadu-phone:nth-child(3) { transition-delay: 380ms; }
+  .jadu-phones[data-appear] .jadu-phones__arrow { transition-delay: 640ms; }
+  .jadu-phones[data-appear] .jadu-phones__panel--after { transition-delay: 780ms; }
+  .jadu-phones .jadu-phones__panel--after .jadu-phone:nth-child(1) { transition-delay: 900ms; }
+  .jadu-phones .jadu-phones__panel--after .jadu-phone:nth-child(2) { transition-delay: 1020ms; }
+  /* CUE 06: 항목이 차례로 들어옵니다(처음 보일 때와 탭을 바꿀 때) */
+  .jadu-ai__item { animation: jadu-item-in 600ms cubic-bezier(.2, .7, .2, 1) both; }
+  .jadu-ai__item:nth-child(2) { animation-delay: 90ms; }
+  .jadu-ai__item:nth-child(3) { animation-delay: 180ms; }
+  .jadu-ai:not([data-shown]) .jadu-ai__item { animation-play-state: paused; }
+}
+@media (prefers-reduced-motion: reduce) { .jadu-stage-set__tab { transition: none; } }

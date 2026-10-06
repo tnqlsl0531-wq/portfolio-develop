@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
+import type { CurtainPalette } from '../Curtain3D'
 
 /* BACKSTAGE 공통 부품 — 작품마다 같이 쓰는 조각들입니다(10/5 공통 틀 분리).
    - 틀(맨 위 줄 · 큐시트 · 섹션 뼈대 · 커튼)은 ../Backstage.tsx
@@ -24,6 +25,7 @@ export type BackstageContent = {
   heroMeta: ReactNode // 히어로 제목 아래(수상 · 칩)
   cues: Record<Exclude<CueKind, 'ai'>, CuePart> & { ai?: CuePart }
   stage?: { src: string; alt: string; width: number; height: number } // 마지막 커튼 뒤 단체 사진
+  curtain?: CurtainPalette // 커튼 색(안 주면 국순당 색 — Curtain3D.tsx의 CURTAIN)
   draft?: boolean // true면 화면 왼쪽 아래에 '내용 채우는 중' 표시가 뜹니다(내용이 다 차면 지우기)
 }
 
