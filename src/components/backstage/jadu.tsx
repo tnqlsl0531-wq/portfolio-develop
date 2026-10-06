@@ -320,9 +320,13 @@ function AiCrew() {
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next].focus()
   }
   return <div className="jadu-ai" data-appear="">
-    <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야" style={{ '--tab': tab } as CSSProperties}>
-      {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} data-new={!seen[index] || undefined} onClick={() => pick(index)} onKeyDown={keyDown}>{label}</button>)}
-      <i className="jadu-ai__ink" aria-hidden="true" />
+    {/* 윗줄: 왼쪽에 탭, 오른쪽에 작은 안내 문장(이 섹션 전체에 대한 설명이라 맨 아래가 아니라 제목 가까이에 둡니다) */}
+    <div className="jadu-ai__top">
+      <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야" style={{ '--tab': tab } as CSSProperties}>
+        {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} data-new={!seen[index] || undefined} onClick={() => pick(index)} onKeyDown={keyDown}>{label}</button>)}
+        <i className="jadu-ai__ink" aria-hidden="true" />
+      </div>
+      <p className="jadu-ai__footnote"><Line>프로젝트 제작 과정에서의 AI 활용입니다.</Line><Line>앱 내 ‘자두 AI’ 기능과는 별개입니다.</Line></p>
     </div>
     <div className="jadu-ai__panel" role="tabpanel" id={`jadu-ai-panel-${tab}`} aria-labelledby={`jadu-ai-tab-${tab}`} tabIndex={0} data-design={tab === 1 || undefined}>
       <h4 key={tab}>{tab === 0 ? 'AI로 자료를 탐색하고 분석했습니다' : 'AI를 디자인과 개발에 활용했습니다'}</h4>
@@ -331,7 +335,6 @@ function AiCrew() {
         <p>{item.text}</p>
       </li>)}</ol>
     </div>
-    <p className="jadu-ai__footnote">프로젝트 제작 과정에서의 AI 활용입니다. 앱 내 ‘자두 AI’ 기능과는 별개입니다.</p>
   </div>
 }
 
@@ -347,7 +350,8 @@ export const jaduBackstage: BackstageContent = {
       sub: '이번 프로젝트를 소개합니다',
       body: <div className="backstage__cast">
         <figure className="backstage__cast-photo"><img src={teamPhoto} width={1024} height={1024} alt="안녕자두야 팀 프로젝트 최우수상 수상 단체 사진" loading="lazy" decoding="async" /></figure>
-        <article className="backstage__playbill" data-appear="">
+        {/* 갈색 상자는 처음부터 제자리에 있고(data-appear 없음), 사진만 스크롤에 맞춰 상자 뒤에서 왼쪽으로 나옵니다 — jadu.css의 CUE 01 */}
+        <article className="backstage__playbill">
           <svg className="backstage__playbill-border" aria-hidden="true"><rect x="0.5" y="0.5" rx="20" /></svg>
           <div className="backstage__playbill-intro"><p className="backstage__kicker">PLAYBILL  ·  NO. 01</p><h4 className="backstage__playbill-title">AI 챗봇 커뮤니티 웹앱 : 안녕자두야</h4><p className="backstage__playbill-text"><Line>AI 챗봇과 커뮤니티로 자취생활을 돕는</Line><Line>모바일 UX/UI 프로젝트입니다.</Line><Line>생활 정보와 복지혜택을 한곳에서 탐색하고,</Line><Line>자신의 상황에 맞는 선택을 돕도록 기획했습니다.</Line></p></div>
           <hr />
@@ -380,10 +384,9 @@ export const jaduBackstage: BackstageContent = {
     },
     ai: { sub: '기획부터 구현까지, AI와 함께한 제작 과정', body: <AiCrew /> },
     call: {
-      // 원본 화면은 CUE 06, 목차는 CUE 07로 표기되어 있어 그대로 보존합니다.
-      no: '06',
       sub: '프로젝트를 마치며',
-      backdrop: <div className="jadu-call-photo" aria-hidden="true" data-parallax="0.6"><img src={callPhoto} alt="" loading="lazy" decoding="async" /></div>,
+      // 뒷사진은 스크롤에 맞춰 천천히 움직입니다. 움직임은 jadu.css의 jadu-call-drift가 맡습니다(공통 틀의 data-parallax는 쓰지 않음 — 휠을 굴릴 때 끊겨 보였음).
+      backdrop: <div className="jadu-call-photo" aria-hidden="true"><img src={callPhoto} alt="" loading="lazy" decoding="async" /></div>,
       body: <div className="backstage__call">
         <blockquote className="backstage__quote" data-appear=""><span className="backstage__quote-line" style={{ '--i': 0 } as CSSProperties}>“아이디어를 넘어,</span><span className="backstage__quote-line" style={{ '--i': 1 } as CSSProperties}><em>함께 완성하는 과정</em>을 배웠습니다.”</span></blockquote>
         <p className="backstage__call-text" data-appear=""><Line>서비스 이름과 아이디어를 제안하고 주요 화면과 기획서를 디자인하며,</Line><Line>생각을 구체적인 결과물로 만드는 경험을 했습니다.</Line><Line>의견이 다를 때는 공동의 목표를 돌아보고,</Line><Line>AI의 결과도 직접 판단하고 검토해야 한다는 것을 배웠습니다.</Line><Line>시안과 구현의 차이를 겪으며, 의도를 공유하고 함께 점검하는 일의 중요성을 느꼈습니다.</Line><Line>최우수상이라는 성과와 아쉬움 모두 다음 협업을 위한 기준이 되었습니다.</Line></p>
