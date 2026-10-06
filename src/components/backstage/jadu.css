@@ -14,25 +14,29 @@
 .backstage[data-project='jadu'] .backstage__floor { background: linear-gradient(to top, #c9524f 14.485%, #272625); }
 .backstage[data-project='jadu'] .backstage__plan { width: calc(250 * var(--bu)); height: calc(53 * var(--bu)); padding: 0; font-size: calc(22 * var(--bu)); background: #b43936; }
 .backstage[data-project='jadu'] .backstage__plan:hover { background: #c9524f; }
-.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__cuesheet-text { transform: none; }
 .backstage[data-project='jadu'] .backstage__cuesheet-list { gap: calc(28.5 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__cuesheet-text { gap: calc(5 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__cuesheet-no { line-height: calc(20 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__cuesheet-name { line-height: calc(28 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-no { color: #5d504a; }
-.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-name { color: var(--bs-sub); }
-.backstage[data-project='jadu'] .backstage__cuesheet-rail i { display: none; }
-.backstage[data-project='jadu'] .backstage__lamp { width: calc(11.4 * var(--bu)); height: calc(13.3 * var(--bu)); margin-top: 0; border: 0; background: none; box-shadow: none !important; }
-.backstage[data-project='jadu'] .backstage__lamp img { width: calc(11.4 * var(--bu)); height: auto; }
-.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__lamp img { position: absolute; left: calc(-13.3 * var(--bu)); top: calc(-11.4 * var(--bu)); width: calc(38 * var(--bu)); height: auto; }
+/* 큐시트 램프: 국순당과 같은 방식(CSS 원 + 켜질 때 깜빡임 + 지나온 큐는 은은하게 켜진 채 + 세로선이 차오름)이고 색만 자두야 빨강입니다.
+   피그마 램프(꺼짐: 지름 11.4 테두리 1.425 #5d504a / 켜짐: #c9524f + 빛 번짐 11.4·1.9)와 같은 크기입니다. */
+.backstage[data-project='jadu'] .backstage__lamp { width: calc(11.4 * var(--bu)); height: calc(11.4 * var(--bu)); box-shadow: inset 0 0 0 max(1px, calc(1.425 * var(--bu))) #5d504a; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__lamp { background: #5e2b2a; box-shadow: inset 0 0 0 max(1px, calc(1.425 * var(--bu))) #94494a, 0 0 calc(6 * var(--bu)) rgb(201 82 79 / 28%); }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-no { color: #8a4d4b; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='done'] .backstage__cuesheet-name { color: #a39388; }
+.backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__lamp { background: #c9524f; box-shadow: 0 0 calc(11.4 * var(--bu)) calc(1.9 * var(--bu)) #c9524f; animation: jadu-lamp-on 900ms ease; }
+.backstage[data-project='jadu'] .backstage__cuesheet-rail i { box-shadow: 0 0 6px rgb(201 82 79 / 55%); }
+@keyframes jadu-lamp-on {
+  0% { background: var(--bs-bg); box-shadow: 0 0 0 0 rgb(201 82 79 / 0%); }
+  30% { background: #c9524f; box-shadow: 0 0 calc(16 * var(--bu)) calc(3 * var(--bu)) rgb(201 82 79 / 95%); }
+  45% { background: #7d3331; box-shadow: 0 0 calc(4 * var(--bu)) 0 rgb(201 82 79 / 40%); }
+}
 .backstage[data-project='jadu'] .backstage__cuesheet-item:nth-last-child(2) .backstage__cuesheet-text { font-family: 'Min Sans VF', sans-serif; }
 .backstage[data-project='jadu'] .backstage__cuesheet-item:last-child .backstage__cuesheet-no { font-family: 'Min Sans VF', sans-serif; }
 
 /* CUE 00 */
 .backstage[data-project='jadu'] .backstage__hero { padding-top: calc(110 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__eyebrow { font-family: var(--bs-gothic); line-height: calc(30 * var(--bu)); padding: 0; white-space: pre; }
-.jadu-bulbs { position: relative; display: grid; place-items: center; width: calc(472.98 * var(--bu)); height: calc(65 * var(--bu)); border: calc(1.14 * var(--bu)) solid #4c3b33; border-radius: calc(18.24 * var(--bu)); background: #1e1d1c; }
-.jadu-bulbs img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(451.56 * var(--bu)); height: auto; }
 .backstage[data-project='jadu'] .backstage__hero-cover .project-cover { border-radius: calc(7.5 * var(--bu)); box-shadow: inset 0 0 0 calc(2 * var(--bu)) #acacac; }
 .backstage[data-project='jadu'] .backstage__hero-title { line-height: calc(40 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__hero-meta { align-items: center; justify-content: space-between; width: calc(491 * var(--bu)); height: calc(176 * var(--bu)); gap: 0; }
@@ -72,8 +76,8 @@
 .backstage[data-project='jadu'] .backstage__goal[data-linked] button { border-color: rgb(201 82 79 / 38%); }
 .backstage[data-project='jadu'] .backstage__goal button:hover, .backstage[data-project='jadu'] .backstage__goal button:focus-visible { border-color: var(--bs-orange); box-shadow: 0 0 calc(28 * var(--bu)) rgb(201 82 79 / 12%); }
 
-/* CUE 03 */
-.backstage[data-project='jadu'] .jadu-development { position: absolute; left: calc(1060 * var(--bu)); top: calc(278.3418 * var(--bu)); display: flex; flex-direction: column; gap: calc(21.6 * var(--bu)); width: calc(639 * var(--bu)); margin: 0; padding: calc(28.8 * var(--bu)); border-radius: calc(21.6 * var(--bu)); background: #262626; }
+/* CUE 03: 그림 카드(LOG 01 폴더 구조)와 글자 높이. 붙어 있는 무대 · 나머지 카드 · 움직임은 파일 맨 아래 'CUE 03 무대'에 있습니다. */
+.backstage[data-project='jadu'] .jadu-development { display: flex; flex-direction: column; gap: calc(21.6 * var(--bu)); width: calc(639 * var(--bu)); margin: 0; padding: calc(28.8 * var(--bu)); border-radius: calc(21.6 * var(--bu)); background: #262626; }
 .jadu-development__pair { display: flex; align-items: center; gap: calc(15.3 * var(--bu)); height: calc(478.8 * var(--bu)); }
 .jadu-development__card { flex: none; width: calc(264.6 * var(--bu)); height: 100%; padding: calc(14.4 * var(--bu)); border: calc(.9 * var(--bu)) solid #383838; border-radius: calc(14.4 * var(--bu)); background: #171717; }
 .jadu-development__card--after { border-color: #c9524f; }
@@ -87,23 +91,16 @@
 .jadu-development__crop img { position: absolute; max-width: none; }
 .jadu-development__crop--before img { width: 127.39%; height: 100.84%; left: 0; top: -.07%; }
 .jadu-development__crop--after img { width: 110.5%; height: 102.04%; left: -9.39%; top: -1.53%; }
-.jadu-development figcaption { display: flex; align-items: center; gap: calc(10.8 * var(--bu)); height: calc(36 * var(--bu)); color: #a3a3a3; font-size: calc(12.6 * var(--bu)); line-height: calc(18 * var(--bu)); }
-.jadu-development figcaption::before { content: ''; flex: none; width: calc(2.7 * var(--bu)); height: calc(28.8 * var(--bu)); background: #c9524f; border-radius: calc(1.35 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__timeline { height: calc(914 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__timeline-line { background: linear-gradient(#c9524f 22.361%, #fbdd78); }
-.backstage[data-project='jadu'] .backstage__timeline-line i { display: none; }
-.backstage[data-project='jadu'] .backstage__log::before { display: none; }
-.jadu-log-node { position: absolute; left: 0; top: 0; width: calc(32 * var(--bu)); height: auto; }
-.jadu-log-node--opening { left: calc(-22 * var(--bu)); top: calc(-22 * var(--bu)); width: calc(76 * var(--bu)); height: auto; }
+.jadu-development__note { display: flex; margin: 0; align-items: center; gap: calc(10.8 * var(--bu)); height: calc(36 * var(--bu)); color: #a3a3a3; font-size: calc(12.6 * var(--bu)); line-height: calc(18 * var(--bu)); }
+.jadu-development__note::before { content: ''; flex: none; width: calc(2.7 * var(--bu)); height: calc(28.8 * var(--bu)); background: #c9524f; border-radius: calc(1.35 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__log-head { line-height: calc(24 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__log-arrow { line-height: calc(26 * var(--bu)); }
 .backstage[data-project='jadu'] .backstage__log-action { line-height: calc(32 * var(--bu)); white-space: nowrap; }
-.backstage[data-project='jadu'] .backstage__log:nth-child(2) .backstage__log-action { font-size: calc(25 * var(--bu)); line-height: calc(33 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__log--final .backstage__log-head { color: #fbdd78; }
+.jadu-logs__item[data-final] .backstage__log-head { color: #fbdd78; }
 .backstage[data-project='jadu'] .backstage__log-result { font-size: calc(26 * var(--bu)); line-height: calc(35 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__log-award { color: #fbdd78; font-size: calc(37.8 * var(--bu)); line-height: calc(63 * var(--bu)); }
-.backstage[data-project='jadu'] .backstage__log-award strong { font-size: calc(46.8 * var(--bu)); font-weight: 700; }
-.backstage[data-project='jadu'] .backstage__log-trophy { left: calc(604 * var(--bu)); top: calc(28.14 * var(--bu)); }
+/* 최우수상 줄: 피그마(37.8 / 46.8)보다 작게 — 붙어 있는 무대에서는 오른쪽에 그림이 있어서 왼쪽 칸(500) 안에 들어와야 합니다. */
+.backstage[data-project='jadu'] .backstage__log-award { color: #fbdd78; font-size: calc(24 * var(--bu)); line-height: calc(44 * var(--bu)); }
+.backstage[data-project='jadu'] .backstage__log-award strong { font-size: calc(32 * var(--bu)); font-weight: 700; }
 
 /* CUE 04: 휴대폰 3 → 2. 화면 안에서만 스크롤 가능 */
 .jadu-phones { --phone-unit: var(--bu); display: flex; align-items: center; justify-content: space-between; width: calc(1062 * var(--bu)); }
@@ -150,12 +147,15 @@
 /* CUE 06: AI 협업 탭 */
 .backstage[data-project='jadu'] .backstage__cue--ai { gap: calc(48 * var(--bu)); padding-bottom: calc(60 * var(--bu)); }
 .jadu-ai { width: calc(860 * var(--bu)); }
-.jadu-ai__tabs { display: flex; gap: calc(32 * var(--bu)); height: calc(56 * var(--bu)); }
+.jadu-ai__tabs { position: relative; display: flex; gap: calc(32 * var(--bu)); height: calc(56 * var(--bu)); }
 .jadu-ai__tabs button { position: relative; width: calc(182 * var(--bu)); height: calc(56 * var(--bu)); padding: 0; border: 0; background: none; color: #a3a3a3; font-size: calc(20 * var(--bu)); font-weight: 400; line-height: calc(26 * var(--bu)); }
 .jadu-ai__tabs button:nth-child(2) { font-family: 'Min Sans VF', sans-serif; }
 .jadu-ai__tabs button::after { content: ''; position: absolute; left: 0; right: 0; top: calc(54 * var(--bu)); height: calc(1 * var(--bu)); background: #383838; }
 .jadu-ai__tabs button[aria-selected='true'] { color: #fafafa; }
-.jadu-ai__tabs button[aria-selected='true']::after { height: calc(2 * var(--bu)); background: #c9524f; }
+.jadu-ai__tabs button { cursor: pointer; transition: color 300ms ease; }
+.jadu-ai__tabs button:not([aria-selected='true']):hover { color: #d4d4d4; }
+/* 고른 탭의 빨간 밑줄(피그마 2px): 탭을 바꾸면 옆 탭으로 미끄러집니다(--tab = 고른 탭 번호, 탭 폭 182 + 사이 32). */
+.jadu-ai__ink { position: absolute; left: 0; top: calc(54 * var(--bu)); width: calc(182 * var(--bu)); height: calc(2 * var(--bu)); background: #c9524f; transform: translate3d(calc(var(--tab, 0) * 214 * var(--bu)), 0, 0); transition: transform 460ms cubic-bezier(.3, .7, .2, 1); }
 .jadu-ai__panel { height: calc(532 * var(--bu)); margin-top: calc(36 * var(--bu)); padding-top: calc(24 * var(--bu)); }
 .jadu-ai__panel > h4 { margin: 0 0 calc(40 * var(--bu)); color: #fafafa; font-size: calc(28 * var(--bu)); font-weight: 600; line-height: calc(40 * var(--bu)); }
 .jadu-ai__panel[data-design] > h4 { font-family: 'Min Sans VF', sans-serif; }
@@ -197,8 +197,6 @@
   .backstage[data-project='jadu'] .backstage__plan { width: auto; height: 42px; padding: 0 18px; font-size: 15px; }
   .backstage[data-project='jadu'] .backstage__hero { padding-top: 90px; height: auto; min-height: 660px; }
   .backstage[data-project='jadu'] .backstage__eyebrow { font-size: 15px; line-height: 22px; }
-  .jadu-bulbs { width: min(76vw, 330px); height: 46px; border-width: 1px; border-radius: 13px; }
-  .jadu-bulbs img { width: 96%; }
   .backstage[data-project='jadu'] .backstage__hero-title { font-size: 19px; line-height: 1.5; white-space: normal; text-align: center; }
   .backstage[data-project='jadu'] .backstage__hero-meta { width: 100%; height: auto; gap: 22px; }
   .backstage[data-project='jadu'] .backstage__award-text { padding: 5px 0; gap: 2px; }
@@ -216,8 +214,7 @@
   .backstage[data-project='jadu'] .backstage__role-tags { white-space: normal; }
   .backstage[data-project='jadu'] .backstage__credits dt { line-height: 20px; }
   .backstage[data-project='jadu'] .backstage__credits dd { line-height: 23px; }
-  .backstage[data-project='jadu'] .jadu-development { position: relative; left: auto; top: auto; order: 2; width: 100%; padding: 16px; gap: 14px; border-radius: 16px; --tree-unit: calc((100cqw - 32px) / 581.4); }
-  .backstage[data-project='jadu'] .backstage__cue--log { container-type: inline-size; }
+  .backstage[data-project='jadu'] .jadu-development { width: 100%; padding: 16px; gap: 14px; border-radius: 16px; --tree-unit: calc((100cqw - 32px) / 581.4); }
   .jadu-development__pair { gap: calc(15.3 * var(--tree-unit)); height: calc(478.8 * var(--tree-unit)); }
   .jadu-development__card { width: calc(264.6 * var(--tree-unit)); padding: calc(14.4 * var(--tree-unit)); border-width: 1px; border-radius: 10px; }
   .jadu-development__card p { font-size: 9px; line-height: 12px; }
@@ -226,13 +223,10 @@
   .jadu-development__crop { height: calc(360 * var(--tree-unit)); }
   .jadu-development__crop--before { width: calc(185.831 * var(--tree-unit)); }
   .jadu-development__crop--after { width: calc(164.144 * var(--tree-unit)); }
-  .jadu-development figcaption { height: auto; font-size: 11px; line-height: 1.5; gap: 8px; }
-  .jadu-development figcaption::before { width: 2px; height: 25px; }
-  .backstage[data-project='jadu'] .backstage__timeline { height: auto; }
-  .jadu-log-node { width: 24px; }
-  .jadu-log-node--opening { left: -16px; top: -16px; width: 56px; }
+  .jadu-development__note { height: auto; font-size: 11px; line-height: 1.5; gap: 8px; }
+  .jadu-development__note::before { width: 2px; height: 25px; }
   .backstage[data-project='jadu'] .backstage__log-head { line-height: 20px; }
-  .backstage[data-project='jadu'] .backstage__log-action, .backstage[data-project='jadu'] .backstage__log:nth-child(2) .backstage__log-action { font-size: 18px; line-height: 1.4; white-space: normal; }
+  .backstage[data-project='jadu'] .backstage__log-action { font-size: 18px; line-height: 1.4; white-space: normal; }
   .backstage[data-project='jadu'] .backstage__log-result { font-size: 20px; line-height: 1.4; }
   .backstage[data-project='jadu'] .backstage__log-award { font-size: 18px; line-height: 1.5; }
   .backstage[data-project='jadu'] .backstage__log-award strong { font-size: 25px; }
@@ -261,7 +255,7 @@
   .jadu-ai__tabs { height: 48px; gap: 16px; }
   .jadu-ai__tabs button { width: 145px; height: 48px; font-size: 16px; line-height: 24px; }
   .jadu-ai__tabs button::after { top: 46px; height: 1px; }
-  .jadu-ai__tabs button[aria-selected='true']::after { height: 2px; }
+  .jadu-ai__ink { top: 46px; width: 145px; height: 2px; transform: translate3d(calc(var(--tab, 0) * 161px), 0, 0); }
   .jadu-ai__panel { height: auto; margin-top: 28px; padding-top: 8px; }
   .jadu-ai__panel > h4 { font-size: 21px; line-height: 1.5; margin-bottom: 24px; }
   .jadu-ai__list { gap: 12px; }
@@ -282,19 +276,195 @@
   .backstage[data-project='jadu'] .backstage__onstage { width: 250px; height: 52px; }
 }
 
-/* ── 움직임(10/6): 자두야도 국순당과 같은 방식으로 켭니다 ──
-   공통 틀이 해 주는 것: [data-appear] 떠오르기 · CUE 01 사진 나오기 · CUE 03 기록 불 켜기 · 인용문/NEXT 차례로.
-   아래는 자두야에만 있는 조각의 움직임입니다. '동작 줄이기' 설정에서는 전부 꺼지고 처음부터 다 보입니다. */
+/* ══ CUE 03 무대(10/6) ══════════════════════════════════════════════════
+   기록이 다섯 개라 한 화면에 안 들어와서, 섹션이 화면에 붙어 있는 동안(sticky) 스크롤하면 기록이 하나씩 켜지고
+   오른쪽 그림이 그 기록의 자료로 바뀝니다(jadu.tsx RehearsalLog · 그림 순서는 피그마 522:754).
+   - .jadu-logs        : 붙어 있는 구간만큼 길어진 칸. 길이 = --log-span(jadu.tsx LOG_SPAN) × --log-step(한 기록 = 화면 높이의 44%)
+   - .jadu-logs__stage : 화면에 붙는 무대(제목 110 + 사이 56 + 내용 594 = 760). 화면이 낮으면(가로로 긴 모니터 등) 무대 전체가 비율대로 작아집니다.
+   - 기록 상태(data-state): todo = 남은 기록(제목만 흐리게) · current = 지금 기록(다 펼침 + 그림) · done = 지나온 기록('해결' 한 줄만) */
+/* 붙어 있는 구간은 padding이 아니라 빈 칸(::after)으로 늘립니다 — sticky는 부모의 '내용 영역' 안에서만 붙어 있기 때문입니다. */
+.jadu-logs { --log-step: 44vh; }
+.jadu-logs::after { content: ''; display: block; height: calc(var(--log-span, 4.35) * var(--log-step)); }
+.jadu-logs__stage {
+  /* --pu = 페이지의 1px(맨 위 줄 크기 기준). 맨 위 줄과 그 아래 흐림(약 128) 밑에 붙고, 화면이 낮으면 남는 높이에 맞춰 무대의 --bu가 작아집니다. */
+  --pu: calc(100cqw / 1920);
+  --bu: min(var(--pu), calc((100vh - 152 * var(--pu)) / 760));
+  position: sticky; top: max(calc(128 * var(--pu)), calc((100vh - 760 * var(--bu)) / 2));
+  display: flex; flex-direction: column; gap: calc(56 * var(--bu));
+}
+.jadu-logs__list { --gap: calc(34 * var(--bu)); position: relative; display: flex; flex-direction: column; gap: var(--gap); min-height: calc(594 * var(--bu)); margin: 0; padding: 0; list-style: none; }
+.jadu-logs__entry { position: relative; width: calc(500 * var(--bu)); padding-left: calc(56 * var(--bu)); cursor: pointer; }
+.jadu-logs__text { transition: opacity 600ms ease; }
+.jadu-logs__item[data-state='todo'] .jadu-logs__text { opacity: .32; }
+.jadu-logs__item[data-state='done'] .jadu-logs__text { opacity: .6; }
+.jadu-logs__item:not([data-state='current']) .jadu-logs__entry:hover .jadu-logs__text { opacity: .88; }
+.jadu-logs__head { display: block; margin: 0; padding: 0; border: 0; background: none; font-family: inherit; text-align: left; cursor: pointer; }
+.jadu-logs__head:focus-visible { outline: 2px solid #c9524f; outline-offset: 4px; }
+/* 동그라미: 남은 기록은 회색 테두리, 지나온 기록은 색 테두리, 지금 기록은 빛이 납니다. 마지막(OPENING NIGHT)은 금빛으로 채워집니다. */
+.jadu-logs__node {
+  position: absolute; z-index: 1; left: calc(4 * var(--bu)); top: 0; width: calc(24 * var(--bu)); height: calc(24 * var(--bu));
+  border: calc(3 * var(--bu)) solid #5d504a; border-radius: 50%; background: var(--bs-bg);
+  transition: border-color 500ms ease, background-color 500ms ease, box-shadow 500ms ease;
+}
+.jadu-logs__item:not([data-state='todo']) .jadu-logs__node { border-color: var(--node); }
+.jadu-logs__item[data-state='current'] .jadu-logs__node { box-shadow: 0 0 calc(14 * var(--bu)) var(--node); }
+.jadu-logs__item[data-final] .jadu-logs__node { left: 0; top: calc(-4 * var(--bu)); width: calc(32 * var(--bu)); height: calc(32 * var(--bu)); border: 0; background: #4d4426; }
+.jadu-logs__item[data-final][data-state='current'] .jadu-logs__node { background: #fbdd78; box-shadow: 0 0 calc(20 * var(--bu)) calc(2 * var(--bu)) rgb(251 221 120 / 85%); }
+/* 세로선: 기록마다 '이 동그라미 → 다음 동그라미' 한 토막씩. 스크롤한 만큼(--seg 0~1) 위에서부터 색이 차오릅니다. */
+.jadu-logs__seg { position: absolute; left: calc(15 * var(--bu)); top: calc(22 * var(--bu)); bottom: calc(-2 * var(--bu) - var(--gap)); width: calc(2 * var(--bu)); background: #3a3431; }
+.jadu-logs__seg i { position: absolute; inset: 0; background: linear-gradient(var(--node), var(--node-next)); transform: scaleY(var(--seg, 0)); transform-origin: top; }
+/* 접히는 칸(grid 0fr ↔ 1fr): 지금 기록은 다 펼치고, 지나온 기록은 --keep(해결 줄)만 남깁니다. */
+.jadu-logs__fold { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 620ms cubic-bezier(.3, .7, .2, 1), opacity 320ms ease; }
+.jadu-logs__fold > div { min-height: 0; overflow: hidden; }
+.jadu-logs__item[data-state='current'] .jadu-logs__fold, .jadu-logs__item[data-state='done'] .jadu-logs__fold--keep { grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 620ms cubic-bezier(.3, .7, .2, 1), opacity 520ms ease 140ms; }
+.jadu-logs .backstage__log-issue { padding-top: calc(14 * var(--bu)); }
+.jadu-logs .backstage__log-action { padding-top: calc(6 * var(--bu)); }
+.jadu-logs .backstage__log-result { margin: 0; padding-top: calc(14 * var(--bu)); }
+/* 오른쪽 그림: 지금 기록의 그림만 보입니다. 다음 그림은 아래에서 올라오고, 지나간 그림은 위로 빠집니다(거꾸로 스크롤하면 반대로). */
+.jadu-logs__visual { margin: 0; }
+.jadu-logs__item[data-state] > .jadu-logs__visual {
+  /* 세로 가운데(top 50% + -50%)에 두고, 거기서 28만큼 아래/위로 비켜 있다가 제자리로 옵니다. */
+  position: absolute; left: calc(580 * var(--bu)); top: 50%;
+  opacity: 0; visibility: hidden; pointer-events: none; transform: translate3d(0, calc(-50% + 28 * var(--bu)), 0);
+  transition: opacity 340ms ease, transform 460ms ease, visibility 0s 340ms;
+}
+.jadu-logs__item[data-state='done'] > .jadu-logs__visual { transform: translate3d(0, calc(-50% - 28 * var(--bu)), 0); }
+.jadu-logs__item[data-state='current'] > .jadu-logs__visual {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translate3d(0, -50%, 0);
+  transition: opacity 640ms ease 160ms, transform 900ms cubic-bezier(.2, .7, .2, 1) 160ms, visibility 0s;
+}
+/* '스크롤하면 다음 기록이 켜져요' 알약: 처음 한 번 넘어가면 사라집니다. */
+.backstage__wheel-hint.jadu-logs__hint { left: calc(56 * var(--bu)); bottom: 0; transform: none; }
+.backstage__wheel-hint.jadu-logs__hint[data-gone] { opacity: 0; transform: translate3d(0, 8px, 0); }
+
+/* 그림 카드(피그마 527:190 · 529:190 · 530:190 + 최우수상). --vu = 카드 안 1px. 데스크톱은 --bu와 같고, 폰에서는 카드 폭에 맞춰 줄어듭니다. */
+.jadu-card { --vu: var(--bu); position: relative; display: flex; align-items: center; justify-content: center; width: calc(var(--w) * var(--vu)); height: calc(var(--h) * var(--vu)); border-radius: calc(24 * var(--vu)); background: #262626; overflow: hidden; }
+.jadu-card__shot { flex: none; display: flex; flex-direction: column; align-items: center; }
+.jadu-card__shot img { display: block; max-width: none; height: auto; }
+.jadu-card__shot p { margin: 0; color: #a3a3a3; font-size: calc(13 * var(--vu)); font-weight: 500; line-height: calc(20 * var(--vu)); white-space: nowrap; }
+.jadu-card__shot--point p { color: #c9524f; }
+.jadu-card__link { flex: none; display: grid; place-items: center; }
+.jadu-card__link svg { display: block; width: 100%; height: auto; overflow: visible; fill: none; stroke: #c9524f; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+/* LOG 02: 화면 넷이 화살표로 이어짐(800 × 450) */
+.jadu-card--flow { --w: 800; --h: 450; gap: calc(6 * var(--vu)); }
+.jadu-card--flow .jadu-card__shot { gap: calc(14 * var(--vu)); width: calc(160 * var(--vu)); }
+.jadu-card--flow .jadu-card__shot img { width: 100%; }
+.jadu-card--flow .jadu-card__link { width: calc(16 * var(--vu)); padding-bottom: calc(34 * var(--vu)); }
+/* LOG 03: 기준 설계(206 × 443) → 360px 실기기(189 × 408, 빨간 테두리). 아래 줄을 맞춥니다. (640 × 594) */
+.jadu-card--fit { --w: 640; --h: 594; gap: calc(28 * var(--vu)); }
+.jadu-card--fit .jadu-card__shot { justify-content: flex-end; gap: calc(18 * var(--vu)); width: calc(230 * var(--vu)); height: calc(480 * var(--vu)); }
+.jadu-card__design { width: calc(206 * var(--vu)); }
+.jadu-card__device { width: calc(189 * var(--vu)); }
+.jadu-card--fit .jadu-card__link { width: calc(24 * var(--vu)); padding-bottom: calc(38 * var(--vu)); }
+/* LOG 04: 병합 충돌 ↓ 작업 규칙 정리(640 × 594) */
+.jadu-card--team { --w: 640; --h: 594; flex-direction: column; gap: calc(18 * var(--vu)); }
+.jadu-card--team .jadu-card__shot { gap: calc(12 * var(--vu)); width: calc(560 * var(--vu)); }
+.jadu-card--team .jadu-card__shot img { width: 100%; }
+.jadu-card--team .jadu-card__link { width: calc(22 * var(--vu)); height: calc(24 * var(--vu)); rotate: 90deg; }
+/* OPENING NIGHT: 금빛 조명 아래 트로피(640 × 594). 수상 사진을 받으면 트로피 자리에 넣습니다. */
+.jadu-card--award { --w: 640; --h: 594; flex-direction: column; gap: calc(30 * var(--vu)); background: none; overflow: visible; }
+.jadu-card__glow { position: absolute; left: 50%; top: 40%; width: calc(560 * var(--vu)); height: calc(560 * var(--vu)); translate: -50% -50%; background: radial-gradient(closest-side, rgb(251 221 120 / 26%), rgb(251 221 120 / 8%) 52%, transparent); pointer-events: none; }
+.jadu-card__trophy { position: relative; width: calc(172 * var(--vu)); height: auto; filter: drop-shadow(0 0 calc(26 * var(--vu)) rgb(251 221 120 / 38%)); }
+.jadu-card__prize { position: relative; display: flex; flex-direction: column; align-items: center; gap: calc(6 * var(--vu)); margin: 0; }
+.jadu-card__prize strong { font-size: calc(52 * var(--vu)); font-weight: 700; line-height: 1.25; letter-spacing: .02em; background: linear-gradient(#fae499, #fbdd78); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.jadu-card__prize span { color: #e8d49a; font-size: calc(20 * var(--vu)); font-weight: 500; line-height: 1.4; letter-spacing: .06em; }
+.jadu-card__spark { position: absolute; color: #fbdd78; font-size: calc(22 * var(--vu)); line-height: 1; opacity: .75; pointer-events: none; }
+.jadu-card__spark:nth-of-type(2) { left: 24%; top: 21%; }
+.jadu-card__spark:nth-of-type(3) { left: 73%; top: 16%; font-size: calc(15 * var(--vu)); }
+.jadu-card__spark:nth-of-type(4) { left: 79%; top: 47%; font-size: calc(26 * var(--vu)); }
+.jadu-card__spark:nth-of-type(5) { left: 18%; top: 52%; font-size: calc(14 * var(--vu)); }
+
+/* CUE 03 — 폰·터치 태블릿: 화면에 붙지 않고, 기록 아래에 그 기록의 그림이 하나씩 이어집니다(전부 펼침 · 전부 켜짐). */
+@media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
+  .jadu-logs::after { display: none; }
+  .jadu-logs__stage { position: static; gap: 28px; }
+  .backstage__wheel-hint.jadu-logs__hint { display: none; }
+  .jadu-logs__list { --gap: 44px; min-height: 0; }
+  .jadu-logs__list[data-appear] { opacity: 1; transform: none; }
+  /* 세로선은 목록에 한 줄로(빨강 → 금빛). 그림 뒤로 지나갑니다. */
+  .jadu-logs__list::before { content: ''; position: absolute; left: 11px; top: 10px; bottom: 0; width: 2px; background: linear-gradient(#c9524f 22%, #fbdd78); }
+  .jadu-logs__seg { display: none; }
+  .jadu-logs__item[data-final] { position: relative; z-index: 1; background: var(--bs-bg); }
+  .jadu-logs__entry { width: auto; padding-left: 40px; cursor: default; }
+  .jadu-logs__head { cursor: default; }
+  .jadu-logs__item[data-state] .jadu-logs__text { opacity: 1; }
+  .jadu-logs__item[data-state] .jadu-logs__fold { grid-template-rows: 1fr; opacity: 1; }
+  .jadu-logs__node { left: 3px; width: 18px; height: 18px; border-width: 2.5px; }
+  .jadu-logs__item[data-state] .jadu-logs__node { border-color: var(--node); box-shadow: none; }
+  .jadu-logs__item[data-final] .jadu-logs__node { left: 0; top: -3px; width: 24px; height: 24px; }
+  .jadu-logs__item[data-final][data-state] .jadu-logs__node { background: #fbdd78; box-shadow: 0 0 14px 1px rgb(251 221 120 / 70%); }
+  .jadu-logs .backstage__log-issue, .jadu-logs .backstage__log-result { padding-top: 10px; }
+  .jadu-logs .backstage__log-action { padding-top: 4px; }
+  .jadu-logs__item[data-state] > .jadu-logs__visual {
+    position: relative; z-index: 1; left: auto; top: auto; visibility: visible; pointer-events: auto;
+    container-type: inline-size; margin-top: 18px;
+    opacity: 0; transform: translate3d(0, 22px, 0); transition: opacity 900ms ease, transform 1100ms cubic-bezier(.2, .7, .2, 1);
+  }
+  .jadu-logs__item[data-state] > .jadu-logs__visual[data-shown] { opacity: 1; transform: none; }
+  .jadu-card { --vu: calc(100cqw / var(--w)); border-radius: 16px; }
+  .jadu-card__shot p { font-size: 11px; line-height: 16px; }
+  .jadu-card--flow .jadu-card__shot p { font-size: 10px; }
+  .jadu-card__prize span { font-size: 12px; }
+}
+
+/* ══ 움직임(10/6): 자두야도 국순당과 같은 방식으로 켭니다 ══════════════════════
+   공통 틀이 해 주는 것: 전구 다섯 개 차례로 켜기 · [data-appear] 떠오르기 · 큐시트 세로선 · CUE 01 사진 나오기 · CUE 02 카드 교체 · 인용문/NEXT 차례로 · 커튼.
+   아래는 자두야에만 있는 움직임입니다. '동작 줄이기' 설정에서는 전부 꺼지고 처음부터 다 보입니다. */
 .jadu-call-photo img { transform: translate3d(0, var(--parallax, 0px), 0); will-change: transform; }
 @keyframes jadu-item-in { from { opacity: 0; transform: translate3d(0, calc(14 * var(--bu)), 0); } }
+@keyframes jadu-trophy-in { from { opacity: 0; transform: scale(.4) rotate(-12deg); } }
+@keyframes jadu-nav-in { from { opacity: 0; transform: translate3d(calc(-12 * var(--bu)), 0, 0); } }
+@keyframes jadu-rail-in { from { transform: scaleY(0); } }
+@keyframes jadu-logo-in { from { opacity: 0; transform: scale(.5); } }
+@keyframes jadu-nudge { 0%, 100% { translate: -10% 0; } 50% { translate: 14% 0; } }
+@keyframes jadu-nudge-down { 0%, 100% { translate: 0 -10%; } 50% { translate: 0 14%; } }
+@keyframes jadu-twinkle { 0%, 100% { opacity: .2; scale: .7; } 50% { opacity: .95; scale: 1.1; } }
 @media (prefers-reduced-motion: no-preference) {
-  /* 히어로 전구: 한 장짜리 그림이라 통째로 깜빡이며 켜집니다 */
-  .backstage[open] .jadu-bulbs img { animation: backstage-bulb-on 1400ms ease 350ms both; }
-  /* CUE 04: BEFORE 판 → 폰 3개가 차례로 → 화살표 → AFTER 판 → 폰 2개 */
+  /* 히어로: 전구가 다 켜질 즈음부터 제목 → 트로피(뿅) → 수상 글자 → 칩이 하나씩. 국순당은 한 덩어리로 떠오르고, 자두야는 차례로 나옵니다. */
+  .backstage[data-project='jadu'] .backstage__hero-info { animation: none; }
+  .backstage[data-project='jadu'] .backstage__hero-title { animation: backstage-rise 1000ms cubic-bezier(.2, .7, .2, 1) 1250ms both; }
+  .backstage[data-project='jadu'] .backstage__award img { animation: jadu-trophy-in 900ms cubic-bezier(.34, 1.56, .64, 1) 1500ms both; }
+  .backstage[data-project='jadu'] .backstage__award-text { animation: backstage-rise 1000ms cubic-bezier(.2, .7, .2, 1) 1640ms both; }
+  .backstage[data-project='jadu'] .backstage__chips li { animation: backstage-rise 900ms cubic-bezier(.2, .7, .2, 1) 1900ms both; }
+  .backstage[data-project='jadu'] .backstage__chips li:nth-child(2) { animation-delay: 2010ms; }
+  .backstage[data-project='jadu'] .backstage__chips li:nth-child(3) { animation-delay: 2120ms; }
+  /* 큐시트: 페이지가 열리면 제목 → 세로선이 그어지고 → 큐가 위에서부터 하나씩 들어옵니다(그 뒤 램프·세로선·글자 움직임은 국순당과 같음). */
+  .backstage[data-project='jadu'] .backstage__cuesheet-title { animation: jadu-nav-in 700ms cubic-bezier(.2, .7, .2, 1) 450ms both; }
+  .backstage[data-project='jadu'] .backstage__cuesheet-rail { transform-origin: top; animation: jadu-rail-in 1100ms cubic-bezier(.3, .7, .2, 1) 600ms both; }
+  .backstage[data-project='jadu'] .backstage__cuesheet-item { animation: jadu-nav-in 700ms cubic-bezier(.2, .7, .2, 1) backwards; animation-delay: calc(560ms + var(--i) * 70ms); }
+
+  /* CUE 03: 그림 안의 조각(.jadu-pop)이 순서대로(--d) 나타납니다. 지금 기록이 될 때마다 다시 차례로. */
+  .jadu-pop { opacity: 0; transform: translate3d(0, calc(16 * var(--bu)), 0); transition: opacity 260ms ease, transform 260ms ease; }
+  .jadu-logs__list[data-shown] .jadu-logs__item[data-state='current'] .jadu-pop { opacity: 1; transform: none; transition: opacity 600ms ease, transform 820ms cubic-bezier(.2, .7, .2, 1); transition-delay: calc(190ms + var(--d, 0) * 100ms); }
+  /* LOG 03: 360px 화면은 기준 설계와 같은 크기에서 제 크기로 줄어들며 자리 잡습니다('작은 화면에 맞췄다'). */
+  .jadu-card__device { transform: scale(1.09); transform-origin: 50% 100%; transition: transform 260ms ease; }
+  .jadu-logs__list[data-shown] .jadu-logs__item[data-state='current'] .jadu-card__device { transform: none; transition: transform 1100ms cubic-bezier(.3, .7, .2, 1) 640ms; }
+  /* OPENING NIGHT: 트로피가 뿅 튀어나오고(국순당 트로피와 같은 탄성), 별이 천천히 반짝입니다. */
+  .jadu-card__trophy { opacity: 0; transform: scale(.4) rotate(-12deg); transition: opacity 260ms ease, transform 260ms ease; }
+  .jadu-logs__list[data-shown] .jadu-logs__item[data-state='current'] .jadu-card__trophy { opacity: 1; transform: none; transition: opacity 420ms ease 420ms, transform 820ms cubic-bezier(.34, 1.56, .64, 1) 420ms; }
+  .jadu-card__glow { opacity: 0; transition: opacity 400ms ease; }
+  .jadu-logs__list[data-shown] .jadu-logs__item[data-state='current'] .jadu-card__glow { opacity: 1; transition: opacity 1400ms ease 300ms; }
+  .jadu-logs__item[data-state='current'] .jadu-card__spark { animation: jadu-twinkle 2.8s ease-in-out infinite; }
+  .jadu-logs__item[data-state='current'] .jadu-card__spark:nth-of-type(3) { animation-delay: -.9s; }
+  .jadu-logs__item[data-state='current'] .jadu-card__spark:nth-of-type(4) { animation-delay: -1.7s; }
+  .jadu-logs__item[data-state='current'] .jadu-card__spark:nth-of-type(5) { animation-delay: -2.3s; }
+  @media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) {
+    /* 폰: 그림이 화면에 들어올 때(data-shown) 한 번 차례로 */
+    .jadu-logs__visual[data-shown] .jadu-pop, .jadu-logs__visual[data-shown] .jadu-card__trophy { opacity: 1; transform: none; transition: opacity 620ms ease, transform 860ms cubic-bezier(.2, .7, .2, 1); transition-delay: calc(200ms + var(--d, 0) * 120ms); }
+    .jadu-logs__visual[data-shown] .jadu-card__device { transform: none; transition: transform 1100ms cubic-bezier(.3, .7, .2, 1) 700ms; }
+    .jadu-logs__visual[data-shown] .jadu-card__glow { opacity: 1; }
+    .jadu-logs__visual[data-shown] .jadu-card__spark { animation: jadu-twinkle 2.8s ease-in-out infinite; }
+    .jadu-logs__visual[data-shown] .jadu-card__spark:nth-of-type(3) { animation-delay: -.9s; }
+    .jadu-logs__visual[data-shown] .jadu-card__spark:nth-of-type(4) { animation-delay: -1.7s; }
+    .jadu-logs__visual[data-shown] .jadu-card__spark:nth-of-type(5) { animation-delay: -2.3s; }
+  }
+
+  /* CUE 04: BEFORE 판 → 폰 3개가 차례로 → 화살표 → AFTER 판 → 폰 2개. 화살표는 국순당처럼 오른쪽으로 살짝 밀리기를 반복합니다. */
   .jadu-phones[data-appear] { opacity: 1; transform: none; }
   .jadu-phones[data-appear] .jadu-phones__panel, .jadu-phones[data-appear] .jadu-phones__arrow { opacity: 0; transition: opacity 700ms ease; }
   .jadu-phones[data-appear] .jadu-phone { opacity: 0; transform: translate3d(0, calc(22 * var(--bu)), 0); transition: opacity 700ms ease, transform 900ms cubic-bezier(.2, .7, .2, 1); }
-  .jadu-phones[data-shown] .jadu-phones__panel, .jadu-phones[data-shown] .jadu-phones__arrow, .jadu-phones[data-shown] .jadu-phone { opacity: 1; transform: none; }
+  .jadu-phones[data-shown] .jadu-phones__panel, .jadu-phones[data-shown] .jadu-phone { opacity: 1; transform: none; }
+  .jadu-phones[data-shown] .jadu-phones__arrow { opacity: 1; } /* 폰에서는 화살표가 아래를 보게 돌려져 있어서(transform) 여기서 transform은 건드리지 않습니다 */
   .jadu-phones .jadu-phone:nth-child(1) { transition-delay: 140ms; }
   .jadu-phones .jadu-phone:nth-child(2) { transition-delay: 260ms; }
   .jadu-phones .jadu-phone:nth-child(3) { transition-delay: 380ms; }
@@ -302,10 +472,27 @@
   .jadu-phones[data-appear] .jadu-phones__panel--after { transition-delay: 780ms; }
   .jadu-phones .jadu-phones__panel--after .jadu-phone:nth-child(1) { transition-delay: 900ms; }
   .jadu-phones .jadu-phones__panel--after .jadu-phone:nth-child(2) { transition-delay: 1020ms; }
-  /* CUE 06: 항목이 차례로 들어옵니다(처음 보일 때와 탭을 바꿀 때) */
-  .jadu-ai__item { animation: jadu-item-in 600ms cubic-bezier(.2, .7, .2, 1) both; }
-  .jadu-ai__item:nth-child(2) { animation-delay: 90ms; }
-  .jadu-ai__item:nth-child(3) { animation-delay: 180ms; }
-  .jadu-ai:not([data-shown]) .jadu-ai__item { animation-play-state: paused; }
+  .jadu-phones__arrow { animation: jadu-nudge 1.6s ease-in-out infinite; }
+  @media (max-width: 700px), (max-width: 1200px) and (pointer: coarse) { .jadu-phones__arrow { animation-name: jadu-nudge-down; } }
+
+  /* CUE 06: 탭 → 제목 → 항목 셋이 차례로 들어오고, 항목마다 '사용한 AI' 로고가 하나씩 톡톡 나옵니다(처음 보일 때와 탭을 바꿀 때).
+     항목에 마우스를 올리면 CUE 02 목표 카드처럼 살짝 앞으로 나옵니다. */
+  .jadu-ai[data-appear] { opacity: 1; transform: none; }
+  .jadu-ai__tabs, .jadu-ai__panel > h4, .jadu-ai__item, .jadu-ai__footnote { animation: jadu-item-in 640ms cubic-bezier(.2, .7, .2, 1) backwards; }
+  .jadu-ai__panel > h4 { animation-delay: 110ms; }
+  .jadu-ai__item { --at: 210ms; animation-delay: var(--at); }
+  .jadu-ai__item:nth-child(2) { --at: 300ms; }
+  .jadu-ai__item:nth-child(3) { --at: 390ms; }
+  .jadu-ai__footnote { animation-delay: 560ms; }
+  .jadu-ai__tools > div > * { animation: jadu-logo-in 520ms cubic-bezier(.34, 1.56, .64, 1) backwards; animation-delay: calc(var(--at) + 300ms); }
+  .jadu-ai__tools > div > :nth-child(2) { animation-delay: calc(var(--at) + 380ms); }
+  .jadu-ai__tools > div > :nth-child(3) { animation-delay: calc(var(--at) + 460ms); }
+  .jadu-ai:not([data-shown]) :is(.jadu-ai__tabs, .jadu-ai__panel > h4, .jadu-ai__item, .jadu-ai__footnote, .jadu-ai__tools > div > *) { animation-play-state: paused; }
+  .jadu-ai__item { transition: border-color 400ms ease, translate 400ms cubic-bezier(.2, .7, .2, 1), box-shadow 400ms ease; }
+  @media (hover: hover) { .jadu-ai__item:hover { border-color: rgb(201 82 79 / 45%); translate: calc(6 * var(--bu)) 0; box-shadow: 0 0 calc(28 * var(--bu)) rgb(201 82 79 / 10%); } }
 }
-@media (prefers-reduced-motion: reduce) { .jadu-stage-set__tab { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .jadu-stage-set__tab, .jadu-ai__ink, .jadu-logs__text, .jadu-logs__node, .jadu-logs__fold, .jadu-logs__item[data-state] .jadu-logs__fold, .jadu-logs__item[data-state] > .jadu-logs__visual { transition: none; }
+  .jadu-logs__item[data-state] > .jadu-logs__visual[data-appear] { transition: none; }
+  .backstage[data-project='jadu'] .backstage__cuesheet-item[data-state='current'] .backstage__lamp { animation: none; }
+}

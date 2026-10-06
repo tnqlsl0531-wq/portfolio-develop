@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, KeyboardEvent } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { CaptureDeck, Line } from './parts'
 import type { BackstageContent, Capture, Goal } from './parts'
-import bulbs from '../../assets/backstage/jadu/imgFrame1707486977.svg'
 import trophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid.svg'
 import logTrophy from '../../assets/backstage/jadu/imgHeroiconsTrophy20Solid1.svg'
 import teamPhoto from '../../assets/backstage/jadu/imgImg60931.png'
@@ -10,11 +9,14 @@ import surveyCard from '../../assets/backstage/jadu/cue02-survey.webp'
 import servicesCard from '../../assets/backstage/jadu/cue02-services.webp'
 import beforeTree from '../../assets/backstage/jadu/imgBefore.png'
 import afterTree from '../../assets/backstage/jadu/imgAfter.png'
-import logNode1 from '../../assets/backstage/jadu/imgNode.svg'
-import logNode2 from '../../assets/backstage/jadu/imgNode1.svg'
-import logNode3 from '../../assets/backstage/jadu/imgNode2.svg'
-import logNode4 from '../../assets/backstage/jadu/imgNode3.svg'
-import openingNode from '../../assets/backstage/jadu/imgNode4.svg'
+import flowLogin from '../../assets/backstage/jadu/log02-login.webp'
+import flowSignup from '../../assets/backstage/jadu/log02-signup.webp'
+import flowOnboarding from '../../assets/backstage/jadu/log02-onboarding.webp'
+import flowHome from '../../assets/backstage/jadu/log02-home.webp'
+import fitDesign from '../../assets/backstage/jadu/log03-design.webp'
+import fitDevice from '../../assets/backstage/jadu/log03-device.webp'
+import teamConflict from '../../assets/backstage/jadu/log04-conflict.webp'
+import teamRules from '../../assets/backstage/jadu/log04-rules.webp'
 import beforeMonth from '../../assets/backstage/jadu/imgImage.png'
 import beforeSpending from '../../assets/backstage/jadu/imgImage1.png'
 import beforeFixed from '../../assets/backstage/jadu/imgImage2.png'
@@ -34,18 +36,9 @@ import designAi from '../../assets/backstage/jadu/ai2imgFafafa2.png'
 import designClaude from '../../assets/backstage/jadu/ai2imgClaude1.png'
 import callPhoto from '../../assets/backstage/jadu/img3.png'
 import finalePhoto from '../../assets/backstage/jadu/imgImg60943.png'
-import lampOff from '../../assets/backstage/jadu/imgLamp2.svg'
-import lampCurrent from '../../assets/backstage/jadu/imgLamp1.svg'
 
 // Figma 507:185, 1920 × 9969. 움직임은 국순당과 같은 방식(data-appear · --i · 스크롤 훅)으로 켰습니다(10/6).
 // 사진 원본은 유지하고 Figma의 이미지 fill/crop을 CSS로 표현합니다.
-const LOGS = [
-  { node: logNode1, issue: '프로젝트에 맞지 않는 초기 개발 구조', action: 'React 기반으로 개발 환경 재구성' },
-  { node: logNode2, issue: '개별 화면 사이의 연결 필요', action: '사용자 상태와 기능을 하나의 흐름으로 연결' },
-  { node: logNode3, issue: '작은 화면에서 레이아웃 대응 필요', action: '360px 실기기 기준으로 이미지·여백 조정' },
-  { node: logNode4, issue: '공통 파일 충돌과 작업 통합 문제', action: '브랜치와 배포 방식 재정비' },
-]
-
 // CUE 02: 국순당과 같은 카드 2장(parts.tsx의 CaptureDeck). 목표를 누르면 짝인 카드가 앞으로 나옵니다.
 // 카드 그림은 피그마 CUE 02 카드 내용(595 × 634)을 2배로 뽑은 것 — 01 설문조사, 02 기존 서비스 비교.
 const CAPTURES: Capture[] = [
@@ -57,15 +50,183 @@ const GOALS: Goal[] = [
   { title: '기존 서비스 비교', lines: ['기존 서비스의 기능과 정보 제공 방식을 비교해', '자두야의 기획 방향을 검토했습니다.'], capture: 1 },
 ]
 
-function DevelopmentComparison() {
-  return <figure className="jadu-development" data-appear="">
+// ── CUE 03 · REHEARSAL LOG ─────────────────────────────────────────────
+// 기록이 다섯 개라 한 화면에 다 들어오지 않아서(10/6), 이 섹션이 화면에 붙어 있는 동안 스크롤하면 기록이 하나씩 켜지고
+// 오른쪽 그림이 그 기록의 자료로 바뀝니다. 그림 순서는 피그마 522:754 'cue 03 참고할 것' 그대로입니다:
+//   LOG 01 폴더 구조(바닐라 → React) → LOG 02 화면 흐름 → LOG 03 작은 화면 대응 → LOG 04 협업 규칙 → OPENING NIGHT 최우수상
+// - 왼쪽 기록: 지금 기록만 다 펼쳐지고, 지나온 기록은 '해결' 한 줄만 남고, 남은 기록은 제목만 흐리게 보입니다.
+//   세로선은 스크롤한 만큼 차오릅니다(--seg). 기록을 누르면 그 기록으로 이동합니다.
+// - 폰·터치 태블릿에서는 화면에 붙지 않고, 기록 아래에 그림이 하나씩 이어집니다(같은 내용 · jadu.css 맨 아래).
+// 값 조절: LOG_STARTS = 각 기록이 켜지는 스크롤 위치(1 = jadu.css의 --log-step, 화면 높이의 44%), LOG_SPAN = 붙어 있는 전체 길이.
+const COMPACT = '(max-width: 700px), (max-width: 1200px) and (pointer: coarse)'
+const LOG_STARTS = [0, 0.55, 1.55, 2.55, 3.55]
+const LOG_SPAN = 4.35
+
+// 그림 안의 조각이 차례로 나타나는 순서(--d). 지금 기록이 될 때마다 다시 차례로 나옵니다.
+const pop = (d: number) => ({ '--d': d } as CSSProperties)
+
+function CardArrow({ d, down }: { d: number; down?: boolean }) {
+  return <span className="jadu-card__link jadu-pop" style={pop(d)} data-down={down || undefined} aria-hidden="true"><svg viewBox="0 0 16 10"><path d="M.75 5h14.5M11 .9 15.25 5 11 9.1" /></svg></span>
+}
+
+// LOG 01: 바닐라 → React 폴더 구조
+function StructureCard() {
+  return <div className="jadu-development">
     <div className="jadu-development__pair">
-      <div className="jadu-development__card"><p>BEFORE</p><h4>바닐라 기반</h4><div className="jadu-development__crop jadu-development__crop--before"><img src={beforeTree} alt="바닐라 JavaScript 기반의 초기 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
-      <span className="jadu-development__arrow" aria-hidden="true">→</span>
-      <div className="jadu-development__card jadu-development__card--after"><p>AFTER</p><h4>React 기반</h4><div className="jadu-development__crop jadu-development__crop--after"><img src={afterTree} alt="React 기반으로 재구성한 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
+      <div className="jadu-development__card jadu-pop" style={pop(0)}><p>BEFORE</p><h4>바닐라 기반</h4><div className="jadu-development__crop jadu-development__crop--before"><img src={beforeTree} alt="바닐라 JavaScript 기반의 초기 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
+      <span className="jadu-development__arrow jadu-pop" style={pop(1)} aria-hidden="true">→</span>
+      <div className="jadu-development__card jadu-development__card--after jadu-pop" style={pop(2)}><p>AFTER</p><h4>React 기반</h4><div className="jadu-development__crop jadu-development__crop--after"><img src={afterTree} alt="React 기반으로 재구성한 프로젝트 폴더 구조" loading="lazy" decoding="async" /></div></div>
     </div>
-    <figcaption>AI를 활용해 기존 구조를 정리하고 React 기반으로 재구성했습니다.</figcaption>
-  </figure>
+    <p className="jadu-development__note jadu-pop" style={pop(3)}>AI를 활용해 기존 구조를 정리하고 React 기반으로 재구성했습니다.</p>
+  </div>
+}
+
+// LOG 02: 로그인 → 회원가입 → 온보딩 → 홈이 하나의 흐름으로
+const FLOW = [
+  { src: flowLogin, label: '로그인' },
+  { src: flowSignup, label: '회원가입' },
+  { src: flowOnboarding, label: '온보딩' },
+  { src: flowHome, label: '홈' },
+]
+function FlowCard() {
+  return <div className="jadu-card jadu-card--flow">
+    {FLOW.map((screen, index) => <Fragment key={screen.label}>
+      {index > 0 && <CardArrow d={index * 2 - 1} />}
+      <div className="jadu-card__shot jadu-pop" style={pop(index * 2)}><img src={screen.src} width={480} height={948} alt={`${screen.label} 화면`} loading="lazy" decoding="async" /><p>{screen.label}</p></div>
+    </Fragment>)}
+  </div>
+}
+
+// LOG 03: 390–402px 기준 설계 → 360px 실기기(작은 쪽 그림은 살짝 큰 크기에서 제 크기로 줄어들며 나옵니다)
+function FitCard() {
+  return <div className="jadu-card jadu-card--fit">
+    <div className="jadu-card__shot jadu-pop" style={pop(0)}><img className="jadu-card__design" src={fitDesign} width={618} height={1329} alt="390–402px 폭으로 설계한 홈 화면" loading="lazy" decoding="async" /><p>390–402px 기준 설계</p></div>
+    <CardArrow d={1} />
+    <div className="jadu-card__shot jadu-card__shot--point jadu-pop" style={pop(2)}><img className="jadu-card__device" src={fitDevice} width={567} height={1224} alt="360px 실기기에 맞춰 이미지와 여백을 조정한 홈 화면" loading="lazy" decoding="async" /><p>360px 실기기</p></div>
+  </div>
+}
+
+// LOG 04: 병합 충돌 → 작업 규칙 정리
+function TeamCard() {
+  return <div className="jadu-card jadu-card--team">
+    <div className="jadu-card__shot jadu-pop" style={pop(0)}><img src={teamConflict} width={1680} height={551} alt="공통 파일에서 병합 충돌이 난 커밋 기록" loading="lazy" decoding="async" /><p>병합 충돌</p></div>
+    <CardArrow d={1} down />
+    <div className="jadu-card__shot jadu-card__shot--point jadu-pop" style={pop(2)}><img src={teamRules} width={1680} height={547} alt="브랜치 이름과 작업 단위를 정한 매일 작업 루틴 문서" loading="lazy" decoding="async" /><p>작업 규칙 정리</p></div>
+  </div>
+}
+
+// OPENING NIGHT: 최우수상. 수상 사진을 받으면 이 카드 안의 트로피 자리에 사진을 넣으면 됩니다(피그마에도 '사진 아직 못 넣음'으로 비어 있음).
+function AwardCard() {
+  return <div className="jadu-card jadu-card--award">
+    <span className="jadu-card__glow" aria-hidden="true" />
+    {[0, 1, 2, 3].map(index => <span key={index} className="jadu-card__spark" aria-hidden="true">✦</span>)}
+    <img className="jadu-card__trophy" src={logTrophy} width={96} height={114} alt="" />
+    <p className="jadu-card__prize jadu-pop" style={pop(3)}><strong>최우수상</strong><span>프로젝트 전체 부문</span></p>
+  </div>
+}
+
+type Log = { head: string; color: string; issue?: string; action?: string; label: string; visual: ReactNode }
+// color = 기록 동그라미 색(피그마 노드 색: 빨강에서 금빛으로)
+const LOGS: Log[] = [
+  { head: 'LOG 01', color: '#c9524f', issue: '프로젝트에 맞지 않는 초기 개발 구조', action: 'React 기반으로 개발 환경 재구성', label: '바닐라 기반에서 React 기반으로 바꾼 폴더 구조 비교', visual: <StructureCard /> },
+  { head: 'LOG 02', color: '#c9524f', issue: '개별 화면 사이의 연결 필요', action: '사용자 상태와 기능을 하나의 흐름으로 연결', label: '로그인, 회원가입, 온보딩, 홈으로 이어지는 화면 흐름', visual: <FlowCard /> },
+  { head: 'LOG 03', color: '#d7775a', issue: '작은 화면에서 레이아웃 대응 필요', action: '360px 실기기 기준으로 이미지·여백 조정', label: '기준 설계 화면과 360px 실기기 화면 비교', visual: <FitCard /> },
+  { head: 'LOG 04', color: '#e59f66', issue: '공통 파일 충돌과 작업 통합 문제', action: '브랜치와 배포 방식 재정비', label: '병합 충돌 기록과 그 뒤에 정리한 작업 규칙', visual: <TeamCard /> },
+  { head: 'OPENING NIGHT', color: '#fbdd78', label: '프로젝트 전체 부문 최우수상', visual: <AwardCard /> },
+]
+
+function RehearsalLog({ head }: { head: ReactNode }) {
+  const track = useRef<HTMLDivElement>(null)
+  const jump = useRef<(index: number) => void>(() => {})
+  const [step, setStep] = useState(0)
+  const [moved, setMoved] = useState(false)
+  useEffect(() => {
+    const element = track.current
+    const stage = element?.querySelector<HTMLElement>('.jadu-logs__stage')
+    const scroller = element?.closest('dialog')
+    if (!element || !stage || !scroller) return
+    const items = [...element.querySelectorAll<HTMLElement>('.jadu-logs__item')]
+    const compact = window.matchMedia(COMPACT)
+    let raf = 0
+    let shown = 0
+    // 붙어 있는 구간 길이(range) · 붙는 자리(top) · 한 칸 길이(unit)
+    const read = () => {
+      const range = element.offsetHeight - stage.offsetHeight
+      return { range, top: parseFloat(getComputedStyle(stage).top) || 0, unit: range / LOG_SPAN }
+    }
+    const measure = () => {
+      raf = 0
+      if (compact.matches) return
+      const { range, top, unit } = read()
+      if (range <= 0) return
+      const at = Math.min(range, Math.max(0, top - element.getBoundingClientRect().top)) / unit
+      let now = 0
+      LOG_STARTS.forEach((start, index) => { if (at >= start) now = index })
+      // 세로선: 지금 기록에서 다음 기록까지 스크롤한 만큼
+      items.forEach((item, index) => {
+        const next = LOG_STARTS[index + 1]
+        const fill = next === undefined ? 0 : Math.min(1, Math.max(0, (at - LOG_STARTS[index]) / (next - LOG_STARTS[index])))
+        item.style.setProperty('--seg', fill.toFixed(3))
+      })
+      if (now !== shown) {
+        shown = now
+        setStep(now)
+        setMoved(true)
+      }
+    }
+    const request = () => { if (!raf) raf = requestAnimationFrame(measure) }
+    jump.current = index => {
+      if (compact.matches) return
+      const { range, top, unit } = read()
+      if (range <= 0) return
+      const target = scroller.scrollTop + element.getBoundingClientRect().top - top + (LOG_STARTS[index] + (index ? 0.12 : 0)) * unit
+      scroller.scrollTo({ top: target, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    }
+    const resize = new ResizeObserver(request)
+    resize.observe(element)
+    scroller.addEventListener('scroll', request, { passive: true })
+    window.addEventListener('resize', request)
+    request()
+    return () => {
+      cancelAnimationFrame(raf)
+      resize.disconnect()
+      scroller.removeEventListener('scroll', request)
+      window.removeEventListener('resize', request)
+    }
+  }, [])
+  return (
+    <div ref={track} className="jadu-logs" style={{ '--log-span': LOG_SPAN } as CSSProperties}>
+      <div className="jadu-logs__stage">
+        {head}
+        <ol className="jadu-logs__list" data-appear="">
+          {LOGS.map((log, index) => {
+            const next = LOGS[index + 1]
+            return (
+              <li key={log.head} className="jadu-logs__item" data-final={!next || undefined}
+                data-state={index < step ? 'done' : index === step ? 'current' : 'todo'}
+                style={{ '--node': log.color, '--node-next': next?.color ?? log.color } as CSSProperties}>
+                <div className="jadu-logs__entry" onClick={() => jump.current(index)}>
+                  {next && <span className="jadu-logs__seg" aria-hidden="true"><i /></span>}
+                  <span className="jadu-logs__node" aria-hidden="true" />
+                  <div className="jadu-logs__text">
+                    <button type="button" className="backstage__log-head jadu-logs__head" aria-current={index === step ? 'step' : undefined}>{log.head}</button>
+                    {next ? <>
+                      <div className="jadu-logs__fold"><div><p className="backstage__log-issue">{log.issue}</p><p className="backstage__log-arrow" aria-hidden="true">↓</p></div></div>
+                      <div className="jadu-logs__fold jadu-logs__fold--keep"><div><p className="backstage__log-action">{log.action}</p></div></div>
+                    </> : (
+                      <div className="jadu-logs__fold jadu-logs__fold--keep"><div><p className="backstage__log-result">기획부터 구현까지, 하나의 서비스로</p><p className="backstage__log-award">프로젝트 전체 부문 <strong>최우수상</strong> 수상</p></div></div>
+                    )}
+                  </div>
+                </div>
+                <figure className="jadu-logs__visual" data-appear="" aria-label={log.label}>{log.visual}</figure>
+              </li>
+            )
+          })}
+        </ol>
+        <p className="backstage__wheel-hint jadu-logs__hint" data-gone={moved || undefined} aria-hidden="true"><i />스크롤하면 다음 기록이 켜져요</p>
+      </div>
+    </div>
+  )
 }
 
 type Phone = { src: string; label: string; imageWidth: number; imageHeight: number; offset?: number }
@@ -152,11 +313,12 @@ function AiCrew() {
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button')[next].focus()
   }
   return <div className="jadu-ai" data-appear="">
-    <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야">
+    <div className="jadu-ai__tabs" role="tablist" aria-label="AI 활용 분야" style={{ '--tab': tab } as CSSProperties}>
       {tabs.map((label, index) => <button key={label} type="button" role="tab" id={`jadu-ai-tab-${index}`} aria-selected={tab === index} aria-controls={`jadu-ai-panel-${index}`} tabIndex={tab === index ? 0 : -1} onClick={() => setTab(index)} onKeyDown={keyDown}>{label}</button>)}
+      <i className="jadu-ai__ink" aria-hidden="true" />
     </div>
     <div className="jadu-ai__panel" role="tabpanel" id={`jadu-ai-panel-${tab}`} aria-labelledby={`jadu-ai-tab-${tab}`} tabIndex={0} data-design={tab === 1 || undefined}>
-      <h4>{tab === 0 ? 'AI로 자료를 탐색하고 분석했습니다' : 'AI를 디자인과 개발에 활용했습니다'}</h4>
+      <h4 key={tab}>{tab === 0 ? 'AI로 자료를 탐색하고 분석했습니다' : 'AI를 디자인과 개발에 활용했습니다'}</h4>
       <ol className="jadu-ai__list">{(tab === 0 ? PLANNING : DESIGN).map((item, index) => <li key={item.title} className="jadu-ai__item">
         <div className="jadu-ai__head"><h5><span>{String(index + 1).padStart(2, '0')}</span>{item.title}</h5><div className="jadu-ai__tools"><span>사용한 AI</span><div>{item.logos.map(logo => logo.mask ? <span key={logo.src} role="img" aria-label={logo.label} className="jadu-ai__mask" style={{ maskImage: `url("${logo.src}")` }} /> : <img key={logo.src} src={logo.src} alt={logo.label} loading="lazy" decoding="async" />)}</div></div></div>
         <p>{item.text}</p>
@@ -169,8 +331,6 @@ function AiCrew() {
 export const jaduBackstage: BackstageContent = {
   eyebrow: 'BACKSTAGE  —  PROJECT 01',
   heroTitle: 'AI 챗봇 & 커뮤니티 모바일 웹앱 프로젝트',
-  cueLamps: { off: lampOff, current: lampCurrent },
-  bulbs: <div className="jadu-bulbs" aria-hidden="true"><img src={bulbs} alt="" /></div>,
   heroMeta: <>
     <p className="backstage__award"><img src={trophy} width={96} height={114} alt="" /><span className="backstage__award-text"><strong>최우수상</strong><small>프로젝트 전체 부문</small></span></p>
     <ul className="backstage__chips"><li>팀 프로젝트</li><li>AI 챗봇 · 커뮤니티 웹앱</li><li>Mobile UX/UI</li></ul>
@@ -191,14 +351,11 @@ export const jaduBackstage: BackstageContent = {
       </div>,
     },
     script: { sub: '무엇을, 왜 만들려 했나', body: <CaptureDeck captures={CAPTURES} goals={GOALS} /> },
+    // CUE 03: 화면에 붙어 있는 무대(제목까지 같이 붙어 있어야 해서 layout으로 직접 배치) — 위 RehearsalLog
     log: {
       sub: '문제를 발견하고 해결해 나간 과정',
-      backdrop: <DevelopmentComparison />,
-      body: <ol className="backstage__timeline">
-        <li className="backstage__timeline-line" aria-hidden="true"><i /></li>
-        {LOGS.map((log, index) => <li key={log.issue} className="backstage__log"><img className="jadu-log-node" src={log.node} alt="" /><p className="backstage__log-head">LOG {String(index + 1).padStart(2, '0')}</p><p className="backstage__log-issue">{log.issue}</p><p className="backstage__log-arrow" aria-hidden="true">↓</p><p className="backstage__log-action">{log.action}</p></li>)}
-        <li className="backstage__log backstage__log--final"><img className="jadu-log-node jadu-log-node--opening" src={openingNode} alt="" /><p className="backstage__log-head">OPENING NIGHT</p><p className="backstage__log-result">기획부터 구현까지, 하나의 서비스로</p><p className="backstage__log-award">프로젝트 전체 부문 <strong>최우수상 </strong>수상</p><img className="backstage__log-trophy" src={logTrophy} alt="" width={96} height={114} /></li>
-      </ol>,
+      body: null,
+      layout: head => <RehearsalLog head={head} />,
     },
     show: {
       sub: '시안에서 최종 화면이 완성되기까지',

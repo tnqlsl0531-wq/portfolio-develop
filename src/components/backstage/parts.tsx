@@ -14,6 +14,7 @@ export type CuePart = {
   sub: string // 큐 제목 아래 한 줄 설명
   backdrop?: ReactNode // 섹션 뒤에 깔리는 사진(없어도 됨)
   body: ReactNode // 섹션 내용
+  layout?: (head: ReactNode) => ReactNode // 제목 묶음까지 직접 배치해야 할 때(예: 스크롤하는 동안 화면에 붙어 있는 무대). 주면 '제목 + body' 대신 이것을 그립니다.
 }
 export type BackstageContent = {
   eyebrow: string // 맨 위 주황 글자(BACKSTAGE — PROJECT 02)

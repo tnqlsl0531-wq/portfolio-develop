@@ -358,11 +358,12 @@ export default function Backstage({ project, onClose }: { project: Project | nul
               if (!item.kind || !item.title) return null
               const part = content.cues[item.kind]
               if (!part) return null
+              const head = <CueHead index={index} no={part.no ?? item.no} title={item.title} sub={part.sub} />
               return (
                 <section key={item.kind} className={`backstage__cue backstage__cue--${item.kind}`} data-cue={index} aria-labelledby={`backstage-cue-${index}`}>
                   {part.backdrop}
-                  <CueHead index={index} no={part.no ?? item.no} title={item.title} sub={part.sub} />
-                  {part.body}
+                  {/* layout이 있으면 제목 묶음을 넘겨주고 그 작품이 직접 배치합니다(자두야 CUE 03: 화면에 붙어 있는 무대). */}
+                  {part.layout ? part.layout(head) : <>{head}{part.body}</>}
                 </section>
               )
             })}

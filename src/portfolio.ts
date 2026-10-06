@@ -95,7 +95,8 @@ export const projects: Project[] = [
     team: 'Team',
     platform: 'App',
     period: '2026.08 ~ 2026.09',
-    url: 'https://portfolio-develop-ten.vercel.app/',
+    // ON STAGE · GO ONSTAGE → 실제 자두야 앱(10/6). 기획서 PDF가 생기면 public/에 넣고 planUrl을 국순당처럼 추가하면 됩니다.
+    url: 'https://jaduya.vercel.app/',
   },
 ]
 

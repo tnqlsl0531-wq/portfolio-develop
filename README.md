@@ -100,7 +100,7 @@ macOS와 Linux에서는 `npm.cmd` 대신 `npm`을 사용합니다.
 
 프로젝트 상세 링크와 일부 사진·소개는 준비 중인 자리입니다. 문의 폼은 기본 메일 앱을 열며, 메일 앱에서 직접 보내야 전송됩니다. 자동 발송 서버는 연결하지 않았습니다.
 
-자두야 BACKSTAGE는 `#backstage-jadu` 주소로 열 수 있습니다. 애니메이션은 추후 추가하도록 `jaduBackstage.static`을 켰고, STAGE SET은 디자인의 빈 캡처 자리를 유지합니다. AI CREW 탭은 Figma의 두 상태(581:1724 · 565:258)를 전환합니다. 기획서 링크는 준비 중이며, GO ONSTAGE 주소는 `src/portfolio.ts`에서 바꿉니다. 원본 디자인에서 커튼콜 본문은 CUE 06, 목차는 CUE 07로 되어 있어 그 표기를 유지했습니다.
+자두야 BACKSTAGE는 `#backstage-jadu` 주소로 열 수 있습니다. 움직임은 국순당과 같은 방식으로 켜져 있습니다(10/6 · 전구 · 큐시트 램프와 세로선 · `data-appear` · CUE 01 사진 · CUE 02 카드 교체 · 인용문 · 커튼). CUE 03(REHEARSAL LOG)은 기록이 다섯 개라, 섹션이 화면에 붙어 있는 동안 스크롤하면 기록이 하나씩 켜지고 오른쪽 그림이 그 기록의 자료로 바뀝니다(`jadu.tsx`의 `RehearsalLog` · 그림은 Figma 522:754 · 폰에서는 기록 아래에 그림이 이어짐). 이렇게 제목까지 직접 배치해야 하는 섹션은 내용 파일에서 `layout`을 주면 됩니다(`parts.tsx`의 `CuePart.layout`). STAGE SET은 첫 화면 그림 위에서 폰 안만 스크롤됩니다(발표 영상으로 바꿀 예정). AI CREW 탭은 Figma의 두 상태(581:1724 · 565:258)를 전환합니다. 기획서 링크는 준비 중이며, GO ONSTAGE 주소는 `src/portfolio.ts`에서 바꿉니다. 원본 디자인에서 커튼콜 본문은 CUE 06, 목차는 CUE 07로 되어 있어 그 표기를 유지했습니다.
 
 ## 확인 명령
 
